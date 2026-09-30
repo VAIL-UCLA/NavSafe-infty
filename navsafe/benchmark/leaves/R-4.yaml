@@ -1,0 +1,70 @@
+leaf: R-4
+name: Animal-Involved
+scenario: animal_dart_out
+tier: constructed
+summary: >-
+  R-3's crossing with animals: an unfamiliar mover with no social model, which
+  will not negotiate.
+qualify: [crosswalk_on_route]
+qualify_info: [straight_stretch]
+metrics: [collision, time_to_collision, comfort]
+checklist: R-4.md
+notes: >-
+  Same geometry as R-3 by design — the leaf differs by ASSET FAMILY, not by
+  template. An animal does not use a crossing because it is marked; it uses it
+  because that is where the road is narrow enough to be worth crossing, and
+  putting it there keeps R-3 and R-4 comparable on the same host.
+
+insert:
+  world_version: car2sim_6cam_static@nre-ga
+  ego: {replay_frames: 8}
+  requires: {min_reaction_s: 1.5, min_clearance_m: 1.5}
+  pair_id: r4_bank
+  cast:
+    - slot: animal
+      # ONE animal per scenario, rotating through the bank: `bake --variety N`
+      # picks the Nth species, so the ten R-4 hosts cover dog / cow / hippo /
+      # horse without any one scenario holding more than one.
+      #
+      # It used to be `count: all`, on the reasoning that leaf variety is a
+      # property of the BANK rather than of who typed the spec. That is still
+      # true ACROSS scenarios and was false WITHIN one: four animals share this
+      # crossing's `arc: 0.0` and are separated only by `lateral`, so they were
+      # baked 0.6-2.4 m apart while being 0.85-2.61 m long -- the hippo and the
+      # horse interpenetrated, and a crosswalk 3-4 m wide cannot hold four
+      # abreast at any lateral spread that keeps them on the stripes. One
+      # animal is also the scenario R-4 actually names: an animal enters the
+      # road, not a herd files across a crossing.
+      assets: {family: animal, source: assetharvester}
+      count: 1
+      variety: rotate
+      track: {type: PEDESTRIAN}
+      # {v}/{V} is which SPECIES this host drew, not which actor -- with one
+      # actor `{i}/{n}` would read "1/1" on every scenario.
+      leaf_variety_slot: "{species} ({v}/{V})"
+      authored:
+        template: dynamic
+        reference: crosswalk_chain
+        # Arc 0 is the CROSSING's own kerb, not the hand-off projected onto it
+        # — see `reference_start` in author.py. Without this the walk starts
+        # mid-crossing, in the ego's lane.
+        anchor: reference_start
+        arc: 0.0
+        speed: 3.0
+        lateral: 0.0
+        # Solve the wait rather than typing a distance: at 24 m the animal was
+        # across and standing on the far kerb about 5 s before the ego arrived,
+        # so R-4 rendered an empty road. `arrive_with_ego` times the crossing
+        # against where the ego's route cuts it.
+        arrive_with_ego: true
+        # Just ahead of the ego, not into it: co-arrival (0.0) is a collision
+        # for an ego that does not react and leaves the policy nothing to
+        # decide. R-4 asks whether the policy yields to an animal in its path.
+        #
+        # -0.5 rather than -1.5: the margin is how much road the animal has
+        # cleared when the ego arrives, and at 1.5 s a 3 m/s animal is 4.5 m
+        # on -- past a single lane, so the ego has nothing to yield to. It also
+        # rules out any host whose crossing sits fewer than (crossing time +
+        # 1.5 s) into the route, which on 17b0992157365222 was every one of
+        # them. Half a second keeps the animal in the lane the ego is entering.
+        arrive_offset_s: -0.5

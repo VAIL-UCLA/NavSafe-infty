@@ -1,0 +1,33 @@
+# @package _global_
+# NRE recipe: 3dgut_dynamic + a STATIC_RIGIDS layer.
+# ---------------------------------------------------------------------------
+# Extends the stock Waymo `3dgut_dynamic` composite with a `static_rigids` node
+# so STATIC tracked objects (parked cars, signs) get their OWN Gaussian node
+# instead of baking into `background`. Result: every boxed object — moving
+# (dynamic_rigids / dynamic_deformables) and static (static_rigids) — is a
+# server-exposed controllable node, so it can be moved/removed at render time
+# via the gRPC dynamic_objects API (e.g. eval_py123d --remove-agents for a
+# background-only render). Without this recipe, statics bake into `background`
+# and cannot be removed.
+#
+# This is an NRE (Neural Reconstruction Engine) config, not a NexusSim config.
+# Preferred use — the pipeline handles it: nurec_runner.run_train(
+# static_separation=True) (or run_real2sim.py --static-separation) bind-mounts
+# this file into the container config tree and selects it. Only for a k8s /
+# interactive NRE container do you copy it in manually:
+#
+#   CFGDIR=/app/internal/scripts/pycena/runtime/pycena_nrm_full.runfiles/_main/configs/apps/AV/Waymo
+#   cp nexussim/gs3d_converter/configs/3dgut_dynamic_static.yaml $CFGDIR/
+#   /app/run --config-name=configs/apps/AV/Waymo/3dgut_dynamic_static.yaml mode=train ...
+#
+# The static_rigids *values* (label_classes, is_dynamic=false, init) are set as
+# `++` CLI overrides at train time because camera_dynamic_tracks already defines
+# those keys. run_train(static_separation=True) applies the full set
+# automatically; see nexussim/gs3d_converter/nurec_runner.py and
+# docs/nurec_grpc_eval.md.
+defaults:
+  - /apps/AV/Waymo/3dgut_dynamic
+  - /model/gaussians/models@model.layers.static_rigids: rigid_gaussians
+  - /model/gaussians/initialization@model.layers.static_rigids.initialization: camera_dynamic_tracks
+  - /model/tracks_calib@model.layers.static_rigids.tracks_calib: static
+  - _self_

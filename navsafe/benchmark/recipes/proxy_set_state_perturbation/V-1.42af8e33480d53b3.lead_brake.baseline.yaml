@@ -1,0 +1,61 @@
+recipe_id: editor/42af8e33480d53b3/lead_brake/b5ac1726-fc4b-451d-b05e-b8f373e465a3/baseline
+leaf: V-1
+scenario: ''
+nuplan_type: null
+provenance: constructed
+frozen_at: '2026-09-12'
+host: {scene: fdb44696-83fc-566c-849f-1e4e9a4fa04e, world_version: installed_reconstruction, temporal_extent_s: 19.900000000000002}
+frame: ego_frame0
+ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
+route_polyline: []
+frames: {T: 200, dt_s: 0.1, after_frame: 8}
+actors:
+  editor_a01ecc3a358d4:
+    asset:
+      registry_key: hb_car_1
+      sha256: a6f0ab4d2ef7f127bbfaa728595ada9e85239468f23a821fe68e6b24f92ac0a5
+      dims: [4.6, 2.233, 1.8]
+    track: {type: VEHICLE, semantic_class: vehicle}
+    op: insert
+    nurec_asset_id: asset/car_1.ply
+    spawn:
+      position: [6.520893596660851, -0.41970671154400785, 0]
+      heading: 0.14004053474905803
+      velocity: [6.931472373378061, 0.9770827688055417]
+      length: 4.6
+      width: 2.233
+      height: 1.8
+    policy:
+      kind: authored_path
+      event_kind: lead_brake
+      path_polyline:
+      - [27.31531071679504, 2.5115415948726176, 0]
+      - [27.5610121200275, 2.5461764595071252, 0]
+      - [27.806713523259965, 2.5808113241416337, 0]
+      - [28.052414926492432, 2.6154461887761418, 0]
+      - [28.298116329724895, 2.6500810534106503, 0]
+      - [28.54381773295736, 2.684715918045158, 0]
+      - [28.78951913618982, 2.7193507826796663, 0]
+      - [29.035220539422284, 2.7539856473141744, 0]
+      - [29.280921942654746, 2.7886205119486824, 0]
+      - [29.526623345887213, 2.823255376583191, 0]
+      - [29.77232474911968, 2.8578902412176985, 0]
+      - [30.018026152352142, 2.892525105852207, 0]
+      - [30.2637275555846, 2.9271599704867146, 0]
+      - [30.509428958817068, 2.9617948351212227, 0]
+      - [30.75513036204953, 2.996429699755731, 0]
+      - [31.000831765281994, 3.031064564390239, 0]
+      - [31.246533168514457, 3.0656994290247472, 0]
+      - [31.492234571746923, 3.1003342936592553, 0]
+      - [470.9295426129911, 65.04483879842631, 0.0]
+      onset_s: 3
+      speed: 7
+      deceleration: 3
+      speed_reduction: 7
+      hold_s: 1
+      recovery_acceleration: 2
+      enabled: false
+    sha256: a5f57b4dd37ede929f77038042418fb024a7daa8797922849ba3edf3bf2b0241
+background_traffic: keep
+selection: {editor_event: lead_brake, editor_variant: baseline, qualification: UNVALIDATED_EDITOR_DRAFT,
+  proxy_set_state_perturbation: true, prepared_eval_frames: 600, source_export: navsafe-recipe-b5ac1726.zip}

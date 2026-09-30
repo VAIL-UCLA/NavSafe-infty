@@ -1,0 +1,77 @@
+# F3 -- turns through intersections: the unprotected/protected left turn.
+#
+# This is the taxonomy doc's worked example (IV-B, "has the ego successfully
+# turned left"). Success is not "did not crash": it is the named competence
+# *completing the maneuver into the correct lane, aligned, obeying the signal*.
+# That is what makes a failure attributable to a competence rather than to
+# generic badness.
+family: F3_left_turn
+doc_family: F3
+nuplan_tags: [starting_left_turn]
+
+# Sampled per episode and frozen into the manifest (doc IV-A).
+initialization:
+  ego_longitudinal_offset_m: {kind: uniform, low: -4.0, high: 4.0}
+  ego_speed_jitter_mps:      {kind: uniform, low: -1.5, high: 1.5}
+  ego_lateral_offset_m:      {kind: uniform, low: -0.4, high: 0.4}
+  ego_heading_jitter_deg:    {kind: uniform, low: -3.0, high: 3.0}
+  # Non-causal agents may be dropped; causal ones (the oncoming stream that
+  # makes the turn unprotected) never are -- that is handled by `reject`.
+  noncausal_agent_dropout:   {kind: uniform, low: 0.0, high: 0.3}
+
+# All must hold. t_max is per-family and is calibrated from the log-time
+# distribution of the maneuver, not guessed (see reject/solvability below).
+success:
+  - reach:   {region: exit_lane_polygon, t_max: t_max_s}
+  - align:   {lane: exit_lane, heading_tol: 20}
+  - comply:  {signal: signal_at_entry}
+  # NOT YET: `clear` with an oncoming band ([45, 180]) is the natural test for
+  # an unprotected left -- crossing the oncoming stream is the defining hazard.
+  # It is withheld because the trace's `ttc_s` is a range-rate approximation,
+  # not a collision-course test: two vehicles passing in adjacent opposing
+  # lanes show a high closing rate and a small range, so a legal turn taken in
+  # a real gap reads as a conflict. The logged human fails it (3 agents,
+  # 21 frames) for exactly that reason. Enabling this needs a path-intersection
+  # TTC in trace/writer.py first; until then the oncoming margin is covered,
+  # more weakly, by the maintain_gap floor below.
+
+# Always on. A violation fails the episode regardless of the success block.
+gates:
+  - no_collision: {fault: at_fault}
+  - on_drivable: {}
+  # Box overlap without a reported contact. Measured between the oriented
+  # footprints, so the floor is 0.0 rather than a near-miss margin: the logged
+  # human passes within 0.44 m on the Boston left turn and its box overlaps
+  # another vehicle outright on the Singapore crossing, without touching
+  # anything -- nuPlan cuboids are annotations, not collision hulls. A positive
+  # floor would fail a perfect policy. What this gate adds over no_collision is
+  # a cross-check of the simulator's contact detection against geometry.
+  # TODO: calibrate a near-miss floor from the mined pool the way t_max is,
+  # instead of guessing one, and report it as a diagnostic rather than a gate.
+  - maintain_gap: {d_min: 0.0}
+
+# Recorded on every episode, gating on none of them. These are what an analyst
+# reads to say *why* a policy failed, and they feed the outcome labeller.
+diagnostics: [min_clearance, min_ttc, time_in_intersection, n_stops, max_abs_jerk]
+
+# Scenic-style rejection: resample until accepted, and report the rate.
+reject:
+  - initial_interpenetration
+  - off_drivable_spawn
+  - initial_ttc_below_floor        # scenario already unavoidable at t=0
+  - expert_cannot_solve            # the solvability guarantee: a privileged
+                                   # expert must complete it collision-free
+                                   # inside the validity envelope, else the
+                                   # test is unfair rather than hard
+  - signal_never_permits           # event-window predicate unsatisfiable
+
+actors:
+  # Selector -> policy. The regime decides which of these is legal; the same
+  # file is reused across all three regimes by swapping the policy names.
+  "*": replay
+
+# t_max calibrated from the mined pool, not guessed: the p95 human completion
+# time for this family x 1.3 slack (nexussim/navsafe/rubric/calibrate_tmax.py,
+# n=152, median 5.8s, p95 12.2s). A policy gets as long as a slow human plus
+# a margin for closed-loop recovery, and no more.
+t_max_s: 15.8

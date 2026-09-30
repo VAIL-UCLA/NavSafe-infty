@@ -1,0 +1,483 @@
+# NavSafe scene-editing recipe — FROZEN, do not hand-edit.
+#
+# THIS FILE HOLDS NO TRAJECTORY. Each actor is `spawn` (its pose at frame 0, in
+# ego frame-0 coordinates) plus `policy` — the controller that produces its path
+# at run time by reacting to the ego, to the other inserted actors and to the
+# logged traffic. Where it ends up on frame k is therefore not knowable here,
+# and storing it would be a lie the moment the policy under test drives
+# differently from the logged ego.
+#
+# `authored` is documentation: HOW the spawn and the goal were solved against
+# this host (template, reference, laterals, the arc the layout assigned). It is
+# diffable and re-authorable, and it is never re-executed at replay. In
+# particular a `template: dart_out` there does not mean a scripted dart — it
+# means that template solved the placement, which then became the social-force
+# goal in `policy`.
+#
+# Each actor's `sha256` covers its spawn + policy. Editing a number here without
+# re-freezing makes the recipe fail loudly at replay, which is the point.
+recipe_id: R-3/micromobility_crossing/087df0996ade50d3_20s/001
+leaf: R-3
+scenario: micromobility_crossing
+nuplan_type: null
+provenance: constructed
+frozen_at: '2026-09-01'
+host: {scene: c43ac3ab-9f4a-5dba-bf4f-1d47e2ad838f, world_version: car2sim_6cam_static@nre-ga}
+frame: ego_frame0
+ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
+route_polyline:
+- [0.0, 0.0]
+- [0.004, 0.005]
+- [0.013, 0.014]
+- [0.025, 0.03]
+- [0.044, 0.055]
+- [0.072, 0.091]
+- [0.109, 0.137]
+- [0.158, 0.197]
+- [0.218, 0.269]
+- [0.288, 0.351]
+- [0.369, 0.446]
+- [0.462, 0.552]
+- [0.563, 0.67]
+- [0.675, 0.8]
+- [0.795, 0.941]
+- [0.924, 1.09]
+- [1.062, 1.248]
+- [1.21, 1.417]
+- [1.362, 1.594]
+- [1.526, 1.783]
+- [1.694, 1.976]
+- [1.866, 2.178]
+- [2.039, 2.386]
+- [2.215, 2.598]
+- [2.392, 2.813]
+- [2.57, 3.03]
+- [2.752, 3.253]
+- [2.936, 3.472]
+- [3.126, 3.697]
+- [3.318, 3.928]
+- [3.517, 4.164]
+- [3.721, 4.408]
+- [3.933, 4.663]
+- [4.15, 4.924]
+- [4.377, 5.194]
+- [4.608, 5.471]
+- [4.846, 5.756]
+- [5.094, 6.054]
+- [5.351, 6.362]
+- [5.616, 6.68]
+- [5.892, 7.007]
+- [6.177, 7.344]
+- [6.466, 7.686]
+- [6.772, 8.046]
+- [7.08, 8.408]
+- [7.394, 8.78]
+- [7.72, 9.165]
+- [8.054, 9.561]
+- [8.391, 9.965]
+- [8.739, 10.382]
+- [9.094, 10.809]
+- [9.447, 11.234]
+- [9.817, 11.674]
+- [10.194, 12.123]
+- [10.577, 12.581]
+- [10.972, 13.049]
+- [11.372, 13.522]
+- [11.778, 14.002]
+- [12.19, 14.496]
+- [12.603, 14.992]
+- [13.027, 15.5]
+- [13.456, 16.011]
+- [13.887, 16.524]
+- [14.323, 17.043]
+- [14.769, 17.574]
+- [15.217, 18.108]
+- [15.67, 18.647]
+- [16.125, 19.191]
+- [16.585, 19.739]
+- [17.054, 20.298]
+- [17.515, 20.856]
+- [17.986, 21.424]
+- [18.461, 21.995]
+- [18.941, 22.571]
+- [19.42, 23.146]
+- [19.908, 23.732]
+- [20.396, 24.318]
+- [20.88, 24.901]
+- [21.373, 25.489]
+- [21.868, 26.081]
+- [22.366, 26.673]
+- [22.863, 27.264]
+- [23.356, 27.85]
+- [23.851, 28.432]
+- [24.351, 29.022]
+- [24.849, 29.612]
+- [25.342, 30.192]
+- [25.833, 30.771]
+- [26.324, 31.351]
+- [26.814, 31.927]
+- [27.301, 32.505]
+- [27.788, 33.083]
+- [28.277, 33.659]
+- [28.759, 34.225]
+- [29.245, 34.796]
+- [29.723, 35.36]
+- [30.203, 35.929]
+- [30.678, 36.493]
+- [31.152, 37.063]
+- [31.622, 37.631]
+- [32.089, 38.198]
+- [32.553, 38.765]
+- [33.017, 39.326]
+- [33.481, 39.892]
+- [33.942, 40.452]
+- [34.401, 41.012]
+- [34.862, 41.569]
+- [35.328, 42.131]
+- [35.787, 42.682]
+- [36.25, 43.237]
+- [36.705, 43.784]
+- [37.166, 44.339]
+- [37.625, 44.887]
+- [38.086, 45.437]
+- [38.542, 45.983]
+- [39.0, 46.532]
+- [39.455, 47.078]
+- [39.91, 47.624]
+- [40.364, 48.168]
+- [40.815, 48.708]
+- [41.262, 49.249]
+- [41.716, 49.795]
+- [42.168, 50.336]
+- [42.625, 50.88]
+- [43.079, 51.419]
+- [43.534, 51.964]
+- [43.995, 52.513]
+- [44.45, 53.058]
+- [44.906, 53.605]
+- [45.369, 54.161]
+- [45.831, 54.719]
+- [46.294, 55.28]
+- [46.755, 55.832]
+- [47.228, 56.396]
+- [47.697, 56.959]
+- [48.162, 57.522]
+- [48.63, 58.082]
+- [49.103, 58.647]
+- [49.578, 59.214]
+- [50.049, 59.773]
+- [50.527, 60.336]
+- [51.004, 60.895]
+- [51.485, 61.46]
+- [51.959, 62.017]
+- [52.438, 62.576]
+- [52.914, 63.135]
+- [53.382, 63.685]
+- [53.849, 64.234]
+- [54.313, 64.779]
+- [54.775, 65.324]
+- [55.234, 65.869]
+- [55.693, 66.411]
+- [56.147, 66.951]
+- [56.596, 67.482]
+- [57.044, 68.012]
+- [57.491, 68.537]
+- [57.939, 69.057]
+- [58.383, 69.577]
+- [58.825, 70.092]
+- [59.266, 70.605]
+- [59.705, 71.111]
+- [60.139, 71.613]
+- [60.57, 72.111]
+- [61.002, 72.611]
+- [61.426, 73.102]
+- [61.844, 73.588]
+- [62.258, 74.067]
+- [62.663, 74.537]
+- [63.069, 75.009]
+- [63.465, 75.468]
+- [63.856, 75.921]
+- [64.239, 76.365]
+- [64.618, 76.805]
+- [64.985, 77.232]
+- [65.346, 77.656]
+- [65.699, 78.068]
+- [66.049, 78.476]
+- [66.384, 78.869]
+- [66.718, 79.261]
+- [67.042, 79.638]
+- [67.358, 80.007]
+- [67.668, 80.367]
+- [67.965, 80.712]
+- [68.254, 81.048]
+- [68.532, 81.367]
+- [68.797, 81.674]
+- [69.054, 81.971]
+- [69.3, 82.253]
+- [69.531, 82.52]
+- [69.752, 82.776]
+- [69.962, 83.018]
+- [70.159, 83.246]
+- [70.343, 83.46]
+- [70.515, 83.66]
+- [70.676, 83.848]
+- [70.825, 84.022]
+- [70.964, 84.18]
+- [71.092, 84.325]
+- [71.208, 84.456]
+- [71.311, 84.574]
+frames:
+  T: 200
+  dt_s: 0.100002
+  after_frame: 8
+  timestamps_us: [1631823341999857, 1631823342099844, 1631823342199833, 1631823342299810, 1631823342399780,
+    1631823342499749, 1631823342599720, 1631823342699683, 1631823342799645, 1631823342899613, 1631823342999583,
+    1631823343099561, 1631823343199547, 1631823343299552, 1631823343399571, 1631823343499598, 1631823343599617,
+    1631823343699646, 1631823343799691, 1631823343899737, 1631823343999777, 1631823344099822, 1631823344199872,
+    1631823344299918, 1631823344399964, 1631823344500020, 1631823344600087, 1631823344700147, 1631823344800198,
+    1631823344900243, 1631823345000296, 1631823345100351, 1631823345200392, 1631823345300421, 1631823345400444,
+    1631823345500462, 1631823345600469, 1631823345700465, 1631823345800450, 1631823345900427, 1631823346000393,
+    1631823346100353, 1631823346200309, 1631823346300270, 1631823346400230, 1631823346500184, 1631823346600148,
+    1631823346700104, 1631823346800063, 1631823346900018, 1631823346999976, 1631823347099943, 1631823347199908,
+    1631823347299876, 1631823347399840, 1631823347499818, 1631823347599814, 1631823347699810, 1631823347799817,
+    1631823347899829, 1631823347999849, 1631823348099869, 1631823348199898, 1631823348299927, 1631823348399958,
+    1631823348499986, 1631823348600018, 1631823348700055, 1631823348800087, 1631823348900123, 1631823349000164,
+    1631823349100203, 1631823349200236, 1631823349300266, 1631823349400274, 1631823349500279, 1631823349600281,
+    1631823349700281, 1631823349800284, 1631823349900285, 1631823350000284, 1631823350100265, 1631823350200232,
+    1631823350300191, 1631823350400146, 1631823350500098, 1631823350600054, 1631823350700017, 1631823350799976,
+    1631823350899928, 1631823350999873, 1631823351099816, 1631823351199760, 1631823351299717, 1631823351399697,
+    1631823351499699, 1631823351599722, 1631823351699762, 1631823351799804, 1631823351899840, 1631823351999876,
+    1631823352099911, 1631823352199947, 1631823352299985, 1631823352400027, 1631823352500071, 1631823352600122,
+    1631823352700176, 1631823352800233, 1631823352900287, 1631823353000332, 1631823353100384, 1631823353200441,
+    1631823353300480, 1631823353400496, 1631823353500502, 1631823353600500, 1631823353700486, 1631823353800464,
+    1631823353900433, 1631823354000402, 1631823354100369, 1631823354200329, 1631823354300303, 1631823354400290,
+    1631823354500279, 1631823354600269, 1631823354700254, 1631823354800234, 1631823354900211, 1631823355000189,
+    1631823355100163, 1631823355200130, 1631823355300097, 1631823355400084, 1631823355500080, 1631823355600069,
+    1631823355700052, 1631823355800036, 1631823355900024, 1631823356000004, 1631823356099984, 1631823356199959,
+    1631823356299930, 1631823356399894, 1631823356499855, 1631823356599816, 1631823356699776, 1631823356799738,
+    1631823356899709, 1631823356999677, 1631823357099654, 1631823357199646, 1631823357299657, 1631823357399665,
+    1631823357499684, 1631823357599711, 1631823357699746, 1631823357799786, 1631823357899841, 1631823357999898,
+    1631823358099948, 1631823358199997, 1631823358300053, 1631823358400103, 1631823358500141, 1631823358600171,
+    1631823358700204, 1631823358800231, 1631823358900254, 1631823359000285, 1631823359100323, 1631823359200345,
+    1631823359300353, 1631823359400359, 1631823359500360, 1631823359600367, 1631823359700369, 1631823359800370,
+    1631823359900359, 1631823360000338, 1631823360100308, 1631823360200270, 1631823360300230, 1631823360400198,
+    1631823360500163, 1631823360600115, 1631823360700060, 1631823360800006, 1631823360899956, 1631823360999907,
+    1631823361099853, 1631823361199805, 1631823361299769, 1631823361399753, 1631823361499756, 1631823361599771,
+    1631823361699801, 1631823361799842, 1631823361899877]
+actors:
+  ped_1:
+    asset:
+      registry_key: hb_pedestrian_1
+      sha256: 455e746e2169bd4b1bc774ebff28a7f3be64d6e6284a81cec38aa3503e5f742a
+      dims: [1.013, 0.896, 1.706]
+    leaf_variety_slot: person 1/3
+    track: {type: PEDESTRIAN}
+    op: insert
+    nurec_asset_id: asset/pedestrain_1.ply
+    nurec_pose_bank: gait_bank/hb_pedestrian_1_p3
+    pose_bank_sha256: ac2fdc714f4c61c19ebc4a2aec01f223e279c61286f5b16203161747a7476ad5
+    authored:
+      template: dynamic
+      reference: crosswalk_chain
+      anchor: reference_start
+      arc: 0.0
+      speed: 1.3
+      lateral: 0.0
+      arrive_with_ego: true
+      arrive_offset_s: -2.0
+      conflict_frame: 43
+      anchor_solved: {name: reference_start, kind: reference, reference_arc_m: 0.0}
+      solved:
+        conflict_arc_m: 11.39
+        conflict_xy: [14.28, 17.0]
+        ego_arrival_frame: 43
+        arrive_offset_s: -2.0
+      reference_polyline:
+      - [3.386, 20.305]
+      - [24.992, 13.747]
+    spawn:
+      position: [3.386, 20.305, 195.634]
+      heading: -0.29468
+      velocity: [1.244, -0.378]
+      length: 1.013
+      width: 0.896
+    policy:
+      kind: social_force
+      goal: [24.992, 13.747]
+      desired_speed: 1.3
+    sha256: f274edbba37df581e3cf29677c84b01a6f735e2f9626437589dda85ee71e46a9
+  ped_2:
+    asset:
+      registry_key: hb_pedestrian_2
+      sha256: d8f56dc2bc780598c2deccb1971055bcba7947e74313157b6d07a88c476d3b9f
+      dims: [0.707, 0.671, 1.697]
+    leaf_variety_slot: person 2/3
+    track: {type: PEDESTRIAN}
+    op: insert
+    nurec_asset_id: asset/pedestrian_2.ply
+    nurec_pose_bank: gait_bank/hb_pedestrian_2_p3
+    pose_bank_sha256: 2548df6f295e567d22a544f7b4adf2da1c66a262be013de0cefcd076b71ba617
+    authored:
+      template: dynamic
+      reference: crosswalk_chain
+      anchor: reference_start
+      arc: 0.0
+      speed: 1.5
+      lateral: 1.6
+      arrive_with_ego: true
+      arrive_offset_s: -1.0
+      conflict_frame: 53
+      anchor_solved: {name: reference_start, kind: reference, reference_arc_m: 0.0}
+      solved:
+        conflict_arc_m: 11.39
+        conflict_xy: [14.28, 17.0]
+        ego_arrival_frame: 53
+        arrive_offset_s: -1.0
+      reference_polyline:
+      - [3.386, 20.305]
+      - [24.992, 13.747]
+    spawn:
+      position: [3.85, 21.836, 195.634]
+      heading: -0.29468
+      velocity: [1.435, -0.436]
+      length: 0.707
+      width: 0.671
+    policy:
+      kind: social_force
+      goal: [25.457, 15.278]
+      desired_speed: 1.5
+    sha256: bfd1e939d3d2cbf93edd38fa35bff5ea4ae48f7ee3f7112b350fd126bfe4f5fc
+  ped_3:
+    asset:
+      registry_key: hb_pedestrian_3
+      sha256: b9c9dc8bf5a55c55e17f218571e0bb5b8638e7b4afb39d6d3b8aea05478fa780
+      dims: [0.366, 0.567, 1.697]
+    leaf_variety_slot: person 3/3
+    track: {type: PEDESTRIAN}
+    op: insert
+    nurec_asset_id: asset/pedestrain_3.ply
+    nurec_pose_bank: gait_bank/hb_pedestrian_3_p3
+    pose_bank_sha256: 99f11e2515f40c9b4fcfb6e33a5c2575b93b19b2f104388afd9bb69cf54577ae
+    authored:
+      template: dynamic
+      reference: crosswalk_chain
+      anchor: reference_start
+      arc: 0.0
+      speed: 1.2
+      lateral: 3.2
+      arrive_with_ego: true
+      arrive_offset_s: -1.5
+      conflict_frame: 48
+      anchor_solved: {name: reference_start, kind: reference, reference_arc_m: 0.0}
+      solved:
+        conflict_arc_m: 11.39
+        conflict_xy: [14.28, 17.0]
+        ego_arrival_frame: 48
+        arrive_offset_s: -1.5
+      reference_polyline:
+      - [3.386, 20.305]
+      - [24.992, 13.747]
+    spawn:
+      position: [4.315, 23.367, 195.634]
+      heading: -0.29468
+      velocity: [1.148, -0.349]
+      length: 0.366
+      width: 0.567
+    policy:
+      kind: social_force
+      goal: [25.921, 16.81]
+      desired_speed: 1.2
+    sha256: c9bbcc16764ea1d302af8d4ffdb98b653c33803a1891e841919972a9a8aaede6
+  robot_1:
+    asset:
+      registry_key: hb_robot_1
+      sha256: 823a9e33232891290fda19c92ff52f460e3a9b2c3348582e0b5eb3bd54716f1c
+      dims: [0.764, 0.6, 0.689]
+    leaf_variety_slot: robot 1/2
+    track: {type: PEDESTRIAN, semantic_class: NuPlanBoxDetectionLabel.PEDESTRIAN}
+    op: insert
+    nurec_asset_id: asset/robot1_fwd.ply
+    authored:
+      template: dynamic
+      reference: crosswalk_chain
+      anchor: reference_start
+      arc: 0.0
+      speed: 1.0
+      lateral: -1.6
+      arrive_with_ego: true
+      arrive_offset_s: -1.5
+      conflict_frame: 48
+      anchor_solved: {name: reference_start, kind: reference, reference_arc_m: 0.0}
+      solved:
+        conflict_arc_m: 11.39
+        conflict_xy: [14.28, 17.0]
+        ego_arrival_frame: 48
+        arrive_offset_s: -1.5
+      reference_polyline:
+      - [3.386, 20.305]
+      - [24.992, 13.747]
+    spawn:
+      position: [2.921, 18.774, 195.634]
+      heading: -0.29468
+      velocity: [0.957, -0.29]
+      length: 0.764
+      width: 0.6
+    policy:
+      kind: social_force
+      goal: [24.527, 12.216]
+      desired_speed: 1.0
+    sha256: f28f653466a5a304b49828f904c1a3588aace75a2146230a9f5815bca028988c
+  robot_2:
+    asset:
+      registry_key: hb_robot_2
+      sha256: 4709fe75e361165ab5a15923bea7d5e7b5f0c961c2e138901a80e9164cf3eceb
+      dims: [0.873, 0.6, 0.664]
+    leaf_variety_slot: robot 2/2
+    track: {type: PEDESTRIAN, semantic_class: NuPlanBoxDetectionLabel.PEDESTRIAN}
+    op: insert
+    nurec_asset_id: asset/robot2_fwd.ply
+    authored:
+      template: dynamic
+      reference: crosswalk_chain
+      anchor: reference_start
+      arc: 0.0
+      speed: 1.1
+      lateral: -3.2
+      arrive_with_ego: true
+      arrive_offset_s: -0.5
+      conflict_frame: 58
+      anchor_solved: {name: reference_start, kind: reference, reference_arc_m: 0.0}
+      solved:
+        conflict_arc_m: 11.39
+        conflict_xy: [14.28, 17.0]
+        ego_arrival_frame: 58
+        arrive_offset_s: -0.5
+      reference_polyline:
+      - [3.386, 20.305]
+      - [24.992, 13.747]
+    spawn:
+      position: [2.456, 17.243, 195.634]
+      heading: -0.29468
+      velocity: [1.053, -0.319]
+      length: 0.873
+      width: 0.6
+    policy:
+      kind: social_force
+      goal: [24.063, 10.685]
+      desired_speed: 1.1
+    sha256: 079356308eed0f2dea6dde754b3b3457acda6eb4bed1e823a44bd85c148c6b36
+background_traffic: keep
+pair:
+  e0_removes: [ped_1, ped_2, ped_3, robot_1, robot_2]
+  pair_id: r3_bank
+review: {status: pending, checklist: R-3.md}
+selection:
+  scenario_id: 087df0996ade50d3_20s
+  arrow_scene: c43ac3ab-9f4a-5dba-bf4f-1d47e2ad838f
+  host_family: custom
+  recon_windows: [s1, s2, s3, s4]
+  qualify:
+  - {name: crosswalk_on_route, ok: true, evidence: '2 crossing(s); first crosswalk_18599 at +22 m, 23
+      m long at 67 deg to the route'}
+  - {name: straight_stretch (info), ok: true, evidence: 25 m window at +0 m (heading drift 1 deg)}
+  miner: ''

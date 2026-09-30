@@ -1,0 +1,57 @@
+# py123d conversion config for NavSafe seeds.
+#
+# Windows a raw nuPlan log to a seed's [t0, t1] and renames the result to the
+# seed id, so the Arrow scenario source lines up 1:1 with the reconstruction.
+# Cameras and lidar are excluded on purpose: the Arrow dataset is the *scenario*
+# source (ego / boxes / map / route) -- pixels come from the NuRec renderer.
+#
+# The scene tuple is overridden on the CLI:
+#   dataset.parser.scenes=[[<LOG>, <SEED_ID>, <T0_US>, <T1_US>]]
+parser:
+  _target_: navsafe.gs3d_converter.navsim_parser.NavhardNuplanParser
+  _convert_: 'all'
+  nuplan_data_root: ${oc.env:NAVSAFE_WORK}/nuplan_local
+  nuplan_sensor_root: ${oc.env:NUPLAN_ROOT}/nuplan-v1.1/sensor_blobs
+  nuplan_maps_root: ${oc.env:NUPLAN_ROOT}/maps
+  split: nuplan_test
+  scenes: [["__LOG__", "__TOKEN__", 0, 0]]
+
+log_writer_config:
+  _target_: py123d.api.scene.arrow.utils.log_writer_config.LogWriterConfig
+  _convert_: 'all'
+
+  force_log_conversion: ${force_log_conversion}
+  force_map_conversion: ${force_map_conversion}
+  async_conversion: ${async_conversion}
+
+  camera_store_option: "path"
+  lidar_store_option: "path"
+  lidar_codec: null
+
+  infer_ego_dynamics: false
+  infer_box_dynamics: false
+
+  exclude_modality_types: [lidar, camera]
+
+log_writer:
+  _target_: py123d.api.scene.arrow.arrow_log_writer.ArrowLogWriter
+  _convert_: 'all'
+  log_writer_config: ${dataset.log_writer_config}
+  logs_root: ${dataset_paths.py123d_logs_root}
+  sensors_root: ${dataset_paths.py123d_sensors_root}
+  ipc_compression: null
+  ipc_compression_level: null
+
+  sync_config:
+    _target_: py123d.api.scene.arrow.arrow_log_writer.SyncConfig
+    _convert_: 'all'
+    reference_column: box_detections_se3.timestamp_us
+    direction: "forward"
+    target_iteration_duration_s: 0.1
+
+map_writer:
+  _target_: py123d.api.map.arrow.arrow_map_writer.ArrowMapWriter
+  _convert_: 'all'
+  force_map_conversion: ${force_map_conversion}
+  maps_root: ${dataset_paths.py123d_maps_root}
+  logs_root: ${dataset_paths.py123d_logs_root}

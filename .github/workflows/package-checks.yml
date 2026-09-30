@@ -1,0 +1,15 @@
+name: Package and environment checks
+on: [push, pull_request]
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.12'
+      - run: uv lock --check
+      - run: python -m compileall -q navsafe tests
+      - run: uv build --wheel

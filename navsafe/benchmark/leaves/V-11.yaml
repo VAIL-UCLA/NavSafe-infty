@@ -1,0 +1,26 @@
+leaf: V-11
+name: Driving Wrong Way
+scenario: driving_wrong_way
+tier: mined
+summary: >-
+  C-10 without the consequence: any two-way host, nothing inserted. The metric
+  alone judges the ego for entering the opposing-direction lane.
+mine:
+  miner: two_way
+  params:
+    max_lateral_m: 9.0
+qualify: [two_way_road]
+metrics: [driving_direction_compliance, drivable_area_compliance]
+checklist: V-11.md
+notes: >-
+  On an empty two-way road a competent policy never scores below 1.0 here, so
+  this leaf has little discriminative power on its own. Pair the mined host
+  with an I-3-style own-lane blockage when the leaf should also TEMPT the
+  crossing.
+
+insert:
+  world_version: car2sim_6cam_static@nre-ga
+  ego: {replay_frames: 8}
+  # The ROAD is the test. An empty cast is a decision; an absent `insert:` block
+  # would be an unfinished leaf, and only the first can be told from a typo.
+  cast: []

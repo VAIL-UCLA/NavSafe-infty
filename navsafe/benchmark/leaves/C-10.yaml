@@ -1,0 +1,40 @@
+leaf: C-10
+name: Wrong-Way (crash)
+scenario: wrong_way_crash
+tier: mined
+summary: >-
+  The wrong-way driver is the EGO. The host must be a two-way road carrying
+  ordinary oncoming traffic in its own log, so a policy that crosses the
+  centreline meets that traffic head-on and one that holds its lane does not.
+  Nothing is inserted: the consequence has to be traffic the log already has,
+  or the leaf is C-7 with a different label.
+# Selected by road SHAPE, so selection runs on a CONVERTED host
+# (`navsafe qualify`) rather than on raw nuPlan logs — the predicates
+# measure lanes in the ego's own frame, which conversion creates.
+mine:
+  miner: two_way
+  params:
+    max_lateral_m: 6.0
+# Both are hard gates, and the second is what separates this leaf from V-11:
+# an empty two-way street tests the direction metric, but only a street with
+# oncoming traffic can produce the CRASH the leaf is named for.
+qualify: [two_way_road, oncoming_vehicle_in_log]
+qualify_info: [straight_stretch]
+metrics: [collision, driving_direction_compliance]
+checklist: C-10.md
+notes: >-
+  Predicates are measured on a STRAIGHT stretch, never at the hand-off: on a
+  host whose hand-off sits in a junction the "opposing lane" is another
+  branch's connector, and the first build put its oncoming car on a different
+  street entirely.
+  This leaf used to insert an oncoming car whenever the log had none
+  (`insert_when: oncoming_vehicle_in_log`), which made it C-7's insert wearing
+  a different name and left its one frozen recipe with zero actors. Selecting
+  a host that already has the traffic is the honest version.
+
+insert:
+  world_version: car2sim_6cam_static@nre-ga
+  ego: {replay_frames: 8}
+  # The ROAD is the test. An empty cast is a decision; an absent `insert:` block
+  # would be an unfinished leaf, and only the first can be told from a typo.
+  cast: []

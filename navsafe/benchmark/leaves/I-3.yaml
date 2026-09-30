@@ -1,0 +1,66 @@
+leaf: I-3
+name: General Incident
+scenario: in_lane_incident
+tier: constructed
+summary: >-
+  Two vehicles at odd yaw blocking the ego's lane on a wide, quiet road.
+  Everything is static, so there is no timing to solve — what is tested is
+  whether the ego finds the legal way past rather than stopping dead or
+  crossing into oncoming traffic.
+# Three same-direction lanes and light traffic, because both are what make the
+# manoeuvre the EGO's decision: a blockage on a single carriageway is a wall
+# and tests nothing, and a queue behind it makes the road decide instead.
+qualify: [multi_lane, light_traffic, straight_stretch]
+metrics: [collision, drivable_area_compliance, progress]
+checklist: I-3.md
+
+insert:
+  world_version: car2sim_6cam_static@nre-ga
+  ego: {replay_frames: 8}
+  # Everything is static, so there is no timing to solve — the two cars are
+  # laid out along the host's own straight stretch and stay there.
+  # The two cars are ONE incident, so they sit as one: 4 m apart along the road
+  # is bumper to bumper for a 3.5-4.5 m car, and 1.5 m apart across it puts the
+  # second one half into the first. Spread over 8 m they read as two separately
+  # parked cars, which is not what the ego is being asked to recognise.
+  # `min_spacing_m` has to come down with the span: the default 6 m exists to
+  # keep a bank of dart-outs from arriving as one event, and here they ARE one
+  # event.
+  layout: {span_m: 4.0, margin_m: 22.0, min_spacing_m: 1.0}
+  # TAKE THE LOGGED TRAFFIC OUT BETWEEN THE EGO AND THE WRECK. The incident is
+  # static, and the cars recorded ahead of the ego were driving a road that had
+  # no incident on it: they pass straight THROUGH the inserted wreck, and while
+  # they are doing it they also hide it, so the ego meets the obstruction only
+  # once the phantom lead car has driven over it. That is a surprise, not the
+  # decision this leaf is about -- and it is why 03b66343e1ac5d68 was set aside
+  # rather than being a bad host.
+  #
+  # The corridor is a lane and a half: wide enough to catch a car straddling
+  # the line, narrow enough to leave the traffic in the neighbouring lanes,
+  # which is what makes going round it a decision at all.
+  clear_path: {corridor_m: 4.5, margin_m: 12.0}
+  # `multi_lane` above asks the road for width; this asks for it again at the
+  # SPAWN POINT, which is a different question — a three-lane road can still be
+  # single-lane where the blockage lands.
+  requires: {min_reaction_s: 2.0, evasion_lanes: 1}
+  pair_id: i3_incident
+  cast:
+    - slot: blocker
+      assets: {family: car, source: assetharvester}
+      count: 2
+      track: {type: VEHICLE}
+      # A VEHICLE-class insert into a car2sim recon is REJECTED by the render
+      # server — its actor layer is open only to a PEDESTRIAN-class track. The
+      # render class only decides which layer loads the gaussians; `track.type`
+      # above is what collision and progress are scored against.
+      render_class: pedestrian
+      leaf_variety_slot: "blocking vehicle {i}/{n}"
+      authored:
+        template: static
+        reference: ego_route
+        arc: auto
+        # Askew across the lane, the way a stopped incident actually sits.
+        yaw_offset_deg: [28.0, -35.0]
+        # 1.5 m apart across the road, so the boxes overlap rather than sit
+        # in neighbouring lanes.
+        lateral: [-0.6, 0.9]

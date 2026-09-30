@@ -1,0 +1,396 @@
+<title>__TITLE__</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#eef1f2; --panel:#f7f9f9; --ink:#111a1f; --ink-2:#4a5b63; --ink-3:#7b8c94;
+  --line:#c9d3d7; --line-2:#dde4e7;
+  --road:#d6d3cc; --road-edge:#bdb9b0; --lane:#a9b4b9;
+  --route:#c07316; --ego:#1b6f7a; --sign:#c62828; --anchor:#5b6f9c;
+  --accent:#0f6d78; --good:#2e7d5b; --warn:#a8641a;
+  --shadow:0 1px 2px rgba(17,26,31,.06),0 6px 18px rgba(17,26,31,.07);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0d1316; --panel:#141c20; --ink:#e6eef0; --ink-2:#9fb0b7; --ink-3:#6b7d85;
+  --line:#243035; --line-2:#1c262a;
+  --road:#2a3238; --road-edge:#3a444a; --lane:#4d5b62;
+  --route:#e0993f; --ego:#4fc3cf; --sign:#ef5350; --anchor:#8fa4d4;
+  --accent:#3fb8c4; --good:#4caf82; --warn:#d69240;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --paper:#0d1316; --panel:#141c20; --ink:#e6eef0; --ink-2:#9fb0b7; --ink-3:#6b7d85;
+  --line:#243035; --line-2:#1c262a;
+  --road:#2a3238; --road-edge:#3a444a; --lane:#4d5b62;
+  --route:#e0993f; --ego:#4fc3cf; --sign:#ef5350; --anchor:#8fa4d4;
+  --accent:#3fb8c4; --good:#4caf82; --warn:#d69240;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;font-size:14px}
+.wrap{display:grid;grid-template-columns:264px 1fr;grid-template-rows:auto 1fr auto;
+  height:100vh;min-height:560px}
+header{grid-column:1/-1;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+  padding:12px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+h1{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em}
+.sub{color:var(--ink-3);font-size:12.5px}
+.spacer{flex:1}
+kbd{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;border:1px solid var(--line);
+  border-radius:3px;padding:1px 5px;color:var(--ink-2);background:var(--paper)}
+aside{border-right:1px solid var(--line);background:var(--panel);overflow-y:auto}
+.scn{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;width:100%;
+  padding:9px 14px;border:0;border-bottom:1px solid var(--line-2);background:none;cursor:pointer;
+  text-align:left;color:var(--ink);font:inherit}
+.scn:hover{background:var(--paper)}
+.scn[aria-current="true"]{background:var(--paper);box-shadow:inset 3px 0 0 var(--accent)}
+.scn .tok{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:-.02em}
+.scn .meta{grid-column:1/-1;color:var(--ink-3);font-size:11.5px}
+.face{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:3px;
+  border:1px solid currentColor;white-space:nowrap}
+.face.l{color:var(--accent)} .face.r{color:var(--warn)}
+.moved{color:var(--good);font-weight:500}
+main{position:relative;overflow:hidden}
+canvas{display:block;width:100%;height:100%;cursor:crosshair;touch-action:none}
+.legend{position:absolute;left:14px;top:14px;display:grid;gap:5px;padding:9px 11px;border-radius:6px;
+  background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);
+  box-shadow:var(--shadow);font-size:11.5px;color:var(--ink-2)}
+.legend i{display:inline-block;width:16px;height:0;border-top:2.5px solid;margin-right:7px;
+  vertical-align:middle}
+footer{grid-column:1/-1;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  padding:10px 18px;border-top:1px solid var(--line);background:var(--panel)}
+.read{display:flex;gap:16px;flex-wrap:wrap;font-family:"IBM Plex Mono",monospace;font-size:12.5px;
+  font-variant-numeric:tabular-nums}
+.read b{color:var(--ink-3);font-weight:400;margin-right:5px}
+label.slider{display:flex;align-items:center;gap:9px;color:var(--ink-2);font-size:12.5px}
+input[type=range]{width:210px;accent-color:var(--accent)}
+button.act{font:inherit;font-size:12.5px;padding:6px 12px;border-radius:5px;cursor:pointer;
+  border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+button.act:hover{border-color:var(--accent);color:var(--accent)}
+button.act.primary{background:var(--accent);border-color:var(--accent);color:var(--panel);font-weight:500}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+dialog{border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);
+  padding:0;max-width:min(760px,92vw);box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dh{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.dh h2{margin:0;font-size:14px;font-weight:600}
+dialog pre{margin:0;padding:16px;max-height:56vh;overflow:auto;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;line-height:1.55;white-space:pre;color:var(--ink)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<div class="wrap">
+  <header>
+    <h1>__TITLE__</h1>
+    <span class="sub">V-8 illegal turn &middot; 10 frozen recipes &middot; click the map to stand the plate</span>
+    <span class="spacer"></span>
+    <span class="sub"><kbd>click</kbd> place &middot; <kbd>drag</kbd> the arrow to aim &middot; <kbd>scroll</kbd> zoom &middot; <kbd>space+drag</kbd> pan</span>
+  </header>
+  <aside id="list"></aside>
+  <main>
+    <canvas id="cv"></canvas>
+    <div class="legend">
+      <div><i style="border-color:var(--road-edge)"></i>drivable surface</div>
+      <div><i style="border-color:var(--route)"></i>ego route</div>
+      <div><i style="border-color:var(--ego)"></i>logged ego, frame <span id="lgf">8</span></div>
+      <div><i style="border-color:var(--sign)"></i>sign, facing marked</div>
+      <div><i style="border-color:var(--anchor);border-top-style:dashed"></i>junction entry / exit</div>
+    </div>
+  </main>
+  <footer>
+    <label class="slider">frame
+      <input type="range" id="fr" min="0" max="199" value="8">
+      <span id="frv" style="font-family:'IBM Plex Mono',monospace;width:3.2em">8</span>
+    </label>
+    <div class="read">
+      <span><b>x</b><span id="rx">—</span></span>
+      <span><b>y</b><span id="ry">—</span></span>
+      <span><b>arc</b><span id="ra">—</span></span>
+      <span><b>lateral</b><span id="rl">—</span></span>
+      <span><b>yaw</b><span id="ryw">—</span></span>
+      <span><b>from ego</b><span id="rd">—</span></span>
+    </div>
+    <span class="spacer"></span>
+    <button class="act" id="junc">Mark junction</button>
+    <button class="act" id="faceEgo">Aim at the ego</button>
+    <button class="act" id="reset">Reset this one</button>
+    <button class="act primary" id="exp">Export all ten</button>
+  </footer>
+</div>
+<dialog id="dlg">
+  <div class="dh"><h2>hosts: block for <code>leaves/V-8.yaml</code></h2><span class="spacer"></span>
+    <button class="act" id="copy">Copy</button><button class="act" id="close">Close</button></div>
+  <pre id="out"></pre>
+</dialog>
+<script>const BEV=
+__DATA__;
+const TOK = Object.keys(BEV);
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let cur = TOK[0], frame = 8, view = null, edits = {}, dragging = null, panning = null;
+
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const deg = r => r * 180 / Math.PI;
+const wrap = a => { while (a > Math.PI) a -= 2*Math.PI; while (a < -Math.PI) a += 2*Math.PI; return a; };
+
+// -- the sign as it stands now: the frozen recipe unless this session moved it
+// Junction regions, marked by hand: the sign says WHICH junction is governed,
+// but not how far it reaches, and no solver got that right -- lane topology
+// gave whole 90 m streets, pairwise overlap gave nothing, crosswalk spread
+// straddled two junctions on 14c0a657. Two clicks settle it: centre, then any
+// point on the rim.
+let juncs = {};            // tok -> {c:[x,y], r:metres}
+let juncMode = 0;          // 0 off, 1 awaiting centre, 2 awaiting rim
+function junc(tok){ return juncs[tok] || null; }
+function sign(tok){ return edits[tok] || {xy: BEV[tok].sign.xy.slice(), heading: BEV[tok].sign.heading}; }
+function moved(tok){ return !!edits[tok]; }
+
+// -- project a point onto the ego route: arc from the hand-off, and lateral,
+//    positive to the LEFT, which is the convention `Polyline.offset` documents
+//    and therefore the one the recipe's `lateral` is read in.
+function project(tok, p){
+  const d = BEV[tok], R = d.route, A = d.route_arc;
+  let best = {d2: Infinity};
+  for (let i = 0; i < R.length - 1; i++){
+    const a = R[i], b = R[i+1];
+    const vx = b[0]-a[0], vy = b[1]-a[1], L2 = vx*vx + vy*vy || 1e-9;
+    let t = ((p[0]-a[0])*vx + (p[1]-a[1])*vy) / L2; t = Math.max(0, Math.min(1, t));
+    const qx = a[0]+t*vx, qy = a[1]+t*vy, dx = p[0]-qx, dy = p[1]-qy, d2 = dx*dx+dy*dy;
+    if (d2 < best.d2){
+      const tang = Math.atan2(vy, vx);
+      // left-positive: rotate the offset into the tangent's frame
+      best = {d2, arc: A[i] + t*(A[i+1]-A[i]), tang,
+              lat: -dx*Math.sin(tang) + dy*Math.cos(tang)};
+    }
+  }
+  return {arc: best.arc - d.handoff_arc, lateral: best.lat, tangent: best.tang};
+}
+
+// -- view transform ---------------------------------------------------------
+function fit(){
+  const d = BEV[cur], pts = d.ego.map(e => [e[0], e[1]]).concat([sign(cur).xy]);
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  for (const [x,y] of pts){ x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y); }
+  const pad = 22, w = cv.clientWidth, h = cv.clientHeight;
+  const s = Math.min((w-2*pad)/Math.max(x1-x0,12), (h-2*pad)/Math.max(y1-y0,12));
+  view = {s, cx:(x0+x1)/2, cy:(y0+y1)/2};
+}
+const W2S = p => [ (p[0]-view.cx)*view.s + cv.clientWidth/2,
+                   cv.clientHeight/2 - (p[1]-view.cy)*view.s ];
+const S2W = p => [ (p[0]-cv.clientWidth/2)/view.s + view.cx,
+                   view.cy - (p[1]-cv.clientHeight/2)/view.s ];
+
+// -- draw -------------------------------------------------------------------
+function draw(){
+  const dpr = Math.min(devicePixelRatio||1, 2);
+  // BOTH dimensions, or the backing store keeps a stale height while CSS
+  // stretches the drawing to fit -- every mark then renders offset vertically
+  // from the cursor that placed it. The width-only test missed exactly that:
+  // this canvas is width:100%/height:100%, so a change in the side list's
+  // content resizes it in y alone.
+  if (cv.width !== cv.clientWidth*dpr || cv.height !== cv.clientHeight*dpr){
+    cv.width = cv.clientWidth*dpr; cv.height = cv.clientHeight*dpr; }
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,cv.clientWidth,cv.clientHeight);
+  const d = BEV[cur];
+
+  // drivable surface, then lane centrelines: the road reads as a filled area
+  // and the lanes as the thin structure on it, the way a plan drawing separates
+  // ground from linework.
+  ctx.fillStyle = css('--road');
+  for (const L of d.lanes){ if(!L.p) continue;
+    ctx.beginPath(); L.p.forEach((q,i)=>{const s=W2S(q); i?ctx.lineTo(s[0],s[1]):ctx.moveTo(s[0],s[1]);});
+    ctx.closePath(); ctx.fill(); }
+  ctx.strokeStyle = css('--lane'); ctx.lineWidth = 1; ctx.setLineDash([4,4]); ctx.globalAlpha=.75;
+  for (const L of d.lanes){
+    ctx.beginPath(); L.c.forEach((q,i)=>{const s=W2S(q); i?ctx.lineTo(s[0],s[1]):ctx.moveTo(s[0],s[1]);});
+    ctx.stroke(); }
+  ctx.setLineDash([]); ctx.globalAlpha=1;
+
+  // junction anchors
+  ctx.strokeStyle = css('--anchor'); ctx.fillStyle = css('--anchor'); ctx.lineWidth=1.5;
+  ctx.font='11px "IBM Plex Mono",monospace';
+  for (const a of d.anchors){ const s=W2S(a.xy);
+    ctx.setLineDash([3,3]); ctx.beginPath(); ctx.arc(s[0],s[1],7,0,7); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillText(a.name.replace('intersection_','int'), s[0]+10, s[1]-6); }
+
+  // the ego route
+  ctx.strokeStyle = css('--route'); ctx.lineWidth = 2.5; ctx.beginPath();
+  d.route.forEach((q,i)=>{const s=W2S(q); i?ctx.lineTo(s[0],s[1]):ctx.moveTo(s[0],s[1]);}); ctx.stroke();
+  const J = junc(cur);
+  if (J && J.r > 0){
+    const sc = W2S(J.c), rpx = J.r * view.s;
+    ctx.save();
+    ctx.fillStyle = 'rgba(64,140,255,0.18)'; ctx.strokeStyle = 'rgba(64,140,255,0.95)';
+    ctx.lineWidth = 2; ctx.setLineDash([7,5]);
+    ctx.beginPath(); ctx.arc(sc[0], sc[1], rpx, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+    ctx.setLineDash([]); ctx.beginPath(); ctx.arc(sc[0], sc[1], 4, 0, 2*Math.PI); ctx.fill();
+    ctx.fillStyle = 'rgba(20,70,160,0.95)'; ctx.font = '12px system-ui';
+    ctx.fillText(`junction r=${J.r.toFixed(1)} m`, sc[0]+rpx*0.72, sc[1]-rpx*0.72);
+    ctx.restore();
+  } else if (J){
+    const sc = W2S(J.c);
+    ctx.save(); ctx.fillStyle='rgba(64,140,255,0.95)';
+    ctx.beginPath(); ctx.arc(sc[0],sc[1],5,0,2*Math.PI); ctx.fill(); ctx.restore();
+  }
+
+  // the logged ego: a faint trail, then the box at the scrubbed frame
+  ctx.strokeStyle = css('--ego'); ctx.globalAlpha=.35; ctx.lineWidth=1.5; ctx.beginPath();
+  d.ego.forEach((e,i)=>{const s=W2S(e); i?ctx.lineTo(s[0],s[1]):ctx.moveTo(s[0],s[1]);}); ctx.stroke();
+  ctx.globalAlpha=1;
+  const e = d.ego[Math.min(frame, d.ego.length-1)], es = W2S(e);
+  const [EL, EW] = d.ego_wl, c = Math.cos(e[2]), sn = Math.sin(e[2]);
+  ctx.save(); ctx.translate(es[0], es[1]); ctx.rotate(-e[2]);
+  ctx.fillStyle = css('--ego'); ctx.globalAlpha=.9;
+  ctx.fillRect(-EL/2*view.s, -EW/2*view.s, EL*view.s, EW*view.s);
+  ctx.globalAlpha=1; ctx.fillStyle = css('--panel');
+  ctx.beginPath(); ctx.moveTo(EL/2*view.s,0); ctx.lineTo(EL/6*view.s,-EW/3*view.s);
+  ctx.lineTo(EL/6*view.s,EW/3*view.s); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  // the hand-off pose, which is what every arc in the recipe is measured from
+  const hf = d.ego[d.after_frame], hs = W2S(hf);
+  ctx.strokeStyle = css('--ego'); ctx.lineWidth=1.5; ctx.setLineDash([2,3]);
+  ctx.beginPath(); ctx.arc(hs[0],hs[1],10,0,7); ctx.stroke(); ctx.setLineDash([]);
+
+  // the sign, with the face it carries and the way it looks
+  const S = sign(cur), ss = W2S(S.xy), R = 9;
+  ctx.strokeStyle = css('--sign'); ctx.fillStyle = css('--sign'); ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.arc(ss[0],ss[1],R,0,7); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ss[0]-R*0.7,ss[1]+R*0.7); ctx.lineTo(ss[0]+R*0.7,ss[1]-R*0.7); ctx.stroke();
+  const hx = ss[0] + Math.cos(-S.heading)*44, hy = ss[1] + Math.sin(-S.heading)*44;
+  ctx.globalAlpha=.85; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(ss[0],ss[1]); ctx.lineTo(hx,hy); ctx.stroke();
+  ctx.beginPath(); ctx.arc(hx,hy,5,0,7); ctx.fill(); ctx.globalAlpha=1;
+  readout();
+}
+
+function readout(){
+  const S = sign(cur), pr = project(cur, S.xy), d = BEV[cur];
+  const e = d.ego[Math.min(frame, d.ego.length-1)];
+  document.getElementById('rx').textContent = S.xy[0].toFixed(2);
+  document.getElementById('ry').textContent = S.xy[1].toFixed(2);
+  document.getElementById('ra').textContent = pr.arc.toFixed(1)+' m';
+  document.getElementById('rl').textContent = pr.lateral.toFixed(2)+' m';
+  document.getElementById('ryw').textContent = deg(wrap(S.heading - pr.tangent)).toFixed(1)+'°';
+  document.getElementById('rd').textContent =
+    Math.hypot(S.xy[0]-e[0], S.xy[1]-e[1]).toFixed(1)+' m';
+}
+
+// -- scenario list ----------------------------------------------------------
+function paintList(){
+  const el = document.getElementById('list'); el.innerHTML='';
+  for (const t of TOK){
+    const d = BEV[t], left = d.sign.key.includes('left');
+    const b = document.createElement('button');
+    b.className='scn'; b.setAttribute('aria-current', String(t===cur));
+    b.innerHTML = `<span class="tok">${t}</span>`
+      + `<span class="face ${left?'l':'r'}">${left?'no left':'no right'}</span>`
+      + `<span class="meta">${d.lanes.length} lanes &middot; ${d.anchors.length?'junction anchored':'no junction on route'}`
+      + (moved(t)?' &middot; <span class="moved">moved</span>':'')
+      + (juncs[t]&&juncs[t].r>0?` &middot; <span class="moved">junction r=${juncs[t].r.toFixed(0)}m</span>`:'')
+      + `</span>`;
+    b.onclick = () => { cur=t; frame=BEV[t].after_frame; juncMode=0; setJuncHint();
+      document.getElementById('fr').max = BEV[t].ego.length-1;
+      document.getElementById('fr').value = frame;
+      document.getElementById('frv').textContent = frame;
+      fit(); paintList(); draw(); };
+    el.appendChild(b);
+  }
+}
+
+// -- interaction ------------------------------------------------------------
+cv.addEventListener('pointerdown', ev => {
+  const r = cv.getBoundingClientRect(), p=[ev.clientX-r.left, ev.clientY-r.top];
+  const S = sign(cur), ss = W2S(S.xy);
+  const hx = ss[0]+Math.cos(-S.heading)*44, hy = ss[1]+Math.sin(-S.heading)*44;
+  if (ev.shiftKey || ev.button===1){ panning = {p, cx:view.cx, cy:view.cy}; cv.setPointerCapture(ev.pointerId); return; }
+  if (juncMode){
+    const w = S2W(p);
+    if (juncMode === 1){ juncs[cur] = {c: w, r: 0}; juncMode = 2; setJuncHint(); draw(); return; }
+    const c = juncs[cur].c;
+    juncs[cur].r = Math.max(3, Math.hypot(w[0]-c[0], w[1]-c[1]));
+    juncMode = 0; setJuncHint(); paintList(); draw(); return;
+  }
+  if (Math.hypot(p[0]-hx,p[1]-hy) < 12){ dragging='aim'; cv.setPointerCapture(ev.pointerId); return; }
+  place(S2W(p)); cv.setPointerCapture(ev.pointerId); dragging='move';
+});
+cv.addEventListener('pointermove', ev => {
+  const r = cv.getBoundingClientRect(), p=[ev.clientX-r.left, ev.clientY-r.top];
+  if (panning){ view.cx = panning.cx - (p[0]-panning.p[0])/view.s;
+                view.cy = panning.cy + (p[1]-panning.p[1])/view.s; draw(); return; }
+  if (dragging==='move') place(S2W(p));
+  else if (dragging==='aim'){
+    const S = sign(cur), ss = W2S(S.xy);
+    aim(Math.atan2(-(p[1]-ss[1]), p[0]-ss[0]));
+  }
+});
+addEventListener('pointerup', () => { dragging=null; panning=null; });
+cv.addEventListener('wheel', ev => { ev.preventDefault();
+  const r=cv.getBoundingClientRect(), p=[ev.clientX-r.left, ev.clientY-r.top], before=S2W(p);
+  view.s *= Math.exp(-ev.deltaY*0.0016);
+  const after=S2W(p); view.cx += before[0]-after[0]; view.cy += before[1]-after[1]; draw();
+}, {passive:false});
+
+function place(w){
+  const S = sign(cur);
+  edits[cur] = {xy:[w[0], w[1]], heading:S.heading};
+  paintList(); draw();
+}
+function aim(h){ const S=sign(cur); edits[cur]={xy:S.xy.slice(), heading:h}; draw(); }
+
+document.getElementById('fr').oninput = e => {
+  frame = +e.target.value; document.getElementById('frv').textContent = frame;
+  document.getElementById('lgf').textContent = frame; draw(); };
+function setJuncHint(){
+  const b = document.getElementById('junc');
+  b.textContent = juncMode === 1 ? 'Click the junction CENTRE'
+                : juncMode === 2 ? 'Now click its EDGE'
+                : (junc(cur) ? `Junction r=${junc(cur).r.toFixed(1)} m` : 'Mark junction');
+  b.classList.toggle('primary', !!juncMode);
+}
+document.getElementById('junc').onclick = () => {
+  if (juncMode){ juncMode = 0; }          // click again to cancel
+  else { delete juncs[cur]; juncMode = 1; }
+  setJuncHint(); draw();
+};
+document.getElementById('faceEgo').onclick = () => {
+  const S=sign(cur), e=BEV[cur].ego[Math.min(frame, BEV[cur].ego.length-1)];
+  aim(Math.atan2(e[1]-S.xy[1], e[0]-S.xy[0])); };
+document.getElementById('reset').onclick = () => {
+  delete edits[cur]; delete juncs[cur]; juncMode=0; setJuncHint(); paintList(); draw(); };
+document.getElementById('exp').onclick = () => {
+  const lines = ['hosts:'];
+  for (const t of TOK){
+    const S = sign(t), pr = project(t, S.xy);
+    const yaw = deg(wrap(S.heading - pr.tangent));
+    lines.push(`  ${t}: {anchor: handoff, arc: ${pr.arc.toFixed(1)}, `
+      + `lateral: ${pr.lateral.toFixed(2)}, yaw_offset_deg: ${yaw.toFixed(1)}}`
+      + `   # ${BEV[t].sign.key.replace('sign_','')}`
+      + (moved(t) ? '  <- placed by hand' : '  (unchanged)'));
+  }
+  // The junction regions, in WORLD coordinates. Unlike the sign these are not
+  // expressed against the route: a region is a fact about the map, and the
+  // scorer tests ego positions against it directly.
+  const marked = TOK.filter(t => juncs[t] && juncs[t].r > 0);
+  lines.push('');
+  lines.push(`# junction regions -- ${marked.length}/${TOK.length} marked by hand`);
+  lines.push('junctions:');
+  for (const t of TOK){
+    const J = juncs[t];
+    lines.push(J && J.r > 0
+      ? `  ${t}: {x: ${J.c[0].toFixed(1)}, y: ${J.c[1].toFixed(1)}, r: ${J.r.toFixed(1)}}`
+      : `  # ${t}: NOT MARKED`);
+  }
+  document.getElementById('out').textContent = lines.join('\n');
+  document.getElementById('dlg').showModal();
+};
+document.getElementById('copy').onclick = async () => {
+  try { await navigator.clipboard.writeText(document.getElementById('out').textContent);
+        document.getElementById('copy').textContent='Copied'; 
+        setTimeout(()=>document.getElementById('copy').textContent='Copy',1400); }
+  catch(_){ const r=document.createRange(); r.selectNodeContents(document.getElementById('out'));
+            getSelection().removeAllRanges(); getSelection().addRange(r); }
+};
+document.getElementById('close').onclick = () => document.getElementById('dlg').close();
+addEventListener('resize', () => { fit(); draw(); });
+
+document.getElementById('fr').max = BEV[cur].ego.length-1;
+paintList(); setJuncHint(); fit(); draw();
+</script>

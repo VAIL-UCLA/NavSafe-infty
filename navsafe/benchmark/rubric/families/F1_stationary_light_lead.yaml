@@ -1,0 +1,73 @@
+# F1 -- signalized longitudinal control, stopped at a light behind a lead.
+#
+# The competence is the stop-and-go itself: hold position behind the lead while
+# red, then resume promptly once the lead departs and the signal permits. Two
+# distinct failure modes this rubric must separate, and neither is a collision:
+# rear-ending the lead on resume, and never resuming at all (the deadlock /
+# over-conservatism the paper's outcome axis calls out).
+family: F1_stationary_light_lead
+doc_family: F1
+nuplan_tags: [stationary_at_traffic_light_with_lead]
+
+initialization:
+  ego_longitudinal_offset_m: {kind: uniform, low: -2.0, high: 2.0}
+  ego_speed_jitter_mps:      {kind: uniform, low: -0.5, high: 0.5}
+  ego_lateral_offset_m:      {kind: uniform, low: -0.3, high: 0.3}
+  # How long the lead waits before pulling away -- the ego must react to the
+  # lead, not to a memorised log timing.
+  lead_departure_delay_s:    {kind: uniform, low: -1.0, high: 2.0}
+  noncausal_agent_dropout:   {kind: uniform, low: 0.0, high: 0.3}
+
+success:
+  # Came to a genuine stop behind the stopline while it was red ...
+  - stop_before: {line: stopline, v_eps: 0.5}
+  # ... then committed to the junction once permitted. Without a reach target
+  # the trivially "safe" policy of never moving would pass.
+  #
+  # The target is the junction itself, NOT the far side of it: over this seed's
+  # window the logged human never clears the intersection (it travels 11.9 m in
+  # 14.3 s), so an exit-side target would fail a perfect policy and break the
+  # solvability guarantee. `seeds/resolve_regions.py` checks this per seed and
+  # flags `log_reaches_exit: false`, which is how the mismatch was caught.
+  - reach:  {region: intersection_polygon, t_max: t_max_s}
+  - comply: {signal: signal_at_entry}
+
+gates:
+  - no_collision: {fault: at_fault}
+  - on_drivable: {}
+  # Box overlap without a reported contact. Measured between the oriented
+  # footprints, so the floor is 0.0 rather than a near-miss margin: the logged
+  # human passes within 0.44 m on the Boston left turn and its box overlaps
+  # another vehicle outright on the Singapore crossing, without touching
+  # anything -- nuPlan cuboids are annotations, not collision hulls. A positive
+  # floor would fail a perfect policy. What this gate adds over no_collision is
+  # a cross-check of the simulator's contact detection against geometry.
+  # TODO: calibrate a near-miss floor from the mined pool the way t_max is,
+  # instead of guessing one, and report it as a diagnostic rather than a gate.
+  - maintain_gap: {d_min: 0.0}
+
+diagnostics: [min_clearance, min_ttc, n_stops, max_abs_jerk, time_in_intersection]
+
+reject:
+  - initial_interpenetration
+  - off_drivable_spawn
+  - initial_ttc_below_floor
+  - expert_cannot_solve
+  - signal_never_permits           # the light must actually turn inside the
+                                   # window, else `reach` is unsatisfiable
+                                   # for reasons that are not the policy's
+
+actors:
+  "*": replay
+
+# The event itself is a ~7 s wait plus the pull-away; the budget allows a
+# policy to be slower than the log without being scored as a deadlock.
+
+# t_max calibrated from the mined pool, not guessed: the p95 human completion
+# time for this family x 1.3 slack (nexussim/navsafe/rubric/calibrate_tmax.py,
+# n=63, median 5.1s, p95 15.6s). A policy gets as long as a slow human plus
+# a margin for closed-loop recovery, and no more.
+# CAVEAT: the mining window caps events at 20 s, so long waits are absent
+# from this family's pool and the p95 is biased low. Revisit if F1 shows
+# an unexpected timeout rate.
+t_max_s: 20.3

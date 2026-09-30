@@ -1,0 +1,663 @@
+{
+  "scope": "all",
+  "created_at": "2026-09-12T06:17:48.548Z",
+  "requested": 84,
+  "exported": 58,
+  "missing": 26,
+  "entries": [
+    {
+      "leaf": "C-1",
+      "token": "02902d180b405100",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "C-1_02902d180b405100/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-1",
+      "token": "02902d180b405100",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "C-1_02902d180b405100/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-1",
+      "token": "02902d180b405100",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "C-1_02902d180b405100/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-10",
+      "token": "2bd04a0902095129",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "C-10_2bd04a0902095129/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-10",
+      "token": "2bd04a0902095129",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "C-10_2bd04a0902095129/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-10",
+      "token": "2bd04a0902095129",
+      "event": "vru_cross",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "C-2",
+      "token": "f077a062ad9b55e9",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "C-2_f077a062ad9b55e9/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-2",
+      "token": "f077a062ad9b55e9",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "C-2_f077a062ad9b55e9/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-2",
+      "token": "f077a062ad9b55e9",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "C-2_f077a062ad9b55e9/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-3",
+      "token": "273f424fa2fc55ad",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "C-3_273f424fa2fc55ad/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-3",
+      "token": "273f424fa2fc55ad",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "C-3_273f424fa2fc55ad/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-3",
+      "token": "273f424fa2fc55ad",
+      "event": "vru_cross",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "C-4",
+      "token": "238f1cddb9415996",
+      "event": "cut_in",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "C-4",
+      "token": "238f1cddb9415996",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "C-4_238f1cddb9415996/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-4",
+      "token": "238f1cddb9415996",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "C-4_238f1cddb9415996/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-5",
+      "token": "58d69daf413c5d5a",
+      "event": "cut_in",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "C-5",
+      "token": "58d69daf413c5d5a",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "C-5_58d69daf413c5d5a/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-5",
+      "token": "58d69daf413c5d5a",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "C-5_58d69daf413c5d5a/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-6",
+      "token": "0122ce98b2735558",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "C-6_0122ce98b2735558/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-6",
+      "token": "0122ce98b2735558",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "C-6_0122ce98b2735558/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-6",
+      "token": "0122ce98b2735558",
+      "event": "vru_cross",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "C-7",
+      "token": "1e9350ac2bc25f59",
+      "event": "cut_in",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "C-7",
+      "token": "1e9350ac2bc25f59",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "C-7_1e9350ac2bc25f59/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-7",
+      "token": "1e9350ac2bc25f59",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "C-7_1e9350ac2bc25f59/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-8",
+      "token": "5ac972b34e2e5614",
+      "event": "cut_in",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "C-8",
+      "token": "5ac972b34e2e5614",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "C-8_5ac972b34e2e5614/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-8",
+      "token": "5ac972b34e2e5614",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "C-8_5ac972b34e2e5614/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-9",
+      "token": "6704953640e55b83",
+      "event": "cut_in",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "C-9",
+      "token": "6704953640e55b83",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "C-9_6704953640e55b83/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "C-9",
+      "token": "6704953640e55b83",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "C-9_6704953640e55b83/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "I-1",
+      "token": "6fc91bf02f225d1b",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "I-1_6fc91bf02f225d1b/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "I-1",
+      "token": "6fc91bf02f225d1b",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "I-1_6fc91bf02f225d1b/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "I-1",
+      "token": "6fc91bf02f225d1b",
+      "event": "vru_cross",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "I-2",
+      "token": "0d5b8da00d505be0",
+      "event": "cut_in",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "I-2",
+      "token": "0d5b8da00d505be0",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "I-2_0d5b8da00d505be0/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "I-2",
+      "token": "0d5b8da00d505be0",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "I-2_0d5b8da00d505be0/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "I-3",
+      "token": "84acc78da95f56d3",
+      "event": "cut_in",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "I-3",
+      "token": "84acc78da95f56d3",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "I-3_84acc78da95f56d3/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "I-3",
+      "token": "84acc78da95f56d3",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "I-3_84acc78da95f56d3/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "R-1",
+      "token": "0027991369e05ab2",
+      "event": "cut_in",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "R-1",
+      "token": "0027991369e05ab2",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "R-1_0027991369e05ab2/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "R-1",
+      "token": "0027991369e05ab2",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "R-1_0027991369e05ab2/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "R-2",
+      "token": "20cc0fdb7e2d5c3f",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "R-2_20cc0fdb7e2d5c3f/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "R-2",
+      "token": "20cc0fdb7e2d5c3f",
+      "event": "lead_brake",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "R-2",
+      "token": "20cc0fdb7e2d5c3f",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "R-2_20cc0fdb7e2d5c3f/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "R-3",
+      "token": "132307b3c1a55f97",
+      "event": "cut_in",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "R-3",
+      "token": "132307b3c1a55f97",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "R-3_132307b3c1a55f97/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "R-3",
+      "token": "132307b3c1a55f97",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "R-3_132307b3c1a55f97/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "R-4",
+      "token": "225eb6e22af55972",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "R-4_225eb6e22af55972/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "R-4",
+      "token": "225eb6e22af55972",
+      "event": "lead_brake",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "R-4",
+      "token": "225eb6e22af55972",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "R-4_225eb6e22af55972/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-1",
+      "token": "42af8e33480d53b3",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "V-1_42af8e33480d53b3/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-1",
+      "token": "42af8e33480d53b3",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "V-1_42af8e33480d53b3/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-1",
+      "token": "42af8e33480d53b3",
+      "event": "vru_cross",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "V-10",
+      "token": "63c145828c3b5fd8",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "V-10_63c145828c3b5fd8/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-10",
+      "token": "63c145828c3b5fd8",
+      "event": "lead_brake",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "V-10",
+      "token": "63c145828c3b5fd8",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "V-10_63c145828c3b5fd8/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-11",
+      "token": "32d85d373126537e",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "V-11_32d85d373126537e/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-11",
+      "token": "32d85d373126537e",
+      "event": "lead_brake",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "V-11",
+      "token": "32d85d373126537e",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "V-11_32d85d373126537e/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-2",
+      "token": "3d324bda0cec57ab",
+      "event": "cut_in",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "V-2",
+      "token": "3d324bda0cec57ab",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "V-2_3d324bda0cec57ab/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-2",
+      "token": "3d324bda0cec57ab",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "V-2_3d324bda0cec57ab/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-3",
+      "token": "c41f71c68ad45f21",
+      "event": "cut_in",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "V-3",
+      "token": "c41f71c68ad45f21",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "V-3_c41f71c68ad45f21/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-3",
+      "token": "c41f71c68ad45f21",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "V-3_c41f71c68ad45f21/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-4",
+      "token": "089e3eac4f7e5c5c",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "V-4_089e3eac4f7e5c5c/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-4",
+      "token": "089e3eac4f7e5c5c",
+      "event": "lead_brake",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "V-4",
+      "token": "089e3eac4f7e5c5c",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "V-4_089e3eac4f7e5c5c/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-5",
+      "token": "07c5114fdb395f8b",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "V-5_07c5114fdb395f8b/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-5",
+      "token": "07c5114fdb395f8b",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "V-5_07c5114fdb395f8b/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-5",
+      "token": "07c5114fdb395f8b",
+      "event": "vru_cross",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "V-6",
+      "token": "8661a7e9b4a95042",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "V-6_8661a7e9b4a95042/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-6",
+      "token": "8661a7e9b4a95042",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "V-6_8661a7e9b4a95042/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-6",
+      "token": "8661a7e9b4a95042",
+      "event": "vru_cross",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "V-7",
+      "token": "97dcc120f4695080",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "V-7_97dcc120f4695080/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-7",
+      "token": "97dcc120f4695080",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "V-7_97dcc120f4695080/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-7",
+      "token": "97dcc120f4695080",
+      "event": "vru_cross",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "V-8",
+      "token": "14c0a657ac3e5bb7",
+      "event": "cut_in",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    },
+    {
+      "leaf": "V-8",
+      "token": "14c0a657ac3e5bb7",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "V-8_14c0a657ac3e5bb7/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-8",
+      "token": "14c0a657ac3e5bb7",
+      "event": "vru_cross",
+      "status": "exported",
+      "path": "V-8_14c0a657ac3e5bb7/vru_cross/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-9",
+      "token": "3a5278b27c87565f",
+      "event": "cut_in",
+      "status": "exported",
+      "path": "V-9_3a5278b27c87565f/cut_in/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-9",
+      "token": "3a5278b27c87565f",
+      "event": "lead_brake",
+      "status": "exported",
+      "path": "V-9_3a5278b27c87565f/lead_brake/",
+      "actors": 1
+    },
+    {
+      "leaf": "V-9",
+      "token": "3a5278b27c87565f",
+      "event": "vru_cross",
+      "status": "missing",
+      "reason": "\u5c1a\u672a\u914d\u7f6e actor"
+    }
+  ],
+  "updates": [
+    {
+      "leaf": "V-7",
+      "old_token": "26f4d8d4d72a588e",
+      "new_token": "97dcc120f4695080",
+      "created_at": "2026-09-13T10:15:58.204Z"
+    }
+  ]
+}
