@@ -1,0 +1,60 @@
+# @package _global_
+# car2sim_6cam + a STATIC_RIGIDS layer.
+# ---------------------------------------------------------------------------
+# Stock car2sim (dynamic_rigids / dynamic_deformables + road + MCMC + temporal
+# appearance + 40k) separates ONLY moving objects; parked cars / cones / signs
+# bake into `background` and cannot be edited. Adding a `static_rigids` node
+# (its own Gaussian layer, is_dynamic=false) makes EVERY boxed object — moving
+# AND static — a server-exposed controllable node, so it can be moved/removed at
+# render time via the gRPC dynamic_objects API. Best quality (car2sim) + full
+# per-object editability.
+#
+# The static_rigids *values* (label_classes, is_dynamic=false, init) are set as
+# `++` CLI overrides at train time (camera_dynamic_tracks already defines those
+# keys). See 4b-train-car2sim-static.yaml.
+defaults:
+  - /apps/prod/Hyperion-8.1/car2sim_6cam
+  - /model/gaussians/models@model.layers.static_rigids: rigid_gaussians
+  - /model/gaussians/initialization@model.layers.static_rigids.initialization: camera_dynamic_tracks
+  # road_semantic base gives every layer a semantic_logits extra_signal; the new
+  # static_rigids layer MUST match or NRE asserts "camera_extra_ray_signal_infos
+  # must be the same for all layers".
+  - /model/gaussians/extra_signal@model.layers.static_rigids.extra_signal: [semantic_logits]
+  - /model/tracks_calib@model.layers.static_rigids.tracks_calib: static
+  - _self_
+
+# static_rigids values baked in (no CLI +/++ needed): route parked/static boxed
+# objects into this layer. `_self_` is last in `defaults`, so these merge over the
+# composed camera_dynamic_tracks init. label_classes are nuPlan-specific.
+model:
+  layers:
+    static_rigids:
+      tracks:
+        is_dynamic: false
+        label_classes:
+          - NuPlanBoxDetectionLabel.VEHICLE
+          - NuPlanBoxDetectionLabel.TRAFFIC_CONE
+          - NuPlanBoxDetectionLabel.BARRIER
+          - NuPlanBoxDetectionLabel.CZONE_SIGN
+          - NuPlanBoxDetectionLabel.GENERIC_OBJECT
+      initialization:
+        symmetric_axis: Y
+        camera_ids: null
+        step_frame: 1
+        fill_with_random_points: true
+  # ---- nuPlan DEFAULT recon budget: 160k steps / 5M gaussians ----
+  # Chosen from the 20s budget sweep (scene 00c1e4eb, 2026-07): best recon quality
+  # per compute for ~20s nuPlan clips. Stock 40k/2.5M spreads too thin over 20s
+  # (~4x the frames+area of a 5s clip) and blurs. 5M gaussians ~= 18 GB (fits a
+  # 3090); 10M OOMs a 24 GB card. densify/perturb horizons scaled to match.
+  strategy:
+    add:
+      max_n_gaussians: 5000000
+      end_iteration: 140000
+    relocate:
+      end_iteration: 140000
+    perturb:
+      end_iteration: 160000
+
+dataset:
+  n_samples_per_epoch: 160000   # = training steps (car2sim runs one epoch)

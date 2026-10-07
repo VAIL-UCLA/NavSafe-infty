@@ -1,0 +1,65 @@
+# F3 -- straight traversal of a signalized intersection.
+#
+# The control condition of the F3 family: the same intersection geometry and
+# the same signal logic as the left turn, minus the turn. Running a policy on
+# both isolates "cannot handle intersections at all" from "cannot handle the
+# unprotected turn specifically" -- which is exactly the per-competence
+# attribution the benchmark exists to provide.
+family: F3_straight_traversal
+doc_family: F3
+nuplan_tags: [starting_straight_traffic_light_intersection_traversal]
+
+initialization:
+  ego_longitudinal_offset_m: {kind: uniform, low: -5.0, high: 5.0}
+  ego_speed_jitter_mps:      {kind: uniform, low: -2.0, high: 2.0}
+  ego_lateral_offset_m:      {kind: uniform, low: -0.4, high: 0.4}
+  ego_heading_jitter_deg:    {kind: uniform, low: -3.0, high: 3.0}
+  noncausal_agent_dropout:   {kind: uniform, low: 0.0, high: 0.3}
+
+success:
+  - reach:  {region: exit_lane_polygon, t_max: t_max_s}
+  # Tighter heading tolerance than the turn: there is no maneuver to absorb
+  # heading error here, so drift is the failure this family detects.
+  - align:  {lane: exit_lane, heading_tol: 10}
+  - comply: {signal: signal_at_entry}
+  # Cross traffic has right of way when it has it; the ego must not be inside
+  # the conflict zone at the same time as a conflicting agent. Going straight,
+  # "conflicting" means CROSSING (~90 deg) -- oncoming traffic stays in the
+  # opposing lanes and is not a conflict for this maneuver.
+  - clear:  {conflict_zone: intersection_conflict_zone,
+             conflicting_heading_deg: [45, 135]}
+
+gates:
+  - no_collision: {fault: at_fault}
+  - on_drivable: {}
+  # Box overlap without a reported contact. Measured between the oriented
+  # footprints, so the floor is 0.0 rather than a near-miss margin: the logged
+  # human passes within 0.44 m on the Boston left turn and its box overlaps
+  # another vehicle outright on the Singapore crossing, without touching
+  # anything -- nuPlan cuboids are annotations, not collision hulls. A positive
+  # floor would fail a perfect policy. What this gate adds over no_collision is
+  # a cross-check of the simulator's contact detection against geometry.
+  # TODO: calibrate a near-miss floor from the mined pool the way t_max is,
+  # instead of guessing one, and report it as a diagnostic rather than a gate.
+  - maintain_gap: {d_min: 0.0}
+
+diagnostics: [min_clearance, min_ttc, time_in_intersection, max_lat_accel, max_abs_jerk]
+
+reject:
+  - initial_interpenetration
+  - off_drivable_spawn
+  - initial_ttc_below_floor
+  - expert_cannot_solve
+  - signal_never_permits
+
+actors:
+  "*": replay
+
+# Shorter than the turn: the maneuver is a straight crossing, so a large budget
+# would let a badly-slow policy still pass.
+
+# t_max calibrated from the mined pool, not guessed: the p95 human completion
+# time for this family x 1.3 slack (navsafe/benchmark/rubric/calibrate_tmax.py,
+# n=511, median 4.0s, p95 9.0s). A policy gets as long as a slow human plus
+# a margin for closed-loop recovery, and no more.
+t_max_s: 11.7

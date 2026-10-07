@@ -1,0 +1,259 @@
+leaf: V-10
+name: Unsafe Merge / Entry
+scenario: unsafe_merge
+tier: constructed
+summary: >-
+  Two roads converge into one, and a vehicle comes down the joining lane and
+  takes the ego's. It is timed to reach the merge point just BEFORE the ego, so
+  it cuts in and the ego has to give way to a gap it did not choose. The unsafe
+  merge is the other car's; what is scored is how the ego answers it.
+mine:
+  miner: roadblock_merge
+  params:
+    min_speed_mps: 2.0
+    max_converge_angle_deg: 45.0
+    exclude_types: [carpark]
+# The roadblock graph coarse-mines on the RAW map; this is the physical check
+# that confirms a candidate once it has been converted — two same-direction
+# lanes whose centrelines actually close. It is also where the inserted car
+# goes: `merge_convergence` and the `merging_lane_chain` reference read the
+# same search, so the gate cannot pass on one lane while the actor is placed
+# in another.
+# merge_pressure is INFORMATION now, not a gate. The event is no longer "the
+# ego enters an occupied lane at a map merge" but "a car beside the ego takes
+# its lane", and that needs a lane alongside, not a convergence the map has
+# drawn. Gating on the convergence cost two hosts that plainly carry the
+# scenario -- 63c145828c3b5fd8 and be36f75d360c502f, where the merge the
+# reviewer can see is modelled as parallel lanes -- while adding nothing the
+# cut-in depends on. What it still does is record which hosts have a real
+# merge, which is worth reading beside the scores.
+qualify: []
+qualify_info: [merge_pressure, straight_stretch]
+metrics: [time_to_collision, ego_progress_along_route, comfort]
+checklist: V-10.md
+notes: >-
+  nuPlan has NO merge or on-ramp tag, so this leaf cannot be tag-mined. The
+  roadblock graph is the signal: a lane-level "2 incoming edges" test fires on
+  1016/1628 scenes because nuPlan splits lanes at every segment boundary. Two
+  guards separate a merge from a junction — the merge point must be outside an
+  INTERSECTION polygon, and the feeding roads must converge within
+  max_converge_angle_deg. Both were added after a protected-turn clip shipped
+  as a merge.
+  This leaf used to insert nothing and be judged on the road alone, which meant
+  a hesitant ego scored the same as a reckless one: with no traffic in the
+  target lane there is no gap to misjudge.
+
+insert:
+  world_version: car2sim_6cam_static@nre-ga
+  # 8, the same hand-off every other edit event type uses. This is the frame the
+  # POLICY takes over, and every timing the authoring solves is measured from
+  # it -- `min_reaction_s` floors the conflict at `replay_frames + 1.5 s`, and
+  # an actor's `arc` is measured from the ego's pose at this frame.
+  #
+  # It was 20 for one revision of this event type. That made V-10 the only event type whose
+  # recipes disagreed with the other 70, and the evaluator takes the RECIPE's
+  # value over the command line (it warns and overrides), so a benchmark with
+  # two hand-offs is a benchmark whose episodes are not the same length. Unified
+  # back to 8; `cut_in_frame` below was re-solved against it.
+  ego: {replay_frames: 8}
+  requires: {min_reaction_s: 1.5}
+  pair_id: v10_merge
+  cast:
+    - slot: mainline_vehicle
+      assets: {family: car, source: assetharvester}
+      count: 1
+      # One car, many builds: --variety K picks the Kth member of the bank, so
+      # the event type gets appearance variety across scenarios without a platoon.
+      variety: rotate
+      track: {type: VEHICLE}
+      # RENDER-only class. A car2sim recon opens its actor layer solely to a
+      # PEDESTRIAN-class track; a VEHICLE-class insert loads the PLY and is then
+      # rejected server-side. Scoring still sees a VEHICLE (see `track:` above).
+      render_class: pedestrian
+      leaf_variety_slot: "mainline car (variant {v}/{V})"
+      authored:
+        template: dynamic
+        # The lane whose traffic has to take the ego's, from either cause: the
+        # carriageway the map draws as joining, or — where nuPlan shows an open
+        # lane the log has coned off — the lane the closure is eating. Both
+        # converge with the ego route rather than crossing it, so the conflict
+        # point is where the two come nearest, and `cause` is recorded in the
+        # recipe so a work-zone squeeze and a map merge stay distinguishable
+        # when the scores are read.
+        # TWO SHAPES, and the host's map picks. Where a lane converges with the
+        # ego's route, the car belongs ON it, driving straight while the ego
+        # turns in -- that is the merge, and the ego joining traffic already
+        # there is the thing being scored (6c9e40634f705f56 is exactly this: the
+        # expert turns right into a road, and the hazard is a car coming down
+        # it). Where the map draws no convergence, there is still a lane beside
+        # the ego, and a car in it taking the ego's lane is the same event from
+        # the other side (be36f75d360c502f).
+        #
+        # Authoring reads the parameter set the resolved reference calls for:
+        # `arrive_with_ego`/`arrive_offset_s` on the merging lane, the lateral
+        # ones on the ego route. Writing both here is what lets one event type carry
+        # both hosts instead of dropping the ones the map does not draw.
+        reference: merge_pressure_lane_chain|ego_route
+        # WHERE it is when the policy takes over, not when it arrives somewhere.
+        # 5 m behind the ego's hand-off pose, measured along the lane the ego is
+        # joining: the ego pulls out in front of a car that is right there.
+        # `arrive_with_ego` was tried first and is the wrong tool -- it solves a
+        # moment at a conflict point, which on 13c555e68671524f and
+        # 6c9e40634f705f56 put the car far up the road and gone before the ego
+        # ever turned in.
+        # SECONDS of following distance, bumper to bumper -- not metres between
+        # centres. `behind_ego_m: 5.0` was that, and against a 4.6 m car it left
+        # 0.4 m of road: every insert sat on the ego's bumper the moment the
+        # policy took over, with nothing to decide. 2 s is an ordinary gap and
+        # it means the same thing on a host doing 4 m/s as on one doing 11.
+        behind_ego_s: 2.0
+        # ── the fallback shape only, read when the reference resolved to the
+        #    ego's own route ──
+        # Start one lane over and end on the ego's line. -3.2 m is a lane width
+        # on these carriageways (measured 3.0-3.3 m alongside be36f75d360c502f
+        # for its whole route past the hand-off); 20 m of transition is about
+        # 2.5 s at these speeds, a lane change rather than a swerve.
+        # POSITIVE is the side the adjacent lane is on. Measured wrong the first
+        # time: the survey read `lane.project(route_point)`, which reports where
+        # the ROUTE sits relative to the LANE (-3.0), and that number went into
+        # the event type unchanged -- so the car cut in from the ego's other side,
+        # off the carriageway entirely. Checked the right way round on
+        # be36f75d360c502f: `route.offset(+3.2)` lands 0.08 m from lane 67565,
+        # `offset(-3.2)` lands 6.47 m away, on nothing.
+        lateral: 3.2
+        lateral_to: 0.0
+        transition_m: 20.0
+        # WHEN it takes the lane, as a frame. `arrive_with_ego` cannot express
+        # this: it back-solves an approach UPSTREAM of the conflict, and on the
+        # ego's own route there is no road behind the ego's start -- it asked
+        # for 28 m and found 1. A cut-in is not an actor arriving from
+        # somewhere, it is one already alongside that moves over.
+        #
+        # Frame 38 is 30 frames -- 3 s -- after the policy takes over at 8:
+        # long enough that the lane change is the policy's problem and not the
+        # replay's, early enough to leave most of the episode to answer it.
+        # It was 50 while this event type handed over at 20; the interval is what
+        # matters, so it moved with the hand-off rather than staying put.
+        cut_in_frame: 38
+        # Starts ahead of the ego in the next lane and holds its speed, so the
+        # ego meets it by closing rather than by being overtaken.
+        arc: 12.0
+        # There is no `arrive_offset_s` any more. It staggered an ARRIVAL at a
+        # shared conflict point, which is what `arrive_with_ego` produced; a
+        # cut-in has no such point -- the actor is alongside from the start and
+        # the only timing that matters is when it moves over. Both offsets were
+        # tried here first (+1.5 s so the car passed behind, then -1.0 s so it
+        # cut ahead) and both were answering the older reading of the event type, in
+        # which the EGO was the one merging.
+        # RELATIVE TO THE EGO, not 8 m/s. A cut-in only exists if the two are
+        # travelling at comparable speeds: on 63c145828c3b5fd8 the ego averages
+        # 1.16 m/s in traffic, and an 8 m/s car starting 12 m ahead is out of
+        # sight before it can take anyone's lane, while on a 9 m/s host the same
+        # 8 is a rolling roadblock. 1.1x keeps it just ahead and pulling across.
+        speed: ego*1.1
+        # A FLOOR, for the host whose ego is stopped. `ego*1.1` reads the ego's
+        # own pace, which is right everywhere it is moving (4.4-11.2 m/s across
+        # this event type) and degenerate where it is not: on 63c145828c3b5fd8 the ego
+        # sits in traffic at 0.14 m/s past the hand-off, so the inserted car was
+        # authored at 0.16 m/s -- 3.2 m in the whole episode. It never reached
+        # its own lane change, and a heading derived from that little motion is
+        # noise, so it rendered stopped and crosswise. 2.5 m/s closes the 5 m it
+        # is placed behind in about two seconds of policy time.
+        speed_min: 2.5
+        # IDM is a SAFE car-following model, and the ego is not on its lane
+        # until the merge — but once it is, an IDM car handed the ego as a
+        # leader simply lifts off and the gap opens itself. The event type is about
+        # whether the EGO judges the gap, so the mainline car must hold its
+        # speed the way real mainline traffic does.
+        blind_to_ego: true
+
+# Per-host deviations from the rule above. One event type is one spec, and that holds
+# until a host's geometry makes the spec mean something else on it. Said here,
+# keyed by token, merged over the cast's `authored` at expansion -- so it is
+# declarative, visible in one place, and `bake` reproduces it. Hand-editing the
+# frozen recipe was the alternative, and it yields a file no bake can rebuild.
+# Per-host spawn, PLACED BY HAND on a bird's-eye board.
+#
+# The solver's spawns were landing on oncoming lanes and off the carriageway,
+# which is not something an arc-and-lateral rule can see: `behind_ego_s` puts a
+# car a following distance back along a reference line, and whether that point
+# is a lane, the WRONG lane, or the verge is a fact about the map that the rule
+# never consulted. So the map was put in front of the reviewer and each car was
+# dragged onto the lane it should start in. All seven were checked afterwards
+# against the lane polygons and every one now sits on a lane running with the
+# reference (0-4 deg, and 53 deg for be36f's merge entry, which is a merging
+# lane rather than a parallel one).
+#
+# `behind_ego_s: null` on every host is LOAD-BEARING, not tidying. `author.py`
+# recomputes `arc` from `behind_ego_s` unconditionally when it is present
+# (`arc = -back - travelled`), so leaving it set would silently discard every
+# hand-placed arc below and put the cars back where the rule wanted them.
+# Nulling it is what lets an explicit arc survive the bake.
+#
+# `arc` is measured from the EGO's own station on that host's reference line
+# (negative = behind it), `lateral` positive to the LEFT of it.
+hosts:
+  # Re-placed after the first pass froze it 101.9 m behind the ego and off the
+  # carriageway: -26.8 was read off the board as a distance, but the board
+  # reports arc ALONG THE REFERENCE, and this host's reference crosses the
+  # ego's heading at 67 deg -- so retreating 26.8 m down it goes somewhere
+  # else entirely. This one was placed on the lane itself; it follows that
+  # lane under IDM, which is the event type's default behaviour.
+  13805e7752fe5685:
+    behind_ego_s: null
+    arc: -23.7
+    lateral: 0.27
+    # HOLD, then go. Left to itself this car covers its 107 m to the merge
+    # in 9.8 s while the ego needs 23.2 s, so it clears the junction 13
+    # seconds early and the two never come within 32 m of each other --
+    # the episode renders a car that was never in the way. Held until the
+    # ego is 64 m off, they close to 0.6 m at frame 148, which is the
+    # merge the event type is about.
+    #
+    # 64 is what the trigger actually measures: `idm_driver` compares the
+    # straight-line distance from the CAR to the ego, so it is the gap at
+    # the moment the car must set off (frame 74, one car-transit before
+    # the ego reaches the merge at 172) -- not the ego's remaining route
+    # distance, which on a reference crossing at 67 deg is a different
+    # number entirely.
+    trigger_ego_distance_m: 64
+  13c555e68671524f: {behind_ego_s: null, arc: -18.4, lateral: 1.23}    # lane 52055
+  34ac200e359653b5: {behind_ego_s: null, arc: -13.8, lateral: -1.07}   # lane 18311 (was +1.83, an oncoming lane)
+  49a0d29c7058501c: {behind_ego_s: null, arc: -15.9, lateral: 1.69}    # lane 53523
+  63c145828c3b5fd8:
+    reference: lane_chain:52986
+    behind_ego_s: null
+    arc: -16.4
+    lateral: 0.95                                                      # lane 53430
+  6c9e40634f705f56: {behind_ego_s: null, arc: -19.0, lateral: -1.23}   # lane 20186
+  be36f75d360c502f:
+    # RIDES THE LANE IT STANDS ON. The car was placed on the rightmost lane of
+    # the merge entry behind and to the ego's left, and the brief is that it
+    # simply drives down it. A constant `lateral` off
+    # `merge_pressure_lane_chain` cannot do that -- that line runs 45 deg to
+    # this lane, so a car holding 10 m off it leaves the lane within a few
+    # metres. Naming the lane is what makes "along this lane" true; the arc and
+    # lateral below are the same world point re-expressed on lane_chain:69796,
+    # where the ego stands at 42.8 m and the car at 20.1 m.
+    reference: lane_chain:69796
+    behind_ego_s: null
+    # 5 m back, and that is as far as this host allows. Swept 4 to 16 m: at 4-6
+    # the car is alongside within ten frames, and from 8 m on the closest
+    # approach falls in the episode's LAST frames -- there is no middle. The
+    # reason is the speed rule: `ego*1.1` resolves to 5.24 m/s here against an
+    # ego doing 8.62, so the car is 39 % SLOWER than the thing it is supposed to
+    # pressure and can never close a gap it starts with. Until that rule is
+    # looked at, "beside the ego from the start" is the only shape available,
+    # and it is the one the brief asks for: a car merging in, whether or not it
+    # crowds the ego, with the ego's reaction the thing under test.
+    arc: -5.0
+    lateral: -1.02
+    # Semi-reactive, as briefed: it sees the ego and lifts off for it. The
+    # event type's default is blind, because a mainline car that yields opens the gap
+    # the ego is supposed to be judging -- but this host's car is merging in
+    # behind rather than holding a lane the ego wants, so the argument does not
+    # apply to it.
+    blind_to_ego: false
+    # No cut-in on this host, and none was reaching it anyway: authoring drops
+    # `cut_in_frame`/`lateral_to`/`transition_m` whenever the reference resolves
+    # to something other than the ego's own route, which it does here.

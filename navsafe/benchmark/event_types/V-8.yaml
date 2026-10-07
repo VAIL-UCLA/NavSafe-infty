@@ -1,0 +1,121 @@
+leaf: V-8
+name: Illegal U-Turn / Turn
+scenario: illegal_turn
+tier: constructed
+summary: >-
+  A logged clip in which the ego performs the manoeuvre the leaf is about —
+  nuPlan tags it, so selection is a tag query, not geometry.
+mine:
+  miner: tag
+  params:
+    types: [starting_u_turn, starting_unprotected_cross_turn, starting_unprotected_noncross_turn]
+    require_sensor: true
+    splits: [val, test]
+metrics: [driving_direction_compliance, drivable_area_compliance, progress]
+checklist: V-8.md
+notes: >-
+  Only 2 `starting_u_turn` runs exist in val/test with complete sensors, and
+  the single seed in scenes_500.tsv (891953217984568c) had no reconstruction
+  until it was trained explicitly. Do NOT substitute a right turn and call it
+  V-8 — a net-heading detector also mistakes parking reversals for U-turns.
+
+insert:
+  world_version: car2sim_6cam_static@nre-ga
+  ego: {replay_frames: 8}
+  # THE SIGN IS THE EDIT, and it is the whole edit. The ego's logged turn is
+  # legal; a prohibitory plate at the junction is what makes it illegal, so the
+  # event type became `constructed` -- the cast used to be empty and
+  # the event type was judged on the road alone, which meant a policy that turned and
+  # one that did not scored the same.
+  #
+  # It is a VISUAL input and nothing else. The sign stands on the kerb, off the
+  # carriageway, and success is the ego reading it and not turning -- not the
+  # ego avoiding it. Anything that put the plate where a car could hit it would
+  # be testing obstacle avoidance instead.
+  cast:
+    - slot: prohibition_sign
+      # Two keys match, and they are the two SIDES of one plate:
+      # `sign_no_left_turn` sorts before `sign_no_right_turn`, so
+      # `bake --variety 0` takes the no-left face and `--variety 1` the
+      # no-right one. `source: assetharvester` keeps the still-unpainted
+      # procedural `sign_no_u_turn` out of the list, which would otherwise
+      # shift that index.
+      assets: {family: prohibitory_turn_sign, source: assetharvester}
+      count: 1
+      variety: rotate
+      track: {type: TRAFFIC_CONE}
+      # VEHICLE, and this is load-bearing. The render class picks the gaussian
+      # LAYER, and these recons expose two with different physics:
+      #
+      #   dynamic_rigids       VEHICLE, BICYCLE   rigid pose only -> solid
+      #   dynamic_deformables  PEDESTRIAN         the layer's deformation
+      #                                           field is applied -> the
+      #                                           asset is SHEARED
+      #
+      # (Both constraints are printed by the server itself: "Insertion of
+      # NuPlanBoxDetectionLabel.PEDESTRIAN for dynamic_rigids is not allowed.
+      # Allowed label classes: [VEHICLE, BICYCLE]".)
+      #
+      # This slot said `pedestrian`, copied from I-3 and V-10 where the cast is
+      # cars and the shear reads as "a bit odd" rather than as damage. A sign
+      # is a thin plate with a crisp graphic, so the same shear tore the plate
+      # in half and put the halves side by side -- which is how a defect the
+      # whole car2sim insert path has been carrying finally became visible.
+      # `docs/asset_conversion_pipeline.md` §3a documents it and says to
+      # default to `vehicle`; only a recon whose insertable layer is
+      # deformable-only needs `pedestrian`.
+      #
+      # `track.type` above stays TRAFFIC_CONE: the render class chooses the
+      # layer, the track type is what the scorer sees.
+      render_class: vehicle
+      leaf_variety_slot: "prohibition sign ({v}/{V})"
+      authored:
+        template: static
+        # Defaults, and every host overrides at least the arc below: where a
+        # sign belongs is a fact about one junction, not about the event type.
+        reference: ego_route
+        anchor: first_intersection_entry
+        # Two metres BEFORE the entry -- a driver reads the plate on approach,
+        # not level with the stop line.
+        arc: -2.0
+        # NEGATIVE is the ego's right: `Polyline.offset` documents itself as
+        # stepping `lateral` metres to the LEFT. 4 m from the route centreline
+        # puts it past the kerb of a normal lane rather than in the road.
+        lateral: -4.0
+        # 180, so the plate faces the ego coming towards it. `static` sets the
+        # actor's heading to the reference tangent plus this, and the tangent
+        # points the way the ego travels -- so 0 would show the sign edge-on
+        # from behind, which is a thin post and reads as nothing at all.
+        yaw_offset_deg: 180.0
+
+# Per-host placement, PLACED BY HAND on a bird's-eye board.
+#
+# Five rounds of solving this against proxies -- camera framing, range from the
+# ego, which side the turn goes, the carriageway polygons, terrain height --
+# each of which was individually right and none of which produced a placement a
+# reviewer accepted. Every round also cost a full render to find that out. So
+# the map was put in front of the person who could see the answer: an
+# interactive BEV carrying the drivable surface, the lane centrelines, the
+# logged ego frame by frame, the hand-off pose, the junction anchors and the
+# plate, and the plate was dragged where it belongs.
+#
+# Eight of the ten were moved that way; 14c0a657ac3e5bb7 and c8600743d9e050a9
+# were already right and are marked unchanged. `arc` is along the ego route
+# from the hand-off, `lateral` is positive to the LEFT (the convention
+# `Polyline.offset` documents), and `yaw_offset_deg` is measured from the route
+# tangent at that arc -- all three read straight off the board, so what is
+# frozen here is what was seen.
+#
+# Which FACE each host carries is not here: that is `bake --variety`, 0 for
+# no-left and 1 for no-right, and `rebake_v8.sh` holds the pairing.
+hosts:
+  0980dd9cdc0e543a: {anchor: handoff, arc: 13.4, lateral: -3.13, yaw_offset_deg: 129.9}
+  14c0a657ac3e5bb7: {anchor: handoff, arc: 11.4, lateral: -3.57, yaw_offset_deg: -175.2}
+  61b3149306a3501a: {anchor: handoff, arc: 17.3, lateral: 2.39,  yaw_offset_deg: 146.2}
+  67eb77e9004a503f: {anchor: handoff, arc: 7.2,  lateral: -2.36, yaw_offset_deg: 179.3}
+  7c00774138ae5805: {anchor: handoff, arc: 10.2, lateral: 6.48,  yaw_offset_deg: -141.5}
+  8decf23c348f5b65: {anchor: handoff, arc: 9.9,  lateral: -5.88, yaw_offset_deg: 125.5}
+  b66f23071e675170: {anchor: handoff, arc: 11.0, lateral: -4.11, yaw_offset_deg: 166.4}
+  c8600743d9e050a9: {anchor: handoff, arc: 6.1,  lateral: 2.82,  yaw_offset_deg: -164.5}
+  e1526251bd0a53ee: {anchor: handoff, arc: 10.6, lateral: -4.04, yaw_offset_deg: -167.5}
+  e9567d54464052f7: {anchor: handoff, arc: 24.6, lateral: -2.10, yaw_offset_deg: -163.5}

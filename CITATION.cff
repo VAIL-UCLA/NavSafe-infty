@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use NavSafe-∞ in your research, please cite the paper."
+title: "NavSafe-∞: Benchmarking Closed-Loop Driving Safety in Photorealistic Environments"
+type: software
+license: Apache-2.0
+repository-code: "https://github.com/VAIL-UCLA/NavSafe-infty"
+url: "https://navsafe-vail.github.io/"
+authors:
+  - {family-names: Bao, given-names: Yuxin}
+  - {family-names: Ruan, given-names: Hongwei}
+  - {family-names: Wang, given-names: Luobin}
+  - {family-names: Zhao, given-names: "Seth Z."}
+  - {family-names: Leng, given-names: Ziyang}
+  - {family-names: Zhang, given-names: Zihan}
+  - {family-names: Zeng, given-names: Yu}
+  - {family-names: McAllister, given-names: Rowan}
+  - {family-names: Christensen, given-names: Henrik}
+  - {family-names: Zhou, given-names: Bolei}
+preferred-citation:
+  type: article
+  title: "NavSafe-∞: Benchmarking Closed-Loop Driving Safety in Photorealistic Environments"
+  authors:
+    - {family-names: Bao, given-names: Yuxin}
+    - {family-names: Ruan, given-names: Hongwei}
+    - {family-names: Wang, given-names: Luobin}
+    - {family-names: Zhao, given-names: "Seth Z."}
+    - {family-names: Leng, given-names: Ziyang}
+    - {family-names: Zhang, given-names: Zihan}
+    - {family-names: Zeng, given-names: Yu}
+    - {family-names: McAllister, given-names: Rowan}
+    - {family-names: Christensen, given-names: Henrik}
+    - {family-names: Zhou, given-names: Bolei}
+  journal: "arXiv preprint arXiv:2609.26618"
+  year: 2026
+  url: "https://arxiv.org/abs/2609.26618"

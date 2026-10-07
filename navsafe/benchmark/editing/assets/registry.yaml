@@ -1,0 +1,748 @@
+# NavSafe scene-editing asset registry.
+#
+# ┌───────────────────────────────────────────────────────────────────────────┐
+# │ UNRESOLVED: THIS FILE AND THE ASSET BANK MAY DISAGREE.                    │
+# │                                                                           │
+# │ `library_root` below points at ONE bank, and several entries have been    │
+# │ observed pointing at PLYs that are not there, while assets that ARE on    │
+# │ disk have no entry. The consequences are silent, not loud:                │
+# │                                                                           │
+# │   * `select_assets` filters to `present` by default, so an event type declaring  │
+# │     `count: all` quietly builds from whatever subset happens to exist —   │
+# │     R-4 asks for "every animal" and gets the four harvested quadrupeds,   │
+# │     because the eight UrbanVerse animals beside them are not on disk.     │
+# │   * a recipe pins its asset by sha256, so a bank swap AFTER a bake        │
+# │     orphans every recipe that pinned the old file.                        │
+# │                                                                           │
+# │ DO NOT patch individual `ply:` paths against whichever bank is mounted    │
+# │ today — that is how the two drift apart. Decide which bank is canonical,  │
+# │ then reconcile this file against it in ONE pass and re-bake.              │
+# │                                                                           │
+# │ Current state, any time:  navsafe assets status                           │
+# └───────────────────────────────────────────────────────────────────────────┘
+#
+# A recipe names an asset by `registry_key`; this file is what that key means.
+# Recipes pin the asset by CONTENT (uid + sha256 of the PLY), so the key is a
+# convenience for authors, not the identity.
+#
+# Most entries are DECLARED BUT NOT ON DISK, on purpose. The nine event types need
+# roughly ten times what has been converted so far, and hiding the gap would
+# make the build order (ascending asset cost) impossible to plan. Check the
+# real state with:
+#
+#   python -m navsafe.benchmark.editing.cli assets status
+#   python -m navsafe.benchmark.editing.cli assets acquire --event-type R-4
+#
+# source:  urbanverse | assetharvester | procedural | composed | host
+# dims:    [length, width, height] in metres, +x forward in the y-up file frame
+# leaves:  which event types draw on this asset
+#
+# Prefer `host` wherever a suitable actor exists: a kept-appearance relocate
+# needs no file at all and cannot be dropped by the server.
+
+library_root: asset
+
+# Canonical real-world dims per family: the scaling TARGET `assets calibrate`
+# uses when no --target-dims is given. Only homogeneous families are listed —
+# one number can stand for any member. Heterogeneous families (animal spans
+# squirrel to deer; emergency_vehicle spans police car to fire truck; the sign
+# and constrictor families mix shapes) are deliberately absent: calibrating one
+# of those needs an explicit --target-dims, and a table entry would only invite
+# scaling a deer to squirrel size without anyone deciding that.
+families:
+  car: [4.6, 1.85, 1.5]
+  bus: [11.0, 2.5, 3.2]
+  bicycle: [1.8, 0.6, 1.1]
+  bicycle_rider: [1.8, 0.6, 1.75]
+  person: [0.5, 0.5, 1.75]
+  responder: [0.5, 0.5, 1.75]
+  humanoid: [0.5, 0.4, 1.6]
+  scooter_rider: [1.1, 0.55, 1.7]
+  wheelchair_user: [1.1, 0.7, 1.35]
+  delivery_robot: [0.7, 0.6, 1.0]
+  quadruped: [0.8, 0.35, 0.6]
+
+# Canonical dims for the SPECIES the harvested animal bank carries. The
+# `animal` family deliberately has no single entry (it spans squirrel to deer),
+# so sizing one needs a species — and a species needs a table rather than
+# whatever the person running calibrate remembers about a horse.
+#   navsafe assets calibrate <ply> --species horse --auto-axes
+#
+# R-4's cast is dog / cow / hippo / horse. A lion and an elephant were carried
+# here too and are gone: an elephant is 5.5 m long, which is a CAR crossing the
+# road, and neither belongs on a US street. Species listed below the four are
+# declared for the UrbanVerse animals that are not on disk yet.
+species_dims:
+  dog:       [0.95, 0.28, 0.60]
+  # Cattle and hippo are the two large quadrupeds SMAL was actually fitted
+  # from, so they land inside its shape space -- an in-family fit lands at a
+  # chamfer around 0.07-0.10, where forcing an out-of-family body through it
+  # sits at 0.24 and grows a phantom hind leg.
+  cow:       [2.40, 0.75, 1.45]
+  hippo:     [3.30, 1.40, 1.50]
+  horse:     [2.40, 0.65, 1.60]
+  deer:      [1.70, 0.50, 1.40]
+  cat:       [0.50, 0.18, 0.30]
+  raccoon:   [0.60, 0.25, 0.30]
+  squirrel:  [0.30, 0.12, 0.20]
+  bird:      [0.40, 0.60, 0.25]
+
+assets:
+  # ── shared vehicle pool: C-10, C-7 and V-10 all draw on these ──
+  car_sedan_01:
+    family: car
+    source: urbanverse
+    uid: 946ec7c0
+    ply: asset/sedan_uv_3dgs.ply
+    # Measured off the PLY itself (bounding_dims), not copied from a constant:
+    # 120k gaussians, 45 SH bands, base_y = 0.0 (base-origin, as inserts need).
+    dims: [3.963, 1.645, 1.45]
+    track_type: VEHICLE
+    leaves: [C-10, C-7, V-10]
+  car_suv_01:
+    family: car
+    source: urbanverse
+    ply: asset/car_suv_01_3dgs.ply
+    dims: [5.0, 2.0, 1.8]
+    track_type: VEHICLE
+    leaves: [C-10, C-7, V-10]
+  car_hatchback_01:
+    family: car
+    source: urbanverse
+    ply: asset/car_hatchback_01_3dgs.ply
+    dims: [4.1, 1.8, 1.5]
+    track_type: VEHICLE
+    leaves: [C-10, C-7, V-10]
+  car_van_01:
+    family: car
+    source: urbanverse
+    ply: asset/car_van_01_3dgs.ply
+    dims: [5.4, 2.0, 2.2]
+    track_type: VEHICLE
+    leaves: [C-10, C-7, V-10]
+  car_pickup_01:
+    family: car
+    source: urbanverse
+    ply: asset/car_pickup_01_3dgs.ply
+    dims: [5.6, 2.0, 1.9]
+    track_type: VEHICLE
+    leaves: [C-10, C-7, V-10]
+  # car_harvested_01 was here: a single harvested car at
+  # asset/assetharvester_car_01_v2_3dgs.ply. It is gone because
+  # it declared the same `family: car, source: assetharvester` as hb_car_1..6 and
+  # won the selection by being declared first — so I-3 and C-7 baked against a
+  # loose file outside the reviewed asset directory while every other event type used
+  # ah_assets. One family+source must name ONE library, or which asset an event type
+  # gets depends on declaration order, which is not a decision anyone made.
+
+  host_vehicle:
+    family: car
+    source: host
+    dims: [4.6, 1.9, 1.6]
+    track_type: VEHICLE
+    leaves: [C-10, C-7, V-10, I-3]
+    notes: >-
+      No file: the relocated host actor keeps its baked gaussians. The most reliable path, and C-10's default.
+
+  # ── C-7 corridor constrictors ──
+  constrictor_parked_car:
+    family: corridor_constrictor
+    source: urbanverse
+    ply: asset/constrictor_parked_car_3dgs.ply
+    dims: [4.6, 1.9, 1.6]
+    track_type: TRAFFIC_CONE
+    leaves: [C-7]
+  constrictor_jersey_barrier:
+    family: corridor_constrictor
+    source: urbanverse
+    ply: asset/constrictor_jersey_barrier_3dgs.ply
+    dims: [3.0, 0.6, 0.8]
+    track_type: TRAFFIC_CONE
+    leaves: [C-7]
+  constrictor_cone:
+    family: corridor_constrictor
+    source: procedural
+    ply: asset/cone_tall_3dgs.ply
+    dims: [0.4, 0.4, 1.0]
+    track_type: TRAFFIC_CONE
+    leaves: [C-7]
+    procedural: {kind: cone, target_height: 1.0}
+
+  # ── V-11 one-way signage ──
+  # NOTE: the five sign entries below all point at the SAME blank procedural
+  # plate (sign_3dgs.ply). It is the right size and mounts correctly, but its
+  # face is UNPAINTED — so it stands in for geometry and placement only. V-11
+  # and V-8 both hinge on the sign being *legible and unmistakable*, so neither
+  # event type is finishable until real faces are authored. Reviewer: expect a blank
+  # plate; judge placement, not legibility.
+  sign_do_not_enter:
+    family: one_way
+    source: assetharvester
+    uid: dne_gaussians.ply@2026-08-12
+    ply: asset/dne_sign_3dgs.ply
+    # A REAL do-not-enter face (harvested), unlike the blank procedural plate the
+    # other sign entries still point at. Converted once on disk: scaled to a
+    # 2.20 m post height, grounded, y-up with the plate rotated to face +x.
+    # The harvested plate sits at ~44 deg to BOTH axes, so its facing direction
+    # is recovered by PCA over the plate's gaussians (least-variance direction =
+    # the normal) rather than assumed. Getting this wrong renders the sign
+    # EDGE-ON — it reads as a thin post, which is what a first pass produced.
+    # yaw_offset_deg: 0 keeps it facing along the reference.
+    # Gaussians are tight here (sigma p99 0.014 m), so the visual extent matches
+    # the centre bbox within 2% — no halo inflation to correct for.
+    dims: [0.312, 1.058, 2.200]
+    track_type: TRAFFIC_CONE
+    leaves: [V-11]
+    notes: >-
+      do-not-enter plate; must be legible from the ego camera at approach distance.
+  sign_one_way_directional:
+    family: one_way
+    source: urbanverse
+    ply: asset/sign_3dgs.ply
+    dims: [0.15, 0.66, 2.0]
+    track_type: TRAFFIC_CONE
+    leaves: [V-11]
+    notes: >-
+      directional plate; must be legible from the ego camera at approach distance.
+  sign_wrong_way:
+    family: one_way
+    source: urbanverse
+    ply: asset/sign_3dgs.ply
+    dims: [0.15, 0.66, 2.0]
+    track_type: TRAFFIC_CONE
+    leaves: [V-11]
+    notes: >-
+      wrong-way plate; must be legible from the ego camera at approach distance.
+
+  # ── V-8 prohibitory turn signs: AUTHORED, no such mesh exists ──
+  sign_no_u_turn:
+    family: prohibitory_turn_sign
+    source: procedural
+    ply: asset/sign_3dgs.ply
+    dims: [0.15, 0.66, 2.2]
+    track_type: TRAFFIC_CONE
+    leaves: [V-8]
+    procedural: {kind: sign, target_height: 2.2}
+    notes: >-
+      No-U-Turn. Built by retexturing a generic sign face — no such mesh exists in the library, and without the sign the maneuver is legal and the leaf untestable. The converter's procedural plate is the blank; the face still has to be painted.
+  # Updated captures: y-up, +X-facing, grounded, 2.20 m high.
+  # Source PLYs are retained in ah_assets/dnts_20260908_source.
+  sign_no_left_turn:
+    family: prohibitory_turn_sign
+    source: assetharvester
+    uid: dnts_no_left.ply@2026-09-08
+    ply: asset/dnts_no_left.ply
+    dims: [0.261, 0.817, 2.2]
+    track_type: TRAFFIC_CONE
+    leaves: [V-8]
+    notes: >-
+      No-Left-Turn. Updated capture, rotated +90 degrees about Y
+      to face +X, uniformly scaled to 2.20 m total height, grounded and centered.
+
+  sign_no_right_turn:
+    family: prohibitory_turn_sign
+    source: assetharvester
+    uid: dnts_no_right.ply@2026-09-08
+    ply: asset/dnts_no_right.ply
+    dims: [0.107, 0.84, 2.2]
+    track_type: TRAFFIC_CONE
+    leaves: [V-8]
+    notes: >-
+      No-Right-Turn. Updated capture, rotated +90 degrees about Y
+      to face +X, uniformly scaled to 2.20 m total height, grounded and centered.
+
+  # ── R-2 bicycle + rider: composed, the tightest bottleneck in the tree ──
+  bicycle_01:
+    family: bicycle
+    source: urbanverse
+    ply: asset/bicycle_01_3dgs.ply
+    dims: [1.996, 0.582, 1.100]
+    track_type: CYCLIST
+    leaves: [R-2]
+  cyclist_person_01:
+    family: person
+    source: urbanverse
+    ply: asset/cyclist_person_01_3dgs.ply
+    dims: [1.300, 0.366, 1.700]
+    track_type: PEDESTRIAN
+    leaves: [R-2]
+    notes: >-
+      One of only 2 cyclist-person meshes against 118 bicycles.
+  # Supplied ready-made (not composed): a bicycle WITH rider, uploaded from the
+  # user's own library. Its exporter used z-up with the length along +y, so it
+  # was brought into the pipeline frame with
+  #   cli assets calibrate <src> --family bicycle_rider --forward-axis +y --up-axis +z --write <this>
+  # which also solved the 2.019x scale (all three axis ratios agreed to 1%) and
+  # grounded the base at y=0. Preferred over the composed bike+rider for R-2.
+  bicycle_rider_02:
+    family: bicycle_rider
+    source: composed
+    ply: asset/bicycle_rider_02_3dgs.ply
+    dims: [1.8, 0.675, 1.713]
+    track_type: CYCLIST
+    leaves: [R-2]
+
+  bicycle_rider_01:
+    family: bicycle_rider
+    source: composed
+    ply: asset/bicycle_rider_01_3dgs.ply
+    dims: [1.8, 0.6, 1.75]
+    track_type: CYCLIST
+    leaves: [R-2]
+    compose:
+      parts:
+        - {asset: bicycle_01}
+        # Lift the rider to pedal height and sit them a little behind the bike's
+        # centre, over the saddle. Both meshes are base-origin and y-up, so the
+        # y offset IS the height off the ground. Whether this reads as SEATED
+        # (feet at the pedals, correct scale) is the event type's characteristic
+        # failure and a reviewer call — the numbers only make it plausible.
+        - {asset: cyclist_person_01, translate: [-0.12, 0.28, 0.0], scale: 1.0}
+    notes: >-
+      Reported as composed, never as retrieved. The reviewer check is seated / correctly scaled / feet at the pedals.
+
+  # ── R-3 micromobility, reported per embodiment and never pooled ──
+  delivery_robot_01:
+    family: delivery_robot
+    source: urbanverse
+    ply: asset/delivery_robot_01_3dgs.ply
+    dims: [0.7, 0.6, 1.0]
+    track_type: PEDESTRIAN
+    leaves: [R-3]
+  quadruped_01:
+    family: quadruped
+    source: urbanverse
+    ply: asset/quadruped_01_3dgs.ply
+    dims: [0.8, 0.35, 0.6]
+    track_type: PEDESTRIAN
+    leaves: [R-3]
+  humanoid_01:
+    family: humanoid
+    source: urbanverse
+    ply: asset/humanoid_01_3dgs.ply
+    dims: [0.5, 0.4, 1.6]
+    track_type: PEDESTRIAN
+    leaves: [R-3]
+  scooter_rider_01:
+    family: scooter_rider
+    source: urbanverse
+    ply: asset/scooter_rider_01_3dgs.ply
+    dims: [1.1, 0.55, 1.7]
+    track_type: PEDESTRIAN
+    leaves: [R-3]
+  wheelchair_01:
+    family: wheelchair
+    source: urbanverse
+    ply: asset/wheelchair_uv_3dgs.ply
+    dims: [0.54, 0.31, 1.35]
+    track_type: PEDESTRIAN
+    leaves: [R-3]
+  wheelchair_user_01:
+    family: wheelchair_user
+    source: composed
+    ply: asset/wheelchair_user_01_3dgs.ply
+    dims: [1.1, 0.7, 1.35]
+    track_type: PEDESTRIAN
+    leaves: [R-3]
+    compose:
+      parts:
+        - {asset: wheelchair_01}
+        - {asset: cyclist_person_01, translate: [0.0, 0.5, 0.0], scale: 0.9}
+    notes: >-
+      Must look SEATED, not standing in a chair — the leaf's stated composition check.
+
+  # ── R-4 animals: 8 assets spanning >= 6 species ──
+  animal_dog_01:
+    family: animal
+    source: urbanverse
+    ply: asset/dog_uv_3dgs.ply
+    dims: [0.87, 0.23, 0.55]
+    track_type: PEDESTRIAN
+    leaves: [R-4]
+  animal_dog_02:
+    family: animal
+    source: urbanverse
+    ply: asset/animal_dog_02_3dgs.ply
+    dims: [1.0, 0.3, 0.7]
+    track_type: PEDESTRIAN
+    leaves: [R-4]
+  animal_deer_01:
+    family: animal
+    source: urbanverse
+    ply: asset/animal_deer_01_3dgs.ply
+    dims: [1.7, 0.5, 1.4]
+    track_type: PEDESTRIAN
+    leaves: [R-4]
+  animal_deer_02:
+    family: animal
+    source: urbanverse
+    ply: asset/animal_deer_02_3dgs.ply
+    dims: [1.9, 0.55, 1.5]
+    track_type: PEDESTRIAN
+    leaves: [R-4]
+  animal_cat_01:
+    family: animal
+    source: urbanverse
+    ply: asset/animal_cat_01_3dgs.ply
+    dims: [0.5, 0.18, 0.3]
+    track_type: PEDESTRIAN
+    leaves: [R-4]
+  animal_bird_01:
+    family: animal
+    source: urbanverse
+    ply: asset/animal_bird_01_3dgs.ply
+    dims: [0.4, 0.6, 0.25]
+    track_type: PEDESTRIAN
+    leaves: [R-4]
+  animal_raccoon_01:
+    family: animal
+    source: urbanverse
+    ply: asset/animal_raccoon_01_3dgs.ply
+    dims: [0.6, 0.25, 0.3]
+    track_type: PEDESTRIAN
+    leaves: [R-4]
+  animal_squirrel_01:
+    family: animal
+    source: urbanverse
+    ply: asset/animal_squirrel_01_3dgs.ply
+    dims: [0.3, 0.12, 0.2]
+    track_type: PEDESTRIAN
+    leaves: [R-4]
+
+  # ── I-3 incident cast ──
+  emergency_police_car:
+    family: emergency_vehicle
+    source: urbanverse
+    ply: asset/police_car_uv_3dgs.ply
+    dims: [4.65, 2.0, 1.5]
+    track_type: VEHICLE
+    leaves: [I-3]
+  emergency_ambulance:
+    family: emergency_vehicle
+    source: urbanverse
+    ply: asset/emergency_ambulance_3dgs.ply
+    dims: [6.0, 2.3, 2.6]
+    track_type: VEHICLE
+    leaves: [I-3]
+  emergency_fire_truck:
+    family: emergency_vehicle
+    source: urbanverse
+    ply: asset/emergency_fire_truck_3dgs.ply
+    dims: [9.5, 2.5, 3.3]
+    track_type: VEHICLE
+    leaves: [I-3]
+  responder_officer:
+    family: responder
+    source: urbanverse
+    ply: asset/responder_officer_3dgs.ply
+    dims: [0.5, 0.5, 1.75]
+    track_type: PEDESTRIAN
+    leaves: [I-3]
+  responder_firefighter:
+    family: responder
+    source: urbanverse
+    ply: asset/responder_firefighter_3dgs.ply
+    dims: [0.5, 0.5, 1.75]
+    track_type: PEDESTRIAN
+    leaves: [I-3]
+  responder_worker:
+    family: responder
+    source: urbanverse
+    ply: asset/responder_worker_3dgs.ply
+    dims: [0.5, 0.5, 1.75]
+    track_type: PEDESTRIAN
+    leaves: [I-3]
+  debris_drum:
+    family: debris
+    source: urbanverse
+    ply: asset/drum_uv_3dgs.ply
+    dims: [1.0, 0.87, 0.95]
+    track_type: TRAFFIC_CONE
+    leaves: [I-3]
+  debris_barricade:
+    family: debris
+    source: urbanverse
+    ply: asset/barricade_uv_3dgs.ply
+    dims: [1.63, 0.98, 1.0]
+    track_type: TRAFFIC_CONE
+    leaves: [I-3]
+  debris_scatter:
+    family: debris
+    source: urbanverse
+    ply: asset/debris_scatter_3dgs.ply
+    dims: [1.2, 1.2, 0.4]
+    track_type: TRAFFIC_CONE
+    leaves: [I-3]
+  school_bus:
+    family: bus
+    source: urbanverse
+    ply: asset/school_bus_3dgs.ply
+    dims: [11.0, 2.5, 3.2]
+    track_type: VEHICLE
+    leaves: [I-3]
+    notes: >-
+      OPEN ITEM: the bus mesh and a deployed stop-arm are not in this leaf's asset list. The stop-arm is either authored or approximated by a static arm; decide before building the two stop-arm scenarios.
+
+  # ── AssetHarvester bank (21 assets) ──
+  # Uploaded from the user's harvest, then put through
+  #   navsafe assets calibrate <src> --auto-axes --fit-axis <…> --write <this>
+  # which re-orients (the bank does NOT share one convention: cars arrive with
+  # their length along +z, bicycles along +y), sizes by visual extent, and grounds
+  # the base. dims below are MEASURED off the written file, not assumed.
+  # NOTE: a bounding box cannot tell a car's nose from its tail, so FACING is
+  # unresolved for the symmetric assets — check it in the first render.
+  # cow and hippo arrived as RAW harvest, not as calibrated files like the two
+  # beside them: cow.ply measured 1.18 m nose-to-tail and hippo.ply 0.59 m, so
+  # the render put a correctly-sized collision box around a visibly toy animal
+  # (the client pre-divides a PLY by the scale the server is about to apply, so
+  # an asset renders at its OWN size and `dims:` cannot stretch it). Both were
+  # PHASE COUNT: the four banks are 10 phases, not 16. A phase is inserted as
+  # its own server track in EVERY handoff window, so a 4-animal cast at 16
+  # phases is 64 phase-tracks per scene, and the NRE composite renderer died
+  # there with a CUDA illegal memory access inside `get_n_active_features()` --
+  # after accepting every insert, so the failure surfaces at the first
+  # render_rgb, not at edit time. 60 (R-3's six pedestrians at 10) is known to
+  # work; the ceiling is somewhere in between and has not been bisected.
+  #
+  # re-written through `assets calibrate --species <s> --auto-axes
+  # --fit-axis height`; dims below are measured off the written file. HEIGHT,
+  # not length, because that is the axis a harvested body does not lie about:
+  # all four animals land on their species' exact height and keep their own
+  # (stocky, or long) proportions, so the four are comparable in one render.
+  # Keyed by species rather than by number — the numbered pair predates the
+  # convention and is frozen into an already-baked recipe.
+  hb_animal_cow:
+    family: animal
+    species: cow
+    source: assetharvester
+    ply: asset/animal_cow.ply
+    dims: [2.558, 0.654, 1.450]
+    gait_bank: hb_animal_cow_p5
+    track_type: PEDESTRIAN
+    leaves: [R-4]
+  hb_animal_hippo:
+    family: animal
+    species: hippo
+    source: assetharvester
+    ply: asset/animal_hippo.ply
+    dims: [2.607, 1.135, 1.500]
+    gait_bank: hb_animal_hippo_p5
+    track_type: PEDESTRIAN
+    leaves: [R-4]
+  hb_animal_3:
+    family: animal
+    species: dog
+    source: assetharvester
+    ply: asset/animal_3.ply
+    dims: [0.853, 0.283, 0.585]
+    gait_bank: hb_animal_dog_p5
+    track_type: PEDESTRIAN
+    leaves: [R-4]
+  hb_animal_4:
+    family: animal
+    species: horse
+    source: assetharvester
+    ply: asset/animal_4.ply
+    dims: [1.774, 0.500, 1.582]
+    gait_bank: hb_animal_horse_p5
+    track_type: PEDESTRIAN
+    leaves: [R-4]
+  hb_bicycle_1:
+    family: bicycle_rider
+    source: assetharvester
+    ply: asset/bicycle_1.ply
+    dims: [1.636, 0.642, 1.745]
+    track_type: CYCLIST
+    leaves: [R-2]
+  hb_bicycle_2:
+    family: bicycle_rider
+    source: assetharvester
+    ply: asset/bicycle_2.ply
+    dims: [1.667, 0.572, 1.712]
+    track_type: CYCLIST
+    leaves: [R-2]
+  hb_bicycle_3:
+    family: bicycle_rider
+    source: assetharvester
+    ply: asset/bicycle_3.ply
+    dims: [1.729, 0.612, 1.560]
+    track_type: CYCLIST
+    leaves: [R-2]
+  hb_bicycle_4:
+    family: bicycle_rider
+    source: assetharvester
+    ply: asset/bicycle_4.ply
+    dims: [1.588, 0.609, 1.748]
+    track_type: CYCLIST
+    leaves: [R-2]
+  hb_bicycle_5:
+    family: bicycle_rider
+    source: assetharvester
+    ply: asset/bicycle_5.ply
+    dims: [1.729, 0.609, 1.715]
+    track_type: CYCLIST
+    leaves: [R-2]
+  hb_car_1:
+    family: car
+    source: assetharvester
+    ply: asset/car_1.ply
+    # Re-calibrated: the harvest measured 3.83 m long against this
+    # family's 4.6 m, so inserted cars read as toys beside the scene's own
+    # traffic. `assets calibrate --fit-axis length` scaled the PLY in place.
+    dims: [4.600, 2.233, 1.800]
+    track_type: VEHICLE
+    leaves: [C-10, C-7, I-3, V-10]
+  hb_car_2:
+    family: car
+    source: assetharvester
+    ply: asset/car_2.ply
+    # Re-calibrated: the harvest measured 4.10 m long against this
+    # family's 4.6 m, so inserted cars read as toys beside the scene's own
+    # traffic. `assets calibrate --fit-axis length` scaled the PLY in place.
+    dims: [4.600, 2.078, 2.026]
+    track_type: VEHICLE
+    leaves: [C-10, C-7, I-3, V-10]
+  hb_car_3:
+    family: car
+    source: assetharvester
+    ply: asset/car_3.ply
+    # NOT A CAR: this capture is a concrete MIXER TRUCK, and the family label
+    # is historical. Re-calibrated against 8.5 x 2.5 x 3.8 m rather
+    # than the car family's 4.6 x 1.85 x 1.5 -- against the car target it came
+    # out mixer-shaped at sedan size, which is what a reviewer saw.
+    #
+    # It was ALSO briefly mis-diagnosed as rolled and rotated 90 deg by
+    # --auto-axes: taller than wide is correct for a mixer, and reading that as
+    # a roll is only right for a saloon. Do not pass --auto-axes here.
+    #
+    # The three axis ratios against the truck target are 1.84 / 1.70 / 1.95 --
+    # consistent to 1.15x, so this really is one uniformly undersized mixer and
+    # a single scale fixes it.
+    dims: [8.500, 2.717, 3.598]
+    track_type: VEHICLE
+    leaves: [C-10, C-7, I-3, V-10]
+  hb_car_4:
+    family: car
+    source: assetharvester
+    ply: asset/car_4.ply
+    # Re-calibrated: the harvest measured 3.98 m long against this
+    # family's 4.6 m, so the inserted car read as a toy beside the scene's own
+    # traffic (nuPlan boxes on 0ebb578555b25ab2 median 4.45 x 1.94 x 1.72).
+    # `assets calibrate --fit-axis length` scaled the PLY by 1.155x in place;
+    # width comes out 18% over the canonical because this capture is a wide
+    # body, and length is the axis a vehicle is judged on.
+    dims: [4.600, 2.188, 1.732]
+    track_type: VEHICLE
+    leaves: [C-10, C-7, I-3, V-10]
+  hb_car_5:
+    family: car
+    source: assetharvester
+    ply: asset/car_5.ply
+    # Re-calibrated: the harvest measured 3.59 m long against this
+    # family's 4.6 m, so inserted cars read as toys beside the scene's own
+    # traffic. `assets calibrate --fit-axis length` scaled the PLY in place.
+    dims: [4.600, 2.220, 1.911]
+    track_type: VEHICLE
+    leaves: [C-10, C-7, I-3, V-10]
+  hb_car_6:
+    family: car
+    source: assetharvester
+    ply: asset/car_6.ply
+    # Re-calibrated: the harvest measured 3.67 m long against this
+    # family's 4.6 m, so inserted cars read as toys beside the scene's own
+    # traffic. `assets calibrate --fit-axis length` scaled the PLY in place.
+    dims: [4.600, 2.317, 2.005]
+    track_type: VEHICLE
+    leaves: [C-10, C-7, I-3, V-10]
+  # Delivery robots, uploaded from the user's asset bank and put through
+  #   assets calibrate <src> --target-dims 0.7 0.6 1.0 --auto-axes --fit-axis height
+  # Height-fit like the animals: a harvested body's stature is the axis that
+  # does not lie, and these came in base-offset (base_y about -0.45) so the
+  # rebase matters more than the exact footprint. dims are MEASURED off the
+  # written file. No gait bank -- a robot rolls, so swapping posed copies would
+  # be wrong, not merely absent.
+  hb_robot_1:
+    family: delivery_robot
+    # The RENDER class, stated because it is not inferable from the family: a
+    # car2sim recon opens its actor layer to PEDESTRIAN-class inserts only, and
+    # `delivery_robot` resolves to a VEHICLE-ish class on the way to the server.
+    # The insert is then refused AFTER the PLY loads, so the episode renders
+    # fine, just without the robot -- a silence, not an error.
+    render_class: PEDESTRIAN
+    source: assetharvester
+    # Re-oriented: the harvested file had the robot's UP along +x, so placing
+    # it y-up laid it on its nose -- the wheel face became the back. Measured
+    # from the point cloud (assets calibrate --forward-axis +z --up-axis +x),
+    # not guessed: the wheels now sit under the body in the x-y view.
+    ply: asset/robot1_fwd.ply
+    dims: [0.764, 0.6, 0.689]
+    track_type: PEDESTRIAN
+    leaves: [R-3]
+  hb_robot_2:
+    family: delivery_robot
+    # The RENDER class, stated because it is not inferable from the family: a
+    # car2sim recon opens its actor layer to PEDESTRIAN-class inserts only, and
+    # `delivery_robot` resolves to a VEHICLE-ish class on the way to the server.
+    # The insert is then refused AFTER the PLY loads, so the episode renders
+    # fine, just without the robot -- a silence, not an error.
+    render_class: PEDESTRIAN
+    source: assetharvester
+    ply: asset/robot2_fwd.ply
+    dims: [0.873, 0.6, 0.664]
+    track_type: PEDESTRIAN
+    leaves: [R-3]
+  hb_pedestrian_1:
+    family: person
+    source: assetharvester
+    ply: asset/pedestrain_1.ply
+    dims: [1.013, 0.896, 1.706]
+    # 5 phases, not 10. A phase is one server track per handoff window, and
+    # the NRE backend refuses inserts past ~50 tracks in a scene that already
+    # carries ~30 logged ones: R-3's two walkers at 10 phases filled the
+    # budget and its robots were refused as tracks 51-52, silently, after
+    # their PLYs had loaded. 5 phases leaves room for them. A coarser gait
+    # cycle is a visible cost; an actor that is not in the render at all is
+    # not a cost, it is a wrong scenario.
+    gait_bank: hb_pedestrian_1_p3
+    track_type: PEDESTRIAN
+    leaves: [R-3, I-3]
+  hb_pedestrian_3:
+    family: person
+    source: assetharvester
+    ply: asset/pedestrain_3.ply
+    dims: [0.366, 0.567, 1.697]
+    gait_bank: hb_pedestrian_3_p3
+    track_type: PEDESTRIAN
+    leaves: [R-3, I-3]
+  hb_pedestrian_4:
+    family: person
+    source: assetharvester
+    ply: asset/pedestrain_4.ply
+    dims: [0.499, 0.700, 1.700]
+    gait_bank: hb_pedestrian_4_p3
+    track_type: PEDESTRIAN
+    leaves: [R-3, I-3]
+  hb_pedestrian_5:
+    family: person
+    source: assetharvester
+    ply: asset/pedestrain_5.ply
+    dims: [0.849, 0.610, 1.693]
+    gait_bank: hb_pedestrian_5_p3
+    track_type: PEDESTRIAN
+    leaves: [R-3, I-3]
+  hb_pedestrian_6:
+    family: person
+    source: assetharvester
+    ply: asset/pedestrain_6.ply
+    dims: [0.976, 0.715, 1.684]
+    gait_bank: hb_pedestrian_6_p3
+    track_type: PEDESTRIAN
+    leaves: [R-3, I-3]
+  hb_pedestrian_2:
+    family: person
+    source: assetharvester
+    ply: asset/pedestrian_2.ply
+    dims: [0.707, 0.671, 1.697]
+    gait_bank: hb_pedestrian_2_p3
+    track_type: PEDESTRIAN
+    leaves: [R-3, I-3]

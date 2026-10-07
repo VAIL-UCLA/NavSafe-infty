@@ -1,0 +1,115 @@
+leaf: R-3
+name: Micromobility
+scenario: micromobility_crossing
+tier: constructed
+summary: >-
+  A crowd crosses the road on a marked crossing the ego drives over. They
+  negotiate each other as well as the ego, which is the only place the
+  social-force driver is visible.
+# A crossing is the event, so the host must HAVE one. This is a hard gate on
+# purpose: a crowd sent across the ego's route mid-block is a different
+# scenario, and calling it the same one hides which was tested.
+qualify: [crosswalk_on_route]
+qualify_info: [straight_stretch]
+metrics: [collision, time_to_collision, vulnerable_road_user_clearance]
+checklist: R-3.md
+notes: >-
+  The crossing used to be synthesised: `dart_out` on `ego_route`, sweeping from
+  a named lateral on one side to a named lateral on the other. That put people
+  across the road perpendicular to the ego wherever the layout solver chose,
+  which is not where anyone crosses. It also reported "no crosswalk on this
+  host" for every host, because the py123d reader dropped the crosswalk layer
+  entirely — hundreds of them per map, never emitted.
+
+insert:
+  world_version: car2sim_6cam_static@nre-ga
+  ego: {replay_frames: 8}
+  requires: {min_reaction_s: 1.5, min_clearance_m: 1.0}
+  pair_id: r3_bank
+  cast:
+    # TWO pedestrians and TWO robots, not six pedestrians. Micromobility is the
+    # event type's subject and a walking person is only half of it; the other half is
+    # the thing that crosses without a social model to read.
+    #
+    # The count also has to be small. A gait bank is inserted as one server
+    # track PER PHASE PER HANDOFF WINDOW, so six walkers at 10 phases over a
+    # four-window host is 240 inserted tracks against a measured ceiling near
+    # 60 — that is what exhausted the render server's VRAM mid-batch and cost
+    # five R-3 runs an `infra_failure`. Two walkers is 80, and the robots add
+    # two more because they roll rather than walk and carry no bank.
+    - slot: ped
+      assets: {family: person, source: assetharvester}
+      count: 3
+      track: {type: PEDESTRIAN}
+      leaf_variety_slot: "person {i}/{n}"
+      authored:
+        # The crossing's OWN geometry is the path: kerb to kerb, in its own
+        # direction, however it is angled to the road. `arc` is measured along
+        # it, so 0 is one kerb and the actor walks to the other.
+        template: dynamic
+        reference: crosswalk_chain
+        # Arc 0 is the CROSSING's own kerb, not the hand-off projected onto it
+        # — see `reference_start` in author.py. Without this the walk starts
+        # mid-crossing, in the ego's lane.
+        anchor: reference_start
+        arc: 0.0
+        # Walking pace. At 2.2-3.2 m/s they were across before the ego arrived
+        # and the road was clear again by the time it mattered.
+        # ONE VALUE PER WALKER. These lists are indexed per actor and wrap, so
+        # a two-element list under `count: 3` gave walker 3 walker 1's speed,
+        # lateral AND arrival -- and with `arc: 0.0` pinning both to the
+        # crossing's start, the two baked to the same point: three assets, two
+        # visible people, one inside the other (3239cd8874425d73 and
+        # 1b2b430e151a50ae both put ped_3 at ped_1's spawn to the centimetre).
+        speed: [1.3, 1.5, 1.2]
+        # Abreast on the crossing, not in single file: +LEFT of the crossing's
+        # own direction, so this spreads them across its width.
+        # 1.6 m APART, which is a measurement rather than a guess. These
+        # offsets are perpendicular to the crossing, so they are the gap
+        # between neighbours in the group -- and the social force each actor
+        # runs is Moussaid with `factor: 5.1`, whose repulsion between two
+        # agents walking abreast measures 0.519 m/s^2 at 0.8 m and 0.053 at
+        # 1.6. Half a m/s^2 of sideways push, recomputed every frame by each
+        # actor in its OWN one-step simulator (so the pair never agrees on the
+        # force), is what made R-3's groups twitch in place instead of walk.
+        # An order of magnitude down settles them.
+        lateral: [0.0, 1.6, 3.2]
+        # Solve the wait, do not type it. `trigger_ego_distance_m: [26, 18, …]`
+        # used to sit here, and a distance in metres is only right for the host
+        # it was measured on: at 24 m and 1.3 m/s the walker was across and
+        # standing on the far kerb before the ego arrived, so the road it was
+        # meant to block was clear. `arrive_with_ego` finds where the crossing
+        # cuts the ego's route, asks when the ego gets there, and backs off the
+        # walker's own travel time — which survives a different host and a
+        # policy driving at a different speed.
+        arrive_with_ego: true
+        # Seconds relative to CO-ARRIVAL, which is a collision for an ego that
+        # does not react; negative crosses ahead of it. Staggering here rather
+        # than in metres keeps what the distances were for — they step off at
+        # different moments, meet on the crossing, and have to negotiate each
+        # other, which is the only place social force is visible.
+        arrive_offset_s: [-2.0, -1.0, -1.5]
+
+    # Robots cross the same line, offset the other way and a beat later, so the
+    # ego meets a walker and a machine at the same crossing rather than two of
+    # the same thing. No gait: a delivery robot rolls, so a bank of posed
+    # copies would be wrong rather than merely missing.
+    - slot: robot
+      assets: {keys: [hb_robot_1, hb_robot_2]}
+      count: 2
+      # semantic_class is what the RENDER server loads the asset as. Without it
+      # the robot reaches the server as a VEHICLE and its actor layer refuses
+      # the insert -- after the PLY has loaded, so the render just quietly has
+      # no robot in it.
+      track: {type: PEDESTRIAN, semantic_class: "NuPlanBoxDetectionLabel.PEDESTRIAN"}
+      leaf_variety_slot: "robot {i}/{n}"
+      authored:
+        template: dynamic
+        reference: crosswalk_chain
+        anchor: reference_start
+        arc: 0.0
+        # Slower than a walker, which is what a delivery robot is.
+        speed: [1.0, 1.1]
+        lateral: [-1.6, -3.2]
+        arrive_with_ego: true
+        arrive_offset_s: [-1.5, -0.5]

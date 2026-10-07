@@ -1,0 +1,62 @@
+# py123d conversion config: one navhard scenario window -> Arrow scenario source.
+#
+# Copied from py123d's stock `nuplan.yaml` with two changes:
+#   * parser  -> navsafe.gs3d_converter.navsim_parser.NavhardNuplanParser, which
+#     windows the raw log to [t0, t1] and renames the scene to the recon token so
+#     the Arrow's log_name matches the grpc scene id.
+#   * cameras/lidar excluded — this Arrow is the *scenario* (ego, boxes, map,
+#     route), never the pixels. The pixels come from the NuRec models over gRPC,
+#     and converting sensors here would multiply the bundle size for nothing.
+#
+# Installed into py123d's config dir by `make_arrow.sh`; see PIPELINE.md.
+
+parser:
+  _target_: navsafe.gs3d_converter.navsim_parser.NavhardNuplanParser
+  _convert_: 'all'
+
+  split: nuplan_test
+  nuplan_data_root: ${oc.env:NUPLAN_DATA_ROOT}
+  nuplan_maps_root: ${oc.env:NUPLAN_MAPS_ROOT}
+  nuplan_sensor_root: ${oc.env:NUPLAN_SENSOR_ROOT}
+  # Overridden on the CLI: [[log_name, token, t0_us, t1_us]]
+  scenes: ???
+
+log_writer_config:
+  _target_: py123d.api.scene.arrow.utils.log_writer_config.LogWriterConfig
+  _convert_: 'all'
+
+  force_log_conversion: ${force_log_conversion}
+  force_map_conversion: ${force_map_conversion}
+  async_conversion: ${async_conversion}
+
+  exclude_modality_types: [lidar, camera]
+
+  camera_store_option: "path"
+  lidar_store_option: "path"
+  lidar_codec: null
+
+  infer_ego_dynamics: false
+  infer_box_dynamics: false
+
+log_writer:
+  _target_: py123d.api.scene.arrow.arrow_log_writer.ArrowLogWriter
+  _convert_: 'all'
+  log_writer_config: ${dataset.log_writer_config}
+  logs_root: ${dataset_paths.py123d_logs_root}
+  sensors_root: ${dataset_paths.py123d_sensors_root}
+  ipc_compression: null
+  ipc_compression_level: null
+
+  sync_config:
+    _target_: py123d.api.scene.arrow.arrow_log_writer.SyncConfig
+    _convert_: 'all'
+    reference_column: box_detections_se3.timestamp_us
+    direction: "forward"
+    target_iteration_duration_s: 0.1
+
+map_writer:
+  _target_: py123d.api.map.arrow.arrow_map_writer.ArrowMapWriter
+  _convert_: 'all'
+  force_map_conversion: ${force_map_conversion}
+  maps_root: ${dataset_paths.py123d_maps_root}
+  logs_root: ${dataset_paths.py123d_logs_root}

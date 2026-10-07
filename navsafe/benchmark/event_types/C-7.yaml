@@ -1,0 +1,62 @@
+leaf: C-7
+name: Head-On
+scenario: head_on_meeting
+tier: constructed
+summary: >-
+  A narrow two-way corridor where the ego and an oncoming vehicle have to
+  negotiate the same strip of road. The corridor is mined; the oncoming car is
+  always inserted, so the meeting is a property of the recipe rather than of
+  whatever the log happened to contain.
+# Selected by road SHAPE, so selection runs on a CONVERTED host
+# (`navsafe qualify`) rather than on raw nuPlan logs — the predicates
+# measure lanes in the ego's own frame, which conversion creates.
+mine:
+  miner: two_way
+  params:
+    max_corridor_m: 4.0
+qualify: [narrow_corridor]
+qualify_info: [oncoming_vehicle_in_log]
+metrics: [collision, time_to_collision, comfort]
+checklist: C-7.md
+notes: >-
+  The insert used to be conditional (`insert_when: oncoming_vehicle_in_log`,
+  i.e. only where the log had no oncoming traffic), which is why the one frozen
+  C-7 recipe has zero actors: its host already had traffic, so the leaf's
+  defining event was left to chance. A host whose log ALREADY has oncoming
+  traffic is C-10, not C-7 — there the ego is the wrong-way driver and nothing
+  is built.
+
+insert:
+  world_version: car2sim_6cam_static@nre-ga
+  ego: {replay_frames: 8}
+  requires: {min_reaction_s: 1.5}
+  pair_id: c7_headon
+  cast:
+    - slot: oncoming_vehicle
+      assets: {family: car, source: assetharvester}
+      count: 1
+      # One car, many builds: --variety K picks the Kth member of the bank, so
+      # the event type gets appearance variety across scenarios without six cars in one.
+      variety: rotate
+      track: {type: VEHICLE}
+      # RENDER-only class. A car2sim recon opens its actor layer solely to a
+      # PEDESTRIAN-class track; a VEHICLE-class insert loads the PLY and is then
+      # rejected server-side, so the episode renders complete but with no car in
+      # it. Scoring still sees a VEHICLE (see `track:` above).
+      render_class: pedestrian
+      leaf_variety_slot: "oncoming car (variant {v}/{V})"
+      authored:
+        template: dynamic
+        # The chain runs in the opposing lane's OWN direction, so this is
+        # ordinary traffic: positive speed, negative (ego-forward) arc.
+        reference: opposing_lane_chain
+        # Closer and slower than an ordinary oncoming car: what makes this event type
+        # head-ON rather than merely oncoming is the CORRIDOR (the
+        # `narrow_corridor` gate), so the meeting has to happen inside it.
+        arc: -45.0
+        speed: 6.0
+        # IDM is a SAFE car-following model. Handed the ego as a leader it
+        # simply brakes, the corridor never has to be shared, and the event type
+        # measures nothing. Blind, it drives its own lane at its own speed and
+        # is not expecting anyone coming the other way — which is the test.
+        blind_to_ego: true

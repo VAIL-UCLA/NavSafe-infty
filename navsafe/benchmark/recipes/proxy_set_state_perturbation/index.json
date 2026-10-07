@@ -1,0 +1,2604 @@
+{
+  "source_zip": "navsafe-recipe-b5ac1726.zip",
+  "source_zip_sha256": "72daf29bf96d95dd0b3e992c8a5393b2d0ca7f65cbd03328735cbe63b697df01",
+  "eval_frames": 600,
+  "configured_events": 56,
+  "missing_events_skipped": 26,
+  "recipe_files": 112,
+  "events": [
+    {
+      "leaf": "C-1",
+      "token": "02902d180b405100",
+      "event": "cut_in",
+      "data_root": "full_test/02902d180b405100/arrow",
+      "event_recipe": "C-1.02902d180b405100.cut_in.event.yaml",
+      "baseline_recipe": "C-1.02902d180b405100.cut_in.baseline.yaml",
+      "asset_harvester_manifest": "full_test/02902d180b405100/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-1.02902d180b405100.cut_in.event.yaml",
+          "source_sha256": "a895d045a3f0ec9806eb558b491f4067b2efa17e114d757938904f9296cfafaf",
+          "prepared_sha256": "da894375f4fc9bb580a63328862fa4b49e0fcbbeea6ef64113e16a46cb699835",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a9494d64bf869",
+              "old_length_m": 110.42914511566957,
+              "new_length_m": 320.0,
+              "tail_added_m": 209.57085488433043
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a9494d64bf869",
+              "source_track_id": "f1db6cbeb39e53e1",
+              "own_harvested_asset": "full_test/02902d180b405100/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/f1db6cbeb39e53e1/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/02902d180b405100/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-1.02902d180b405100.cut_in.baseline.yaml",
+          "source_sha256": "a596bf9f8dc361c8740de1afe8d1d770694534b14c6f659ff68c9ab9cc85ca2c",
+          "prepared_sha256": "9651c0d981201de5d4d9fb6f9509604e231d0e10abfc206ce038e5d8f51511da",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a9494d64bf869",
+              "old_length_m": 110.42914511566957,
+              "new_length_m": 320.0,
+              "tail_added_m": 209.57085488433043
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a9494d64bf869",
+              "source_track_id": "f1db6cbeb39e53e1",
+              "own_harvested_asset": "full_test/02902d180b405100/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/f1db6cbeb39e53e1/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/02902d180b405100/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "C-1",
+      "token": "02902d180b405100",
+      "event": "lead_brake",
+      "data_root": "full_test/02902d180b405100/arrow",
+      "event_recipe": "C-1.02902d180b405100.lead_brake.event.yaml",
+      "baseline_recipe": "C-1.02902d180b405100.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": "full_test/02902d180b405100/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-1.02902d180b405100.lead_brake.event.yaml",
+          "source_sha256": "049015d4b6ea577f41b86de5bd7c4fd2cc84426535d947ed8b131f5e74d5279e",
+          "prepared_sha256": "3f8f52de86848f4b78db2de290b448873cd43cecd7a3e7a91b10cd6737baf8d2",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a8840601616a3",
+              "old_length_m": 153.99999999999915,
+              "new_length_m": 331.0,
+              "tail_added_m": 177.00000000000085
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a8840601616a3",
+              "source_track_id": "cabde0101f465d6c",
+              "own_harvested_asset": "full_test/02902d180b405100/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/cabde0101f465d6c/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/02902d180b405100/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-1.02902d180b405100.lead_brake.baseline.yaml",
+          "source_sha256": "0c33aad8150084d3462269408adcff2c21d13a90412c214d8702c23b5c564d6b",
+          "prepared_sha256": "7b0ce655dc4bf3ae420434bf725f337c695c860c01f964779e920f41c847bbf5",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a8840601616a3",
+              "old_length_m": 153.99999999999915,
+              "new_length_m": 331.0,
+              "tail_added_m": 177.00000000000085
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a8840601616a3",
+              "source_track_id": "cabde0101f465d6c",
+              "own_harvested_asset": "full_test/02902d180b405100/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/cabde0101f465d6c/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/02902d180b405100/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "C-10",
+      "token": "2bd04a0902095129",
+      "event": "cut_in",
+      "data_root": "full_test/2bd04a0902095129/arrow",
+      "event_recipe": "C-10.2bd04a0902095129.cut_in.event.yaml",
+      "baseline_recipe": "C-10.2bd04a0902095129.cut_in.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-10.2bd04a0902095129.cut_in.event.yaml",
+          "source_sha256": "ff1989604cdeacd27f4c1a1a9c1434ada76a4eacaff2ad38e4f6f9135d72abc9",
+          "prepared_sha256": "476e5217e18754b884725cad676be482bb76e14c046625ef4bf25cc35defc846",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a65de6a240bc1",
+              "old_length_m": 31.43630361491472,
+              "new_length_m": 325.00608,
+              "tail_added_m": 293.5697763850853
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-10.2bd04a0902095129.cut_in.baseline.yaml",
+          "source_sha256": "d290f571d075f12a4f2121dd0f644f474f00fd361959dc832d27b24d0fd5b314",
+          "prepared_sha256": "c7eb81f6995dfd9435907432758a7c53d9aa3a27818c1c154db8451463dd29c1",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a65de6a240bc1",
+              "old_length_m": 31.43630361491472,
+              "new_length_m": 325.00608,
+              "tail_added_m": 293.5697763850853
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-10",
+      "token": "2bd04a0902095129",
+      "event": "lead_brake",
+      "data_root": "full_test/2bd04a0902095129/arrow",
+      "event_recipe": "C-10.2bd04a0902095129.lead_brake.event.yaml",
+      "baseline_recipe": "C-10.2bd04a0902095129.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": "full_test/2bd04a0902095129/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-10.2bd04a0902095129.lead_brake.event.yaml",
+          "source_sha256": "199b86ed6a7845182ca5c039a299a727e9e9ea1b9a9649fbb2b77cc74b17463d",
+          "prepared_sha256": "5d2b6e32583d089b8bda54b381bd2f36be7f743508df240e8f33ed88329c9fcc",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a11150dd1a7db",
+              "old_length_m": 16.332661997891833,
+              "new_length_m": 455.00851199999994,
+              "tail_added_m": 438.6758500021082
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a11150dd1a7db",
+              "source_track_id": "b3624ffd3be65170",
+              "own_harvested_asset": "full_test/2bd04a0902095129/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/b3624ffd3be65170/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/2bd04a0902095129/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-10.2bd04a0902095129.lead_brake.baseline.yaml",
+          "source_sha256": "3b953d3595d6c95f7560a978cfe43d95a8c0dfcfccc17a2ad5a604e73e6ba257",
+          "prepared_sha256": "8ba84a8d46f9debac895755a4bef67dc40398f14a7fdfe62c82191e0dc15e5e1",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a11150dd1a7db",
+              "old_length_m": 16.332661997891833,
+              "new_length_m": 455.00851199999994,
+              "tail_added_m": 438.6758500021082
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a11150dd1a7db",
+              "source_track_id": "b3624ffd3be65170",
+              "own_harvested_asset": "full_test/2bd04a0902095129/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/b3624ffd3be65170/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/2bd04a0902095129/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "C-2",
+      "token": "f077a062ad9b55e9",
+      "event": "cut_in",
+      "data_root": "full_test/f077a062ad9b55e9/arrow",
+      "event_recipe": "C-2.f077a062ad9b55e9.cut_in.event.yaml",
+      "baseline_recipe": "C-2.f077a062ad9b55e9.cut_in.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-2.f077a062ad9b55e9.cut_in.event.yaml",
+          "source_sha256": "c1099071b10703299af6e6b23962df9d273a4dfd6b928b351ceab0897d4d9751",
+          "prepared_sha256": "c723dfacb09575a30a471da4c93f7fd7fbed581f251facc36ac3b5df01e9e5c4",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_aed59adafac35",
+              "old_length_m": 18.248780353382895,
+              "new_length_m": 325.0,
+              "tail_added_m": 306.75121964661713
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-2.f077a062ad9b55e9.cut_in.baseline.yaml",
+          "source_sha256": "f226535b56030c29b2f069a960c7256dff05b9773b28b31b2df50026125c0951",
+          "prepared_sha256": "900595c40501176b51723eee3e177f26e15ed7075c42694c31fbf4da5e1ecba9",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_aed59adafac35",
+              "old_length_m": 18.248780353382895,
+              "new_length_m": 325.0,
+              "tail_added_m": 306.75121964661713
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-2",
+      "token": "f077a062ad9b55e9",
+      "event": "vru_cross",
+      "data_root": "full_test/f077a062ad9b55e9/arrow",
+      "event_recipe": "C-2.f077a062ad9b55e9.vru_cross.event.yaml",
+      "baseline_recipe": "C-2.f077a062ad9b55e9.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-2.f077a062ad9b55e9.vru_cross.event.yaml",
+          "source_sha256": "47e6f0ab63922b4fbb5ec30a9d02e2b2356bbcf7d5bfc0b8e56661f286e928fa",
+          "prepared_sha256": "629fe13bcb65c8306785a64b2af6ec27a8986b8ebf0c64421ebb3e16c943689d",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-2.f077a062ad9b55e9.vru_cross.baseline.yaml",
+          "source_sha256": "378ab89000ecde3e86c6f1a2ed60c1f11abd56e5879d2be7aea4d3e5e6055cdf",
+          "prepared_sha256": "90d8507659a4f83e9f191da203a0e9ee8f065a41d2398c6eee940917da001299",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-3",
+      "token": "273f424fa2fc55ad",
+      "event": "cut_in",
+      "data_root": "full_test/273f424fa2fc55ad/arrow",
+      "event_recipe": "C-3.273f424fa2fc55ad.cut_in.event.yaml",
+      "baseline_recipe": "C-3.273f424fa2fc55ad.cut_in.baseline.yaml",
+      "asset_harvester_manifest": "full_test/273f424fa2fc55ad/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-3.273f424fa2fc55ad.cut_in.event.yaml",
+          "source_sha256": "7703282bbfdb9e78d98e43f580a293305f7b8d06d29616537ad63e08bf8869a3",
+          "prepared_sha256": "03fd040b766e24a068dc2bb1d8ca1ca7816422f23a2b9d1399b2ed97844ac7e5",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a40938e607f68",
+              "old_length_m": 110.54620288224766,
+              "new_length_m": 325.0,
+              "tail_added_m": 214.45379711775234
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a40938e607f68",
+              "source_track_id": "0168117996d15c19",
+              "own_harvested_asset": "full_test/273f424fa2fc55ad/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/0168117996d15c19/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/273f424fa2fc55ad/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-3.273f424fa2fc55ad.cut_in.baseline.yaml",
+          "source_sha256": "45872526ec5ed4b0769f727536adccc475ac376b0098f40d2722932a344934c5",
+          "prepared_sha256": "7463c83cd6c6892212b46f4c38cbc4aa879ebe7e5ec2b3b16cdd70ac60b294b6",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a40938e607f68",
+              "old_length_m": 110.54620288224766,
+              "new_length_m": 325.0,
+              "tail_added_m": 214.45379711775234
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a40938e607f68",
+              "source_track_id": "0168117996d15c19",
+              "own_harvested_asset": "full_test/273f424fa2fc55ad/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/0168117996d15c19/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/273f424fa2fc55ad/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "C-3",
+      "token": "273f424fa2fc55ad",
+      "event": "lead_brake",
+      "data_root": "full_test/273f424fa2fc55ad/arrow",
+      "event_recipe": "C-3.273f424fa2fc55ad.lead_brake.event.yaml",
+      "baseline_recipe": "C-3.273f424fa2fc55ad.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": "full_test/273f424fa2fc55ad/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-3.273f424fa2fc55ad.lead_brake.event.yaml",
+          "source_sha256": "7ed7c459b4382015a698ab53330bc1c85cabe4f2e70569f89061a0acbe242673",
+          "prepared_sha256": "f6303ca6fc047efd3fabeb9bc51dcb80a8ade51ae6f0fab99507d4110c6a2055",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a8fbc0ad06202",
+              "old_length_m": 154.00000000000054,
+              "new_length_m": 462.0,
+              "tail_added_m": 307.99999999999943
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a8fbc0ad06202",
+              "source_track_id": "ff3e0b0b18f05eed",
+              "own_harvested_asset": "full_test/273f424fa2fc55ad/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/ff3e0b0b18f05eed/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/273f424fa2fc55ad/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-3.273f424fa2fc55ad.lead_brake.baseline.yaml",
+          "source_sha256": "58503fa5c3ef50547aab48f9d25fd5577ddc1d739692824011bbc0bd9497b330",
+          "prepared_sha256": "fff96089dd1b2d4cb3312c5795c769bb6e99927a3bcf9fdc3c730e26494d52a3",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a8fbc0ad06202",
+              "old_length_m": 154.00000000000054,
+              "new_length_m": 462.0,
+              "tail_added_m": 307.99999999999943
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a8fbc0ad06202",
+              "source_track_id": "ff3e0b0b18f05eed",
+              "own_harvested_asset": "full_test/273f424fa2fc55ad/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/ff3e0b0b18f05eed/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/273f424fa2fc55ad/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "C-4",
+      "token": "238f1cddb9415996",
+      "event": "lead_brake",
+      "data_root": "full_test/238f1cddb9415996/arrow",
+      "event_recipe": "C-4.238f1cddb9415996.lead_brake.event.yaml",
+      "baseline_recipe": "C-4.238f1cddb9415996.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-4.238f1cddb9415996.lead_brake.event.yaml",
+          "source_sha256": "fd5fa68070d99ee6051da5275f237d4f2c2d73cb1d51988ac19fb06603d9c1ab",
+          "prepared_sha256": "568511c1ce309417a37bccdd06a6203e1fe78d58d8b3aa8f6a68146c824a3758",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a18aca19c647b",
+              "old_length_m": 153.9999999999999,
+              "new_length_m": 462.00000000000006,
+              "tail_added_m": 308.0000000000001
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-4.238f1cddb9415996.lead_brake.baseline.yaml",
+          "source_sha256": "ae8d3cce72e724081f853991a96c389bcb94e293daf1dd17400545e8a15edb1e",
+          "prepared_sha256": "e8c312cdac3f379ed4b91a32f7e8ac9c149fe535ab2bfda8bee29cc9e36249eb",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a18aca19c647b",
+              "old_length_m": 153.9999999999999,
+              "new_length_m": 462.00000000000006,
+              "tail_added_m": 308.0000000000001
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-4",
+      "token": "238f1cddb9415996",
+      "event": "vru_cross",
+      "data_root": "full_test/238f1cddb9415996/arrow",
+      "event_recipe": "C-4.238f1cddb9415996.vru_cross.event.yaml",
+      "baseline_recipe": "C-4.238f1cddb9415996.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-4.238f1cddb9415996.vru_cross.event.yaml",
+          "source_sha256": "115f62c36a10626f442ad97a922d10dce7e0c6b42d483c63668873df19a95a22",
+          "prepared_sha256": "66de2458474334876be10c63de1d6cd49128c7c8e09afda2b4d9e3077f040aed",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-4.238f1cddb9415996.vru_cross.baseline.yaml",
+          "source_sha256": "6ad6e5f8a4e46280a073a691623d3bbdad345a222430b98d193869dbcb27ab63",
+          "prepared_sha256": "56c9d77c52461984d70907b648f062af7f7d72225bc9b5655baa8c294c59e7dd",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-5",
+      "token": "58d69daf413c5d5a",
+      "event": "lead_brake",
+      "data_root": "full_test/58d69daf413c5d5a/arrow",
+      "event_recipe": "C-5.58d69daf413c5d5a.lead_brake.event.yaml",
+      "baseline_recipe": "C-5.58d69daf413c5d5a.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-5.58d69daf413c5d5a.lead_brake.event.yaml",
+          "source_sha256": "6d5b163b535f8461ef479977119ca86d8a7a32b737ffd77ed2f1182d6a951626",
+          "prepared_sha256": "7f0780d86abcb31befbb111b55e1228f0af604b623a9ca5a4f6bb0c57f0b7a3f",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a18c050a478bd",
+              "old_length_m": 53.538572853062746,
+              "new_length_m": 455.0,
+              "tail_added_m": 401.46142714693724
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-5.58d69daf413c5d5a.lead_brake.baseline.yaml",
+          "source_sha256": "106febe53ae42756a932d7b20d10749edd1230c496357c3300eeb8ba850d9036",
+          "prepared_sha256": "7ecb41b0f79a619afe45a033f675d660ff0d10f54582b2f29483e5a800c7d474",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a18c050a478bd",
+              "old_length_m": 53.538572853062746,
+              "new_length_m": 455.0,
+              "tail_added_m": 401.46142714693724
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-5",
+      "token": "58d69daf413c5d5a",
+      "event": "vru_cross",
+      "data_root": "full_test/58d69daf413c5d5a/arrow",
+      "event_recipe": "C-5.58d69daf413c5d5a.vru_cross.event.yaml",
+      "baseline_recipe": "C-5.58d69daf413c5d5a.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-5.58d69daf413c5d5a.vru_cross.event.yaml",
+          "source_sha256": "9ec1d76e17b13b2d7299c0f7a4aa38778fe3eea6621dd6a892e82aa3c6f894f4",
+          "prepared_sha256": "ad19049027c1aa0ed5eb5207eedfa44fb12f35e1d170544453737898ab94af27",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-5.58d69daf413c5d5a.vru_cross.baseline.yaml",
+          "source_sha256": "0d0abfe7aabc0e021dc689dab24964438c23130676581f8c8eac7bfc0c4dbeb9",
+          "prepared_sha256": "4585205eef0d5c13f7391907769558ff28b0a937c8c46bac890ce1e44ec29c4a",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-6",
+      "token": "0122ce98b2735558",
+      "event": "cut_in",
+      "data_root": "full_test/0122ce98b2735558/arrow",
+      "event_recipe": "C-6.0122ce98b2735558.cut_in.event.yaml",
+      "baseline_recipe": "C-6.0122ce98b2735558.cut_in.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-6.0122ce98b2735558.cut_in.event.yaml",
+          "source_sha256": "edbff4bf590396d5259045b628f33dad83258319415edc48360e5bf7d74ea84f",
+          "prepared_sha256": "e607cd8cea3ec8bd1db9755a385c649040ea6cf65c182df507248ab0425f9820",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a086aba44822b",
+              "old_length_m": 21.768574805209226,
+              "new_length_m": 325.0,
+              "tail_added_m": 303.23142519479075
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-6.0122ce98b2735558.cut_in.baseline.yaml",
+          "source_sha256": "a722ed34c00c62b1917d8463fdd9c0eac47eabfd7c0e1583ef4417c53571df94",
+          "prepared_sha256": "92a304eaccc35162e9aa65f846fef87882e6ea277fc33833ac09ce9a2de2c0bb",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a086aba44822b",
+              "old_length_m": 21.768574805209226,
+              "new_length_m": 325.0,
+              "tail_added_m": 303.23142519479075
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-6",
+      "token": "0122ce98b2735558",
+      "event": "lead_brake",
+      "data_root": "full_test/0122ce98b2735558/arrow",
+      "event_recipe": "C-6.0122ce98b2735558.lead_brake.event.yaml",
+      "baseline_recipe": "C-6.0122ce98b2735558.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-6.0122ce98b2735558.lead_brake.event.yaml",
+          "source_sha256": "f74418f61b36969992f7e97cdc01ecc53d7706b43398833aae089a6a316e28b7",
+          "prepared_sha256": "c7d5afd21d0082129a01322ba38d25751e3c18473d0aed9636b2439b53979f79",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a95e5628164bd",
+              "old_length_m": 20.93426244706307,
+              "new_length_m": 461.99999999999994,
+              "tail_added_m": 441.0657375529369
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-6.0122ce98b2735558.lead_brake.baseline.yaml",
+          "source_sha256": "073d4dad12eacbe47e535160959182ed8fa4b8e872028ea86636e4daf17d07cb",
+          "prepared_sha256": "5b4d3f5141883b3a3cb2cbde58b2cf3300f29df6f66a12d03b08fa95dd6408af",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a95e5628164bd",
+              "old_length_m": 20.93426244706307,
+              "new_length_m": 461.99999999999994,
+              "tail_added_m": 441.0657375529369
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-7",
+      "token": "1e9350ac2bc25f59",
+      "event": "lead_brake",
+      "data_root": "full_test/1e9350ac2bc25f59/arrow",
+      "event_recipe": "C-7.1e9350ac2bc25f59.lead_brake.event.yaml",
+      "baseline_recipe": "C-7.1e9350ac2bc25f59.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-7.1e9350ac2bc25f59.lead_brake.event.yaml",
+          "source_sha256": "f9cc26052630e41f85a143937ff5d0cd38016ca0a8750aa0f852d821cea33a5d",
+          "prepared_sha256": "0edb26b17bef578d68f885f2260dcd2404ef954836e5d3200835e6c53f7da172",
+          "actors": 2,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_aeea4afcb5d04",
+              "old_length_m": 50.697293968460926,
+              "new_length_m": 454.99148800000006,
+              "tail_added_m": 404.2941940315391
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-7.1e9350ac2bc25f59.lead_brake.baseline.yaml",
+          "source_sha256": "c89d7d5673d6b37fa1356696e012603bfc043b3113cbc6efe5bad4ea54dfc23c",
+          "prepared_sha256": "adc2839c6628575fe9555de15161d707e4e8627d39f5f8785cf31c8b84a2bc15",
+          "actors": 2,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_aeea4afcb5d04",
+              "old_length_m": 50.697293968460926,
+              "new_length_m": 454.99148800000006,
+              "tail_added_m": 404.2941940315391
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-7",
+      "token": "1e9350ac2bc25f59",
+      "event": "vru_cross",
+      "data_root": "full_test/1e9350ac2bc25f59/arrow",
+      "event_recipe": "C-7.1e9350ac2bc25f59.vru_cross.event.yaml",
+      "baseline_recipe": "C-7.1e9350ac2bc25f59.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-7.1e9350ac2bc25f59.vru_cross.event.yaml",
+          "source_sha256": "0291844951ebd7f8a905c169e94a456f02a8aa65743da62924d812b03c03a77b",
+          "prepared_sha256": "105a94dbfe501b1a5441476de3effe10e31fb373a1b02e74c8ee58b5848c8d9c",
+          "actors": 2,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-7.1e9350ac2bc25f59.vru_cross.baseline.yaml",
+          "source_sha256": "8d2167c7d8c9c8cd28fb408c1abd866f88dde0276070912d0649e82629fcce12",
+          "prepared_sha256": "2d74419033799ad9aeb200443e5cf362797e37d4b813ae1a745df808af89d483",
+          "actors": 2,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-8",
+      "token": "5ac972b34e2e5614",
+      "event": "lead_brake",
+      "data_root": "full_test/5ac972b34e2e5614/arrow",
+      "event_recipe": "C-8.5ac972b34e2e5614.lead_brake.event.yaml",
+      "baseline_recipe": "C-8.5ac972b34e2e5614.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-8.5ac972b34e2e5614.lead_brake.event.yaml",
+          "source_sha256": "0b93eff46213e7d72c4025dd66162763ebd4b1de61641e80204a60b8ff381453",
+          "prepared_sha256": "9511579179dcf366fb2f20dcc1e9eabb7034151d033e59d675d18fc62600ff2a",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_ae3a7d71ce09c",
+              "old_length_m": 13.436353167868237,
+              "new_length_m": 461.99999999999994,
+              "tail_added_m": 448.5636468321318
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-8.5ac972b34e2e5614.lead_brake.baseline.yaml",
+          "source_sha256": "d1b2d3a8a330c53dd8ba3bd7de935e8f613e3df46873b12f6bcff0d013662b1d",
+          "prepared_sha256": "7939a7f3cf76733c105e655b37d8ee66ad8db46b4627186df37b3ae1341f2fe9",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_ae3a7d71ce09c",
+              "old_length_m": 13.436353167868237,
+              "new_length_m": 461.99999999999994,
+              "tail_added_m": 448.5636468321318
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-8",
+      "token": "5ac972b34e2e5614",
+      "event": "vru_cross",
+      "data_root": "full_test/5ac972b34e2e5614/arrow",
+      "event_recipe": "C-8.5ac972b34e2e5614.vru_cross.event.yaml",
+      "baseline_recipe": "C-8.5ac972b34e2e5614.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-8.5ac972b34e2e5614.vru_cross.event.yaml",
+          "source_sha256": "53c00aac9172765bb8de556020fea864fbb5adb8ba56640014989642f88d5756",
+          "prepared_sha256": "b54cf3eb5f4c9e11d292cb3404c6372343017903e3a1b805aee7afd00c68650a",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-8.5ac972b34e2e5614.vru_cross.baseline.yaml",
+          "source_sha256": "dce892a9675bd591e1d734520bc6b9413fad89c77cede3c155042569c3456f54",
+          "prepared_sha256": "73180eb8fe1a87225c9e64c54b17ff8e33b55dfa95fdd9850e97fccafe463d48",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-9",
+      "token": "6704953640e55b83",
+      "event": "lead_brake",
+      "data_root": "full_test/6704953640e55b83/arrow",
+      "event_recipe": "C-9.6704953640e55b83.lead_brake.event.yaml",
+      "baseline_recipe": "C-9.6704953640e55b83.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-9.6704953640e55b83.lead_brake.event.yaml",
+          "source_sha256": "84e708251302868d3b2138e7eaab0c087775ab603f52a0bb41d960b9a8446513",
+          "prepared_sha256": "aa8a45ee2a605833f6ced28d76ed4eef459e4ccea65d9670e9e71b45263adb0d",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_ab17154352f14",
+              "old_length_m": 29.23692496378616,
+              "new_length_m": 192.60000000000002,
+              "tail_added_m": 163.36307503621387
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-9.6704953640e55b83.lead_brake.baseline.yaml",
+          "source_sha256": "cb1d4c379aa3c86c29ef6ef0bfcaad930874e2dff483a00cf8efa13fa245fb7b",
+          "prepared_sha256": "caff989c29cc5eb1580b96595cf2e5c7f64af64109570aa4d14335676e44fbe4",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_ab17154352f14",
+              "old_length_m": 29.23692496378616,
+              "new_length_m": 192.60000000000002,
+              "tail_added_m": 163.36307503621387
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "C-9",
+      "token": "6704953640e55b83",
+      "event": "vru_cross",
+      "data_root": "full_test/6704953640e55b83/arrow",
+      "event_recipe": "C-9.6704953640e55b83.vru_cross.event.yaml",
+      "baseline_recipe": "C-9.6704953640e55b83.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "C-9.6704953640e55b83.vru_cross.event.yaml",
+          "source_sha256": "5dc4800641674769e8c3a58a2f8c6a5e0366ac1314ca2684cf333de182149665",
+          "prepared_sha256": "03ccc0f009d046a83a057f1cb31bf9e53dcb474c35c74d43a1f2b04aeb6bf65b",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "C-9.6704953640e55b83.vru_cross.baseline.yaml",
+          "source_sha256": "b434de0b7004a6c3599e0d9e356c37adca7f9ac7df5af9db9f3550165d9bca47",
+          "prepared_sha256": "2ae5bb6a700f34604baab5b5fcef5d70935e09327715801f6c4fbbfd45efb431",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "I-1",
+      "token": "6fc91bf02f225d1b",
+      "event": "cut_in",
+      "data_root": "full_test/6fc91bf02f225d1b/arrow",
+      "event_recipe": "I-1.6fc91bf02f225d1b.cut_in.event.yaml",
+      "baseline_recipe": "I-1.6fc91bf02f225d1b.cut_in.baseline.yaml",
+      "asset_harvester_manifest": "full_test/6fc91bf02f225d1b/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "I-1.6fc91bf02f225d1b.cut_in.event.yaml",
+          "source_sha256": "a718fb2bcc0d97465d48eb6fa669d79090f863628058bdfe207cfac28440a538",
+          "prepared_sha256": "8b5046159baded00e7fd294145fd8fe0148a2bea233150c1cb9036c8f5ce1e36",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a0c262b7ed05b",
+              "old_length_m": 110.5460924382682,
+              "new_length_m": 325.0,
+              "tail_added_m": 214.4539075617318
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a0c262b7ed05b",
+              "source_track_id": "0190280481055545",
+              "own_harvested_asset": "full_test/6fc91bf02f225d1b/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/0190280481055545/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/6fc91bf02f225d1b/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "I-1.6fc91bf02f225d1b.cut_in.baseline.yaml",
+          "source_sha256": "204051084c456295bb5706846c3c5326589f5d206692ed4e440a6dcdb1834523",
+          "prepared_sha256": "c112bc3857d405b700d08bf38c562314cf46db6b9c68e210d0b9bc478ddb85c6",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a0c262b7ed05b",
+              "old_length_m": 110.5460924382682,
+              "new_length_m": 325.0,
+              "tail_added_m": 214.4539075617318
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a0c262b7ed05b",
+              "source_track_id": "0190280481055545",
+              "own_harvested_asset": "full_test/6fc91bf02f225d1b/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/0190280481055545/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/6fc91bf02f225d1b/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "I-1",
+      "token": "6fc91bf02f225d1b",
+      "event": "lead_brake",
+      "data_root": "full_test/6fc91bf02f225d1b/arrow",
+      "event_recipe": "I-1.6fc91bf02f225d1b.lead_brake.event.yaml",
+      "baseline_recipe": "I-1.6fc91bf02f225d1b.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": "full_test/6fc91bf02f225d1b/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "I-1.6fc91bf02f225d1b.lead_brake.event.yaml",
+          "source_sha256": "cceba6a29c4d2eb3ad673280aad901b7bf46a92cede99f8054312c9f30b812e9",
+          "prepared_sha256": "74654bb7d21a5897bb558cfae0b9fb639c78f6034facfc9307730883e57bd303",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [
+            {
+              "actor": "editor_a51987377b2c9",
+              "source_track_id": "5d134e90789252c6",
+              "own_harvested_asset": "full_test/6fc91bf02f225d1b/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/5d134e90789252c6/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/6fc91bf02f225d1b/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "I-1.6fc91bf02f225d1b.lead_brake.baseline.yaml",
+          "source_sha256": "f0d40303b7049b77986f9635770a9812554bca78e4884b3f263777b72280632a",
+          "prepared_sha256": "01a73b6e67a1e46b5460dc34bd58878b22a34fa2849ac812b4e9e62bc13e125c",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [
+            {
+              "actor": "editor_a51987377b2c9",
+              "source_track_id": "5d134e90789252c6",
+              "own_harvested_asset": "full_test/6fc91bf02f225d1b/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/5d134e90789252c6/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/6fc91bf02f225d1b/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "I-2",
+      "token": "0d5b8da00d505be0",
+      "event": "lead_brake",
+      "data_root": "full_test/0d5b8da00d505be0/arrow",
+      "event_recipe": "I-2.0d5b8da00d505be0.lead_brake.event.yaml",
+      "baseline_recipe": "I-2.0d5b8da00d505be0.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": "full_test/0d5b8da00d505be0/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "I-2.0d5b8da00d505be0.lead_brake.event.yaml",
+          "source_sha256": "9f44bce36db7bde7735d8d5d131b639796bb715e522f022e630de3193094ab66",
+          "prepared_sha256": "de988bb6a18af4896c261867aabad53c907bcbacce3ea03425b72db175d82f28",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a5001b85e7e27",
+              "old_length_m": 153.9999999999998,
+              "new_length_m": 454.29999999999995,
+              "tail_added_m": 300.3000000000002
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a5001b85e7e27",
+              "source_track_id": "42126bb80a965244",
+              "own_harvested_asset": "full_test/0d5b8da00d505be0/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/42126bb80a965244/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/0d5b8da00d505be0/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "I-2.0d5b8da00d505be0.lead_brake.baseline.yaml",
+          "source_sha256": "bbce3ab23624a5d1ed7dfcff3f392873e0b7e4a13227f5f182a1fc1fbb7ebb71",
+          "prepared_sha256": "3619beea03407119f4a2a311a4f16e6824d2d7aa04466e3b2d06d2b25e1771e9",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a5001b85e7e27",
+              "old_length_m": 153.9999999999998,
+              "new_length_m": 454.29999999999995,
+              "tail_added_m": 300.3000000000002
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a5001b85e7e27",
+              "source_track_id": "42126bb80a965244",
+              "own_harvested_asset": "full_test/0d5b8da00d505be0/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/42126bb80a965244/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/0d5b8da00d505be0/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "I-2",
+      "token": "0d5b8da00d505be0",
+      "event": "vru_cross",
+      "data_root": "full_test/0d5b8da00d505be0/arrow",
+      "event_recipe": "I-2.0d5b8da00d505be0.vru_cross.event.yaml",
+      "baseline_recipe": "I-2.0d5b8da00d505be0.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "I-2.0d5b8da00d505be0.vru_cross.event.yaml",
+          "source_sha256": "bef359914cc871f8d92c042cd9ae7fc56af03148288ff94c7b53498966477638",
+          "prepared_sha256": "553b8405c8bc4cf0af1a5213c1a9181bafa4a4818d4f2d34f0a3cda9710f8c50",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "I-2.0d5b8da00d505be0.vru_cross.baseline.yaml",
+          "source_sha256": "ad8b6a6bf09bf2d0fc25570a199ce5b7b02fc95b52101441907044ed53f675b0",
+          "prepared_sha256": "e4dd923f6ddc725c4b6971c05b9fcbb94a60464329543d6ab07b4d5788f93e91",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "I-3",
+      "token": "84acc78da95f56d3",
+      "event": "lead_brake",
+      "data_root": "full_test/84acc78da95f56d3/arrow",
+      "event_recipe": "I-3.84acc78da95f56d3.lead_brake.event.yaml",
+      "baseline_recipe": "I-3.84acc78da95f56d3.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "I-3.84acc78da95f56d3.lead_brake.event.yaml",
+          "source_sha256": "e6f6538b18f9dd908683290f1967536636cc408dafd5280550b2338a50dd93e9",
+          "prepared_sha256": "8718b1d739178e49d6f5c89f5fc0483990186169cd3ce503baaab406fc1cb5b9",
+          "actors": 4,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_ac99e0be4ceb1",
+              "old_length_m": 3.769942629193206,
+              "new_length_m": 455.00851200000005,
+              "tail_added_m": 451.2385693708068
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "I-3.84acc78da95f56d3.lead_brake.baseline.yaml",
+          "source_sha256": "494c495662dcf8e924de1e69539abb03970dfe38c6d5ea3c2c35981ae36197e6",
+          "prepared_sha256": "c3e80665adc9c11dfece47cd008a7af6ab7f2883e81f8f48032f1d514731518b",
+          "actors": 4,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_ac99e0be4ceb1",
+              "old_length_m": 3.769942629193206,
+              "new_length_m": 455.00851200000005,
+              "tail_added_m": 451.2385693708068
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "I-3",
+      "token": "84acc78da95f56d3",
+      "event": "vru_cross",
+      "data_root": "full_test/84acc78da95f56d3/arrow",
+      "event_recipe": "I-3.84acc78da95f56d3.vru_cross.event.yaml",
+      "baseline_recipe": "I-3.84acc78da95f56d3.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "I-3.84acc78da95f56d3.vru_cross.event.yaml",
+          "source_sha256": "e22ad85dd3afdb816590ca8484dd44dbc2584769a8dc7b40245efc74d241f86e",
+          "prepared_sha256": "10a8ee0fcb4c580d66bbe5d9e9509a0e53c9fb3201d8af89104feb0f6bff2c91",
+          "actors": 4,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "I-3.84acc78da95f56d3.vru_cross.baseline.yaml",
+          "source_sha256": "aaef9f7eec0975623efd4b41148b283d6e71345ac45d95d11194ac644f9bd9f4",
+          "prepared_sha256": "c2ca0c63bbb5ed724a620ccb076aaf7fe128315abf0754438a1491e3a8cbd4f8",
+          "actors": 4,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "R-1",
+      "token": "0027991369e05ab2",
+      "event": "lead_brake",
+      "data_root": "full_test/0027991369e05ab2/arrow",
+      "event_recipe": "R-1.0027991369e05ab2.lead_brake.event.yaml",
+      "baseline_recipe": "R-1.0027991369e05ab2.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "R-1.0027991369e05ab2.lead_brake.event.yaml",
+          "source_sha256": "309641979ae4810f29e96a376d3208611729770258471f91c9f6501041870e53",
+          "prepared_sha256": "31c3d2a0e5ee7c8568a9ed80f96260d5144a5f01c9e3219ac80c88f69feb25c4",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_ab80b8e8c0c11",
+              "old_length_m": 65.23929544903237,
+              "new_length_m": 455.0,
+              "tail_added_m": 389.7607045509676
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "R-1.0027991369e05ab2.lead_brake.baseline.yaml",
+          "source_sha256": "d094c585b185a32ae341a74927a060535b11824ec3b22a7df78e82a4b8510cfe",
+          "prepared_sha256": "e24b254c6912d4efe8ddd535f24a1bbddf07059e5052f6b86d57a15fc29622d0",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_ab80b8e8c0c11",
+              "old_length_m": 65.23929544903237,
+              "new_length_m": 455.0,
+              "tail_added_m": 389.7607045509676
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "R-1",
+      "token": "0027991369e05ab2",
+      "event": "vru_cross",
+      "data_root": "full_test/0027991369e05ab2/arrow",
+      "event_recipe": "R-1.0027991369e05ab2.vru_cross.event.yaml",
+      "baseline_recipe": "R-1.0027991369e05ab2.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "R-1.0027991369e05ab2.vru_cross.event.yaml",
+          "source_sha256": "64fd752d4f303346a022f05ea3a398313f3521fb214915aefa84462d37f5e634",
+          "prepared_sha256": "41d24979a1d0b83f699159106746050fd95a67218063e983ac73667cba8a10aa",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "R-1.0027991369e05ab2.vru_cross.baseline.yaml",
+          "source_sha256": "450493e77bb2ed025bbbc0ab312f426048c722e83c4145c393c1d0915d3d52a4",
+          "prepared_sha256": "1423a66b90df8e75c80e32ac6eb76a1f9d97b842c9b58360a2a6e09e0ac7aed3",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "R-2",
+      "token": "20cc0fdb7e2d5c3f",
+      "event": "cut_in",
+      "data_root": "full_test/20cc0fdb7e2d5c3f/arrow",
+      "event_recipe": "R-2.20cc0fdb7e2d5c3f.cut_in.event.yaml",
+      "baseline_recipe": "R-2.20cc0fdb7e2d5c3f.cut_in.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "R-2.20cc0fdb7e2d5c3f.cut_in.event.yaml",
+          "source_sha256": "0bfaeba890c3fa876dcd4caa66ef88585a27f6d2017431188f7c2ac2ac6a8b6d",
+          "prepared_sha256": "04c55c4fbaa6188639d156450abd446109d2deb338398ede0e52662f4347f1ba",
+          "actors": 3,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a2f4d1bcf8b7a",
+              "old_length_m": 106.78738053809222,
+              "new_length_m": 321.47567999999995,
+              "tail_added_m": 214.68829946190777
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "R-2.20cc0fdb7e2d5c3f.cut_in.baseline.yaml",
+          "source_sha256": "d4ba5a1640034cb9c0def4a5f6a9dafe8e0eccc1c40c92b4e1ef5fa217dc0a43",
+          "prepared_sha256": "e34a32bdbfdf80e8282c53e3504fb84a556bd1eb11d270ec3936c13053c7f6b0",
+          "actors": 3,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a2f4d1bcf8b7a",
+              "old_length_m": 106.78738053809222,
+              "new_length_m": 321.47567999999995,
+              "tail_added_m": 214.68829946190777
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "R-2",
+      "token": "20cc0fdb7e2d5c3f",
+      "event": "vru_cross",
+      "data_root": "full_test/20cc0fdb7e2d5c3f/arrow",
+      "event_recipe": "R-2.20cc0fdb7e2d5c3f.vru_cross.event.yaml",
+      "baseline_recipe": "R-2.20cc0fdb7e2d5c3f.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "R-2.20cc0fdb7e2d5c3f.vru_cross.event.yaml",
+          "source_sha256": "ae502bd9c7c17a7fb05139148e8893687a5953899be996fcc59396bf3c52bc1f",
+          "prepared_sha256": "26558eb88b9501de599489cdb560d1740cc8b79ef427f6a02f591453263900d5",
+          "actors": 3,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "R-2.20cc0fdb7e2d5c3f.vru_cross.baseline.yaml",
+          "source_sha256": "307912f713c1e09d3ad5ca07adc2389c3301af497d643cc97199c84840e1c6bc",
+          "prepared_sha256": "289dd9b3e940893b6d14dc18efc54e35a96981a1c31df2773284ba82025eaccb",
+          "actors": 3,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "R-3",
+      "token": "132307b3c1a55f97",
+      "event": "lead_brake",
+      "data_root": "full_test/132307b3c1a55f97/arrow",
+      "event_recipe": "R-3.132307b3c1a55f97.lead_brake.event.yaml",
+      "baseline_recipe": "R-3.132307b3c1a55f97.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": "full_test/132307b3c1a55f97/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "R-3.132307b3c1a55f97.lead_brake.event.yaml",
+          "source_sha256": "0cf3ae4c994ee66df2169ddeb345930e7c0a6aa1b9daa1c01c1a22c09df43d61",
+          "prepared_sha256": "a5e5a5afde5ff24730bb81531eee0dd4f7f2755547b24181f2e1b8870a1e5753",
+          "actors": 6,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a3e6fc14b506d",
+              "old_length_m": 7.27582042298489,
+              "new_length_m": 450.80000000000007,
+              "tail_added_m": 443.52417957701516
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a3e6fc14b506d",
+              "source_track_id": "65a8f3e4325a54c2",
+              "own_harvested_asset": "full_test/132307b3c1a55f97/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/65a8f3e4325a54c2/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/132307b3c1a55f97/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "R-3.132307b3c1a55f97.lead_brake.baseline.yaml",
+          "source_sha256": "d40b5dbda3cc83dba7d5d40498393de6a8341d39775f6f00a99d68ce11f10f33",
+          "prepared_sha256": "b6c6194ea35bbba8f06bbee3c2e40be4e56c210c2f408ea7ae590a2de623b00c",
+          "actors": 6,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a3e6fc14b506d",
+              "old_length_m": 7.27582042298489,
+              "new_length_m": 450.80000000000007,
+              "tail_added_m": 443.52417957701516
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a3e6fc14b506d",
+              "source_track_id": "65a8f3e4325a54c2",
+              "own_harvested_asset": "full_test/132307b3c1a55f97/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/65a8f3e4325a54c2/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/132307b3c1a55f97/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "R-3",
+      "token": "132307b3c1a55f97",
+      "event": "vru_cross",
+      "data_root": "full_test/132307b3c1a55f97/arrow",
+      "event_recipe": "R-3.132307b3c1a55f97.vru_cross.event.yaml",
+      "baseline_recipe": "R-3.132307b3c1a55f97.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "R-3.132307b3c1a55f97.vru_cross.event.yaml",
+          "source_sha256": "43b18329325d01a066967aedfe542c78352e1a459499aa8e872c85c9fe72606e",
+          "prepared_sha256": "f982239176b64d210a485055c8771508a41fdd4ff9755e20e81cf26612f0ce71",
+          "actors": 6,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "R-3.132307b3c1a55f97.vru_cross.baseline.yaml",
+          "source_sha256": "cd3b738ed447d3dc8779f899d17af1ef615c264caa0cd240b402bea304e36716",
+          "prepared_sha256": "4ac7416eaccaf517dfb401e66df80d0b71d0763e4ddc5aeb9e02c1d6af044f65",
+          "actors": 6,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "R-4",
+      "token": "225eb6e22af55972",
+      "event": "cut_in",
+      "data_root": "full_test/225eb6e22af55972/arrow",
+      "event_recipe": "R-4.225eb6e22af55972.cut_in.event.yaml",
+      "baseline_recipe": "R-4.225eb6e22af55972.cut_in.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "R-4.225eb6e22af55972.cut_in.event.yaml",
+          "source_sha256": "b66d4c657e00eba929a28028a55985a3fbce4b82ef62d140f538bd0bed5438c6",
+          "prepared_sha256": "17ee31448509d6a3d7356275947e5bcc284a2ff3b59a493555718d46adc138a5",
+          "actors": 3,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_acffae59d3516",
+              "old_length_m": 51.89105839113685,
+              "new_length_m": 189.6724544,
+              "tail_added_m": 137.78139600886314
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "R-4.225eb6e22af55972.cut_in.baseline.yaml",
+          "source_sha256": "df911d35cb6d675e008efa84e4776e805da8ac3b876f78958c77e1f1b2657f36",
+          "prepared_sha256": "e63c3a3a034d27cf0df198288b4a30955af0adfa099168ae47ddb9aea5dd5ebf",
+          "actors": 3,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_acffae59d3516",
+              "old_length_m": 51.89105839113685,
+              "new_length_m": 189.6724544,
+              "tail_added_m": 137.78139600886314
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "R-4",
+      "token": "225eb6e22af55972",
+      "event": "vru_cross",
+      "data_root": "full_test/225eb6e22af55972/arrow",
+      "event_recipe": "R-4.225eb6e22af55972.vru_cross.event.yaml",
+      "baseline_recipe": "R-4.225eb6e22af55972.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "R-4.225eb6e22af55972.vru_cross.event.yaml",
+          "source_sha256": "75d11e5b8da7623a2e717843c3d8482bee18ddd28a068d6d69cb28d26e5eec90",
+          "prepared_sha256": "86ede20d5b0bc7bee142bb4d37feb17a9d0f70ec3ef4fa90a9eb66201c5a1e10",
+          "actors": 3,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "R-4.225eb6e22af55972.vru_cross.baseline.yaml",
+          "source_sha256": "5a02b1c0d32050b57cdad4a65c89e2ed617f993ead0b1275a4293d2e102689db",
+          "prepared_sha256": "b7fe814e7d1da876698b89947bab0fe75791940c09e5252ace6e1c691ae1c353",
+          "actors": 3,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-1",
+      "token": "42af8e33480d53b3",
+      "event": "cut_in",
+      "data_root": "full_test/42af8e33480d53b3/arrow",
+      "event_recipe": "V-1.42af8e33480d53b3.cut_in.event.yaml",
+      "baseline_recipe": "V-1.42af8e33480d53b3.cut_in.baseline.yaml",
+      "asset_harvester_manifest": "full_test/42af8e33480d53b3/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-1.42af8e33480d53b3.cut_in.event.yaml",
+          "source_sha256": "9b8bb0e4b78c0f4004a838bf0e0e8f11775398141ee0918b810851413aa3e7c8",
+          "prepared_sha256": "c671d0788708a7214d13c04e2124399385af2d023efbf2bbe65a32f1297cc5cd",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a598ff57dfcbf",
+              "old_length_m": 67.82202910341746,
+              "new_length_m": 390.0,
+              "tail_added_m": 322.17797089658256
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a598ff57dfcbf",
+              "source_track_id": "d313a3fdf5475eaa",
+              "own_harvested_asset": "full_test/42af8e33480d53b3/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/d313a3fdf5475eaa/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/42af8e33480d53b3/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-1.42af8e33480d53b3.cut_in.baseline.yaml",
+          "source_sha256": "55fb6becd54908581e167489346ed6fa1d0b86af0d61b53b666d566faeb13e5b",
+          "prepared_sha256": "b208987901d0beccf70facbcb03749be7e30da1d050e04ca7752b9c2ec540a60",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a598ff57dfcbf",
+              "old_length_m": 67.82202910341746,
+              "new_length_m": 390.0,
+              "tail_added_m": 322.17797089658256
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a598ff57dfcbf",
+              "source_track_id": "d313a3fdf5475eaa",
+              "own_harvested_asset": "full_test/42af8e33480d53b3/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/d313a3fdf5475eaa/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/42af8e33480d53b3/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "V-1",
+      "token": "42af8e33480d53b3",
+      "event": "lead_brake",
+      "data_root": "full_test/42af8e33480d53b3/arrow",
+      "event_recipe": "V-1.42af8e33480d53b3.lead_brake.event.yaml",
+      "baseline_recipe": "V-1.42af8e33480d53b3.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-1.42af8e33480d53b3.lead_brake.event.yaml",
+          "source_sha256": "7d76ba4cb1c93b84d6ed5a3057c44f7a7ea9aa73fc6056ecef11f7a973b8660e",
+          "prepared_sha256": "e6e11f9abeb0f937ad6134f4fbb7ed8af319c2a3fd73d3575ebb586be092b91d",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a01ecc3a358d4",
+              "old_length_m": 4.218218786669387,
+              "new_length_m": 448.00000000000006,
+              "tail_added_m": 443.7817812133306
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-1.42af8e33480d53b3.lead_brake.baseline.yaml",
+          "source_sha256": "dfa4dc6f73f9afc17cf1c8dea64d17613aded190e7ce9f1e8b1ec3c875b47512",
+          "prepared_sha256": "adec2b1a53acfa31aea4bc3e7aed0b4404e8033a2450e15456aef9fe4f48a544",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a01ecc3a358d4",
+              "old_length_m": 4.218218786669387,
+              "new_length_m": 448.00000000000006,
+              "tail_added_m": 443.7817812133306
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-10",
+      "token": "63c145828c3b5fd8",
+      "event": "cut_in",
+      "data_root": "full_test/63c145828c3b5fd8/arrow",
+      "event_recipe": "V-10.63c145828c3b5fd8.cut_in.event.yaml",
+      "baseline_recipe": "V-10.63c145828c3b5fd8.cut_in.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-10.63c145828c3b5fd8.cut_in.event.yaml",
+          "source_sha256": "c3a804aa1695245a5cec8ce44ca31035465241ca94c7707b13864d9acbbfe9d7",
+          "prepared_sha256": "bb35ba5b0118ec75daefccc407eb86823f8ad12851110bfd04eee9bf175a434c",
+          "actors": 2,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a0e8f50681787",
+              "old_length_m": 91.1831099053341,
+              "new_length_m": 318.99088000000006,
+              "tail_added_m": 227.8077700946659
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-10.63c145828c3b5fd8.cut_in.baseline.yaml",
+          "source_sha256": "70b4120c617fc95e5df6cbc2e8c34febf2b48860c6d3318d53544d96d2aee7a9",
+          "prepared_sha256": "74c26dfd9a426c17dbaa9450f2ed8eb85ab4b8418ffc50000a92b00fdc0d076d",
+          "actors": 2,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a0e8f50681787",
+              "old_length_m": 91.1831099053341,
+              "new_length_m": 318.99088000000006,
+              "tail_added_m": 227.8077700946659
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-10",
+      "token": "63c145828c3b5fd8",
+      "event": "vru_cross",
+      "data_root": "full_test/63c145828c3b5fd8/arrow",
+      "event_recipe": "V-10.63c145828c3b5fd8.vru_cross.event.yaml",
+      "baseline_recipe": "V-10.63c145828c3b5fd8.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-10.63c145828c3b5fd8.vru_cross.event.yaml",
+          "source_sha256": "6b6061cc6d6b35936a3ab0172c7a7727bf3ca2cb04628b8bcc3f6356016c1e28",
+          "prepared_sha256": "f73e6ea75a89182a39064d71c8080768c34c53815c0941aa29d5a58d8c156f78",
+          "actors": 2,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-10.63c145828c3b5fd8.vru_cross.baseline.yaml",
+          "source_sha256": "86ee91cabe3964fefcb2634bbe1453727a6720bdbae1592dc003135612760a7a",
+          "prepared_sha256": "cc4a29f2091bb3689c1150a372b73c00c00d0ad8ffd49ef8e4fb26f0a99afbb8",
+          "actors": 2,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-11",
+      "token": "32d85d373126537e",
+      "event": "cut_in",
+      "data_root": "full_test/32d85d373126537e/arrow",
+      "event_recipe": "V-11.32d85d373126537e.cut_in.event.yaml",
+      "baseline_recipe": "V-11.32d85d373126537e.cut_in.baseline.yaml",
+      "asset_harvester_manifest": "full_test/32d85d373126537e/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-11.32d85d373126537e.cut_in.event.yaml",
+          "source_sha256": "bc953135157085c14fdb0d7c2da0e1e24b8de7a284919e616769e123e40f5cd3",
+          "prepared_sha256": "7c32ecc045e36f63d08c1d730fb8e754ec57cdd37bafd8b1edbac77e85cb7cde",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a85a3b16ae892",
+              "old_length_m": 42.55010127748609,
+              "new_length_m": 324.0,
+              "tail_added_m": 281.4498987225139
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a85a3b16ae892",
+              "source_track_id": "276395810cfa530a",
+              "own_harvested_asset": "full_test/32d85d373126537e/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/276395810cfa530a/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/32d85d373126537e/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-11.32d85d373126537e.cut_in.baseline.yaml",
+          "source_sha256": "5ee8a231a8f1a354527fe153f6b71562f41eb30ec20ce0b52418d1a12217c087",
+          "prepared_sha256": "5636df51c6d31dbc5713e5225e480118f6f780bf276ac8a61bf9e2d075bd0180",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a85a3b16ae892",
+              "old_length_m": 42.55010127748609,
+              "new_length_m": 324.0,
+              "tail_added_m": 281.4498987225139
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a85a3b16ae892",
+              "source_track_id": "276395810cfa530a",
+              "own_harvested_asset": "full_test/32d85d373126537e/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/276395810cfa530a/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/32d85d373126537e/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "V-11",
+      "token": "32d85d373126537e",
+      "event": "vru_cross",
+      "data_root": "full_test/32d85d373126537e/arrow",
+      "event_recipe": "V-11.32d85d373126537e.vru_cross.event.yaml",
+      "baseline_recipe": "V-11.32d85d373126537e.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-11.32d85d373126537e.vru_cross.event.yaml",
+          "source_sha256": "cdca80da2c1c0eb7f12f6ea6981cfc6a04872a0f14a98fa4e43cdd509359fe48",
+          "prepared_sha256": "a64ef2d5c072f2fd9e3fec40171099c4a6face09550b40528925ecd0703854c4",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-11.32d85d373126537e.vru_cross.baseline.yaml",
+          "source_sha256": "bd469aaaa3f4f33abecbd595247f3096b137e65a172395bfe216be10b0719709",
+          "prepared_sha256": "64ce804261010081a946f5dd576fa122de1796cbfff7238eaca079f0032a8fbd",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-2",
+      "token": "3d324bda0cec57ab",
+      "event": "lead_brake",
+      "data_root": "full_test/3d324bda0cec57ab/arrow",
+      "event_recipe": "V-2.3d324bda0cec57ab.lead_brake.event.yaml",
+      "baseline_recipe": "V-2.3d324bda0cec57ab.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-2.3d324bda0cec57ab.lead_brake.event.yaml",
+          "source_sha256": "b9a97bdf16ab37a8cd0ef873dc2b30e86a71105b663a77c7169eb418fea9877c",
+          "prepared_sha256": "c91464efc8225274f1462dc7eb4c9ce3ce42d7d52efe68a551435abf26354dce",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a0c84cc801e69",
+              "old_length_m": 48.43036031693368,
+              "new_length_m": 463.40000000000003,
+              "tail_added_m": 414.96963968306636
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-2.3d324bda0cec57ab.lead_brake.baseline.yaml",
+          "source_sha256": "d9d406b0f43c595532019c5ecf490dd4ca3d5a54492cc3c52d4f027c11dded15",
+          "prepared_sha256": "5944844d6cbedcaea533f61e999f6a22dca877421d56223250b34493dc2052a9",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a0c84cc801e69",
+              "old_length_m": 48.43036031693368,
+              "new_length_m": 463.40000000000003,
+              "tail_added_m": 414.96963968306636
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-2",
+      "token": "3d324bda0cec57ab",
+      "event": "vru_cross",
+      "data_root": "full_test/3d324bda0cec57ab/arrow",
+      "event_recipe": "V-2.3d324bda0cec57ab.vru_cross.event.yaml",
+      "baseline_recipe": "V-2.3d324bda0cec57ab.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-2.3d324bda0cec57ab.vru_cross.event.yaml",
+          "source_sha256": "1bee28b9e3e586c220fce517a1ab46498231d32d93ed683bf0fb69967d478688",
+          "prepared_sha256": "7c53a570815cf8f4dc89d689026f96414f8ba783a8bde78434357b876045a607",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-2.3d324bda0cec57ab.vru_cross.baseline.yaml",
+          "source_sha256": "477911da4e2cb9d8e4153344f8584c71e6b9ffe2b56592c4407bcfcfeedd3fb9",
+          "prepared_sha256": "d261180884f7cd0650376d54172f539ab3229a987864c404a9b891de40fb684e",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-3",
+      "token": "c41f71c68ad45f21",
+      "event": "lead_brake",
+      "data_root": "full_test/c41f71c68ad45f21/arrow",
+      "event_recipe": "V-3.c41f71c68ad45f21.lead_brake.event.yaml",
+      "baseline_recipe": "V-3.c41f71c68ad45f21.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-3.c41f71c68ad45f21.lead_brake.event.yaml",
+          "source_sha256": "6b79360df858235216ec2710d2728f6458e04f54dea5dc10da3d47ac96aa6dc1",
+          "prepared_sha256": "d0b5396fedfa0db001bfe7bb573dbf87ec97b23b142426ac2fb4fe3c5f7f5aa4",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a500a2a5af95e",
+              "old_length_m": 63.950593549743246,
+              "new_length_m": 462.0,
+              "tail_added_m": 398.04940645025675
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-3.c41f71c68ad45f21.lead_brake.baseline.yaml",
+          "source_sha256": "ff5c5e241d81200fcbd65260e725d974b2ef6abe11a92fd726541814087efefc",
+          "prepared_sha256": "18c8e38ba08127be6d229d06ae2e1d2b7a8c161c1490541005cd13017a577ec1",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a500a2a5af95e",
+              "old_length_m": 63.950593549743246,
+              "new_length_m": 462.0,
+              "tail_added_m": 398.04940645025675
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-3",
+      "token": "c41f71c68ad45f21",
+      "event": "vru_cross",
+      "data_root": "full_test/c41f71c68ad45f21/arrow",
+      "event_recipe": "V-3.c41f71c68ad45f21.vru_cross.event.yaml",
+      "baseline_recipe": "V-3.c41f71c68ad45f21.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-3.c41f71c68ad45f21.vru_cross.event.yaml",
+          "source_sha256": "7cc0d5e67cc82197b4c12b827f7874e98811f14d7bf85babf007b2baa2132b02",
+          "prepared_sha256": "df7014b94fff2d283379913a81ae48ccddc385eccf3f00085fc3679fa8b77e13",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-3.c41f71c68ad45f21.vru_cross.baseline.yaml",
+          "source_sha256": "0868319ebe41af05b8e01bcfd6d83448e2c86848825208e539b1110ccaeda5ef",
+          "prepared_sha256": "50fca8dd0628b94739c3998e6214aa302b155c03798779589646b120343e5cdb",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-4",
+      "token": "089e3eac4f7e5c5c",
+      "event": "cut_in",
+      "data_root": "full_test/089e3eac4f7e5c5c/arrow",
+      "event_recipe": "V-4.089e3eac4f7e5c5c.cut_in.event.yaml",
+      "baseline_recipe": "V-4.089e3eac4f7e5c5c.cut_in.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-4.089e3eac4f7e5c5c.cut_in.event.yaml",
+          "source_sha256": "e88ca3349d83975f3b1bd5e81669ae2d5df63aaea610c9c5b208737026258338",
+          "prepared_sha256": "85ed6ae68c50b5fb51260fece2795a6b0b2a4407f6255b5167124244dd6baef8",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a67c33cfd867a",
+              "old_length_m": 37.23181709669602,
+              "new_length_m": 330.0,
+              "tail_added_m": 292.76818290330397
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-4.089e3eac4f7e5c5c.cut_in.baseline.yaml",
+          "source_sha256": "a0b087d9275baadf42789b88bf81f87e00e0f15ff7e6dc61a942dd032853c523",
+          "prepared_sha256": "d6886d6e741c86102cec249d54c335f92662f3892b7ec36c160f8038e11bdf3b",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a67c33cfd867a",
+              "old_length_m": 37.23181709669602,
+              "new_length_m": 330.0,
+              "tail_added_m": 292.76818290330397
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-4",
+      "token": "089e3eac4f7e5c5c",
+      "event": "vru_cross",
+      "data_root": "full_test/089e3eac4f7e5c5c/arrow",
+      "event_recipe": "V-4.089e3eac4f7e5c5c.vru_cross.event.yaml",
+      "baseline_recipe": "V-4.089e3eac4f7e5c5c.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-4.089e3eac4f7e5c5c.vru_cross.event.yaml",
+          "source_sha256": "c7c9f6d646a50edeaf17c7fafd372e9233b25613015fcb40a674101cfa3c0e08",
+          "prepared_sha256": "f4b2711338a2a8f6aa2e514cf1f30d063080c1c8753f14c37cd439c05db723b4",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-4.089e3eac4f7e5c5c.vru_cross.baseline.yaml",
+          "source_sha256": "645b06dfcd1b6e4aee72ae2af2330c42a67742b0bf961cafc3a256b490f23f41",
+          "prepared_sha256": "5d8b93c538e8c0a681a83578f6244f79f7517dfde8fadffdc8db3a245286e3be",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-5",
+      "token": "07c5114fdb395f8b",
+      "event": "cut_in",
+      "data_root": "full_test/07c5114fdb395f8b/arrow",
+      "event_recipe": "V-5.07c5114fdb395f8b.cut_in.event.yaml",
+      "baseline_recipe": "V-5.07c5114fdb395f8b.cut_in.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-5.07c5114fdb395f8b.cut_in.event.yaml",
+          "source_sha256": "269bd635d8908ed8813d6080a9e1a51da584b7c9865c4e27ab50b8b45dcbe798",
+          "prepared_sha256": "946256cf6c3c559a09b3efce59fb180b6282d75015f4120523706f6ac1eb6829",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a3cc3ff637273",
+              "old_length_m": 65.79959225173371,
+              "new_length_m": 660.0,
+              "tail_added_m": 594.2004077482663
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-5.07c5114fdb395f8b.cut_in.baseline.yaml",
+          "source_sha256": "f02a4595e52d7325da997a42d2d61a7a6e8cf9bd83a7e7b5675ca87903b9afc3",
+          "prepared_sha256": "a77097422913b7fd141f50c34ee5b1c8e614fcde1d04da8909c22bd4ca3af813",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a3cc3ff637273",
+              "old_length_m": 65.79959225173371,
+              "new_length_m": 660.0,
+              "tail_added_m": 594.2004077482663
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-5",
+      "token": "07c5114fdb395f8b",
+      "event": "lead_brake",
+      "data_root": "full_test/07c5114fdb395f8b/arrow",
+      "event_recipe": "V-5.07c5114fdb395f8b.lead_brake.event.yaml",
+      "baseline_recipe": "V-5.07c5114fdb395f8b.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-5.07c5114fdb395f8b.lead_brake.event.yaml",
+          "source_sha256": "2a5d2754cc5eeda4de2d1fd20c987c609c6fe156cdb470ebbdb1ad8bf26db7f8",
+          "prepared_sha256": "79f31e631042070c36e003616e1eac14b26d856b6a3fb71db60d3206ac2cf990",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a42b310df68b1",
+              "old_length_m": 116.84351737146788,
+              "new_length_m": 524.8,
+              "tail_added_m": 407.95648262853206
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-5.07c5114fdb395f8b.lead_brake.baseline.yaml",
+          "source_sha256": "2e52c5b817145c468031215305d9303ad7601574e505a5e064846b949cad04b8",
+          "prepared_sha256": "db553935046e38305f7317c7cd73e7412934f1b45e7d00b5764509791b42d629",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a42b310df68b1",
+              "old_length_m": 116.84351737146788,
+              "new_length_m": 524.8,
+              "tail_added_m": 407.95648262853206
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-6",
+      "token": "8661a7e9b4a95042",
+      "event": "cut_in",
+      "data_root": "full_test/8661a7e9b4a95042/arrow",
+      "event_recipe": "V-6.8661a7e9b4a95042.cut_in.event.yaml",
+      "baseline_recipe": "V-6.8661a7e9b4a95042.cut_in.baseline.yaml",
+      "asset_harvester_manifest": "full_test/8661a7e9b4a95042/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-6.8661a7e9b4a95042.cut_in.event.yaml",
+          "source_sha256": "5420803e2492d8a7bb92e6d286493f87f3d586c06ed6af7c85ceff8f98444e2c",
+          "prepared_sha256": "27cc4809eb5e315bf0e1f45312db540ecf20d76adad160e480f87c7d4c971b64",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_abf708dbc21ea",
+              "old_length_m": 122.22904478031494,
+              "new_length_m": 292.49999999999994,
+              "tail_added_m": 170.27095521968505
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_abf708dbc21ea",
+              "source_track_id": "ae6269bce2495e79",
+              "own_harvested_asset": "full_test/8661a7e9b4a95042/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/ae6269bce2495e79/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/8661a7e9b4a95042/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-6.8661a7e9b4a95042.cut_in.baseline.yaml",
+          "source_sha256": "fbebfbfc19ce26b372cb17211b3ecc7ae494e553fbbc85dd792b9e695fa19886",
+          "prepared_sha256": "2dfe988611a4424b6b9047188ebdc367a52313fe90db1c4135ff5aeeef25be76",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_abf708dbc21ea",
+              "old_length_m": 122.22904478031494,
+              "new_length_m": 292.49999999999994,
+              "tail_added_m": 170.27095521968505
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_abf708dbc21ea",
+              "source_track_id": "ae6269bce2495e79",
+              "own_harvested_asset": "full_test/8661a7e9b4a95042/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/ae6269bce2495e79/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/8661a7e9b4a95042/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "V-6",
+      "token": "8661a7e9b4a95042",
+      "event": "lead_brake",
+      "data_root": "full_test/8661a7e9b4a95042/arrow",
+      "event_recipe": "V-6.8661a7e9b4a95042.lead_brake.event.yaml",
+      "baseline_recipe": "V-6.8661a7e9b4a95042.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": "full_test/8661a7e9b4a95042/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-6.8661a7e9b4a95042.lead_brake.event.yaml",
+          "source_sha256": "ea9552b7b7caf939c8db5724c56e5239e9023f5f9e677c32c50844743c447e48",
+          "prepared_sha256": "d157761f4348d2a9bde17f6cff2d61894e88c0642cb042dcd5f45d09e9b64032",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a1faa912c80fa",
+              "old_length_m": 110.85919456138713,
+              "new_length_m": 396.00000000000006,
+              "tail_added_m": 285.14080543861286
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a1faa912c80fa",
+              "source_track_id": "26a58fb64caa55eb",
+              "own_harvested_asset": "full_test/8661a7e9b4a95042/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/26a58fb64caa55eb/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/8661a7e9b4a95042/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-6.8661a7e9b4a95042.lead_brake.baseline.yaml",
+          "source_sha256": "26f41bd5e539019add7ae84b2da0bea6ae97e6929ac0e30a5d39d09d0ab03d29",
+          "prepared_sha256": "d25aa08eb3ca6f0ec777f1be4116fd253df7fe7a5ebd77c217baa064a85e36ed",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a1faa912c80fa",
+              "old_length_m": 110.85919456138713,
+              "new_length_m": 396.00000000000006,
+              "tail_added_m": 285.14080543861286
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_a1faa912c80fa",
+              "source_track_id": "26a58fb64caa55eb",
+              "own_harvested_asset": "full_test/8661a7e9b4a95042/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/26a58fb64caa55eb/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/8661a7e9b4a95042/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "V-7",
+      "token": "97dcc120f4695080",
+      "event": "cut_in",
+      "data_root": "full_test/97dcc120f4695080/arrow",
+      "event_recipe": "V-7.97dcc120f4695080.cut_in.event.yaml",
+      "baseline_recipe": "V-7.97dcc120f4695080.cut_in.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-7.97dcc120f4695080.cut_in.event.yaml",
+          "source_sha256": "bc11d9e9f5271e8539bbf0831ddc4f29218f1a06d38058845cc1f58ba86d61af",
+          "prepared_sha256": "d62d865d1969ca5fa006f5f3ec6cee44dbb48491c12cf9ffe5c7a7ae5eda131a",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a1882c1ee553f",
+              "old_length_m": 57.64443615810713,
+              "new_length_m": 453.6,
+              "tail_added_m": 395.9555638418929
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-7.97dcc120f4695080.cut_in.baseline.yaml",
+          "source_sha256": "7af804cad602dde2d12817ee7d1565493aaf622cd0f13c961933ac12f7d557c3",
+          "prepared_sha256": "f2ef41ef8a966290936c2dd184849a6cbf0b837cb3544a517542b4e905d8d744",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a1882c1ee553f",
+              "old_length_m": 57.64443615810713,
+              "new_length_m": 453.6,
+              "tail_added_m": 395.9555638418929
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-7",
+      "token": "97dcc120f4695080",
+      "event": "lead_brake",
+      "data_root": "full_test/97dcc120f4695080/arrow",
+      "event_recipe": "V-7.97dcc120f4695080.lead_brake.event.yaml",
+      "baseline_recipe": "V-7.97dcc120f4695080.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-7.97dcc120f4695080.lead_brake.event.yaml",
+          "source_sha256": "8fb7ad1ab6bbe97d5f3b58afe24010abd0c107a35c33fbaa7d970cce342799b6",
+          "prepared_sha256": "2faf2eb218617f8d460d9a7ab95d5aa850056b5cf9e3d1356f61d7024aea23c3",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a1970e2c11771",
+              "old_length_m": 111.92444195265543,
+              "new_length_m": 838.5000000000001,
+              "tail_added_m": 726.5755580473447
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-7.97dcc120f4695080.lead_brake.baseline.yaml",
+          "source_sha256": "a7ef7391dad87db2c7efbbfbb74861d0803297fe695477bf817643e9e7efcbfd",
+          "prepared_sha256": "e4ae9c5342f739546ad858f73672e1aca66842168f2ccdd2e5a3ab3c53fe3a6a",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_a1970e2c11771",
+              "old_length_m": 111.92444195265543,
+              "new_length_m": 838.5000000000001,
+              "tail_added_m": 726.5755580473447
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-8",
+      "token": "14c0a657ac3e5bb7",
+      "event": "lead_brake",
+      "data_root": "full_test/14c0a657ac3e5bb7/arrow",
+      "event_recipe": "V-8.14c0a657ac3e5bb7.lead_brake.event.yaml",
+      "baseline_recipe": "V-8.14c0a657ac3e5bb7.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-8.14c0a657ac3e5bb7.lead_brake.event.yaml",
+          "source_sha256": "d3c7de7065f621cfa55c3755abd1aaedf997ef818e44d9d632eeafe3bfe9fa92",
+          "prepared_sha256": "f347bce39a1693a7f0c3decd635f680d4459e5c4b4ff4f82f2cb14c9ac72c9a5",
+          "actors": 2,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_af7e4c423715f",
+              "old_length_m": 27.901338182680032,
+              "new_length_m": 292.5082079999999,
+              "tail_added_m": 264.60686981731993
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-8.14c0a657ac3e5bb7.lead_brake.baseline.yaml",
+          "source_sha256": "ec801d9a8c167cad75c0d2ebbf92b20cc82c1e4075d3211975afea35b633f380",
+          "prepared_sha256": "0c0906ba329874b6481220595f8141a2140a9c3a21367ea202ee10c8bdb03913",
+          "actors": 2,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_af7e4c423715f",
+              "old_length_m": 27.901338182680032,
+              "new_length_m": 292.5082079999999,
+              "tail_added_m": 264.60686981731993
+            }
+          ],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-8",
+      "token": "14c0a657ac3e5bb7",
+      "event": "vru_cross",
+      "data_root": "full_test/14c0a657ac3e5bb7/arrow",
+      "event_recipe": "V-8.14c0a657ac3e5bb7.vru_cross.event.yaml",
+      "baseline_recipe": "V-8.14c0a657ac3e5bb7.vru_cross.baseline.yaml",
+      "asset_harvester_manifest": null,
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-8.14c0a657ac3e5bb7.vru_cross.event.yaml",
+          "source_sha256": "0bb51d2f08357ca9f7819a3253ca2f6814436bb70f339770dfb0b2e98c845c55",
+          "prepared_sha256": "e697318e267291055afd6ed7f9560e3d16116736a3ee50836829eece8536b199",
+          "actors": 2,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-8.14c0a657ac3e5bb7.vru_cross.baseline.yaml",
+          "source_sha256": "0a67d69caaf585cf97ab54801e5450782449971913401568ade4bea9a76d7360",
+          "prepared_sha256": "ad0f37d65847b24b10873c3e6db655f854e24ad932dd6eb2d9a947cd92afe77e",
+          "actors": 2,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [],
+          "asset_harvester_manifest": null
+        }
+      ]
+    },
+    {
+      "leaf": "V-9",
+      "token": "3a5278b27c87565f",
+      "event": "cut_in",
+      "data_root": "full_test/3a5278b27c87565f/arrow",
+      "event_recipe": "V-9.3a5278b27c87565f.cut_in.event.yaml",
+      "baseline_recipe": "V-9.3a5278b27c87565f.cut_in.baseline.yaml",
+      "asset_harvester_manifest": "full_test/3a5278b27c87565f/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-9.3a5278b27c87565f.cut_in.event.yaml",
+          "source_sha256": "5febd93ecec991d18c52ca10cd54f8755dfcb9632cfd8c699096abe9f6096bb4",
+          "prepared_sha256": "846d66accd44ddb8716a2e1dd82249d2399598fc8e787a9f3995ea76d08ba7c8",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_af8ce6eacfff0",
+              "old_length_m": 110.89769372543627,
+              "new_length_m": 165.0,
+              "tail_added_m": 54.10230627456373
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_af8ce6eacfff0",
+              "source_track_id": "4d7160c44cdb564a",
+              "own_harvested_asset": "full_test/3a5278b27c87565f/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/4d7160c44cdb564a/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/3a5278b27c87565f/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-9.3a5278b27c87565f.cut_in.baseline.yaml",
+          "source_sha256": "a48c59aff29e9464e67167cc300d442c7a56435e316bc0c75e4f884595707ae2",
+          "prepared_sha256": "0fd99e3125a9988bddab5922614a2106e756aef90b8908989cc4240670a740e1",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [
+            {
+              "actor": "editor_af8ce6eacfff0",
+              "old_length_m": 110.89769372543627,
+              "new_length_m": 165.0,
+              "tail_added_m": 54.10230627456373
+            }
+          ],
+          "takeovers": [
+            {
+              "actor": "editor_af8ce6eacfff0",
+              "source_track_id": "4d7160c44cdb564a",
+              "own_harvested_asset": "full_test/3a5278b27c87565f/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/4d7160c44cdb564a/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/3a5278b27c87565f/ah_assets/replace_manifest.json"
+        }
+      ]
+    },
+    {
+      "leaf": "V-9",
+      "token": "3a5278b27c87565f",
+      "event": "lead_brake",
+      "data_root": "full_test/3a5278b27c87565f/arrow",
+      "event_recipe": "V-9.3a5278b27c87565f.lead_brake.event.yaml",
+      "baseline_recipe": "V-9.3a5278b27c87565f.lead_brake.baseline.yaml",
+      "asset_harvester_manifest": "full_test/3a5278b27c87565f/ah_assets/replace_manifest.json",
+      "variants": [
+        {
+          "variant": "event",
+          "recipe": "V-9.3a5278b27c87565f.lead_brake.event.yaml",
+          "source_sha256": "cbfd525d3fb942935cdefd6e566e368e6312a6a562fdcd6b9f00d4fb57d9c021",
+          "prepared_sha256": "a2c26cb752ac366f6cf6b8c543dcc90759dc45de205707cb670e13cab124f1ea",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [
+            {
+              "actor": "editor_ac85ce7e80bbf",
+              "source_track_id": "08018c45ddc057a0",
+              "own_harvested_asset": "full_test/3a5278b27c87565f/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/08018c45ddc057a0/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/3a5278b27c87565f/ah_assets/replace_manifest.json"
+        },
+        {
+          "variant": "baseline",
+          "recipe": "V-9.3a5278b27c87565f.lead_brake.baseline.yaml",
+          "source_sha256": "29894424babe43ef7a00caa5c71931c8641e0b037975b1bfc1d948d87ad653f4",
+          "prepared_sha256": "04f56006bdae575635b36c4ec1a798b5a3ae8c51e442cc51f0889cc39bab2a31",
+          "actors": 1,
+          "edits": 1,
+          "tail_extensions": [],
+          "takeovers": [
+            {
+              "actor": "editor_ac85ce7e80bbf",
+              "source_track_id": "08018c45ddc057a0",
+              "own_harvested_asset": "full_test/3a5278b27c87565f/ah_assets/lifted/nuplanboxdetectionlabel.vehicle/08018c45ddc057a0/gaussians.ply"
+            }
+          ],
+          "asset_harvester_manifest": "full_test/3a5278b27c87565f/ah_assets/replace_manifest.json"
+        }
+      ]
+    }
+  ],
+  "excluded_events": [
+    {
+      "leaf": "C-1",
+      "token": "02902d180b405100",
+      "event": "vru_cross",
+      "reason": "retired by experiment design"
+    },
+    {
+      "leaf": "C-2",
+      "token": "f077a062ad9b55e9",
+      "event": "lead_brake",
+      "reason": "retired by experiment design"
+    }
+  ],
+  "replacements": [
+    {
+      "leaf": "C-9",
+      "token": "6704953640e55b83",
+      "event": "lead_brake",
+      "source_zip": "navsafe-recipe-cfb49d03-480b-470e-b6a7-fa08034239dd.zip",
+      "source_zip_sha256": "400244ce89b5869781d57637389cb76a316331a702e2af014539d820cc19ffd1",
+      "prepared_event_sha256": "1ebbd5bf3dae47f313121bbeb4715412bfb2a1ea6813c64707f2e1fa57cb078c",
+      "prepared_baseline_sha256": "4f6bc423c12763580846c703e7e8e7e5290309861593fbe68817bc497e8c4082"
+    },
+    {
+      "leaf": "I-1",
+      "token": "6fc91bf02f225d1b",
+      "event": "lead_brake",
+      "source_zip": "navsafe-recipe-2d59cc25-4f23-46f8-9fcb-ba811a4e1243.zip",
+      "source_zip_sha256": "42cd966a14fde634928ac5dfbad44d3106af2831b479dce18f4e8a6173a8d5c8",
+      "prepared_event_sha256": "58873adf3adbfce5a75f0219d7a5fdca241c63f10c8fc35386577058839033a0",
+      "prepared_baseline_sha256": "9093433528d81e53e1867b5d8e09698648473b1ee20cd2d4c820d2f1688b9e46"
+    },
+    {
+      "leaf": "V-9",
+      "token": "3a5278b27c87565f",
+      "event": "lead_brake",
+      "source_zip": "navsafe-recipe-0eee3566-019a-4e5c-a588-2e26458856e0.zip",
+      "source_zip_sha256": "74de5b8ffbbb0278e15710c9578c51e20bb3bbaff0b126310baf47ca0bd36b82",
+      "prepared_event_sha256": "2ff8326a110f5925a70205c1bb3adf8fcd4b6ff056d82ac55678cfcc4f3f9d32",
+      "prepared_baseline_sha256": "9033b0155636d11051cff510fad96478be6df465c04b25a7adb96cf38b146762"
+    },
+    {
+      "leaf": "C-9",
+      "token": "6704953640e55b83",
+      "event": "vru_cross",
+      "source_zip": "navsafe-recipe-b5ac1726-fc4b-451d-b05e-b8f373e465a3.zip",
+      "prepared_event_sha256": "5e1b0fa73e4c711614170594a65999a176afe3394db69abb6c6839426a5569ac",
+      "prepared_baseline_sha256": "6f1de48b2618aae6f52ef29f986e3a565522e524d49d5473f65f9ce278ed5edb",
+      "renderer_semantic_class": "vehicle",
+      "reason": "NuRec 26.4.146 C-9 deformable layer has zero calibrated nodes; keep simulated track_type PEDESTRIAN and render the same pedestrian gait assets through dynamic_rigids"
+    }
+  ],
+  "updates": [
+    {
+      "leaf": "V-7",
+      "old_token": "26f4d8d4d72a588e",
+      "new_token": "97dcc120f4695080",
+      "source_zip": "navsafe-recipe-newV7both.zip",
+      "source_zip_sha256": "5db0ffd5ebc08b460be5015ec970db379c93d050bdb20ae2b1fc485016cf1bc5"
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+leaf: R-2
+name: Bicycle-Involved
+scenario: bicycle_crossing
+tier: constructed
+summary: >-
+  Cyclists where cyclists legitimately are — a mapped bike lane, or the ego's
+  own carriageway lane on a street without one — riding ahead of and beside
+  the ego, so the ego has to overtake or hold back rather than treat them as
+  obstacles to route around.
+qualify: [bike_permitted_lane]
+qualify_info: [straight_stretch]
+metrics: [collision, time_to_collision, vulnerable_road_user_clearance]
+checklist: R-2.md
+notes: >-
+  nuPlan tags `behind_bike` scenes, so the 500-seed set carries purpose-mined
+  R-2 hosts (190bf8dd22a25d1c, 99a98a7ffb075389, ac01c31d1a5a5ed2) — prefer
+  those, and bake them `--no-insert`: the log already carries the cyclists this
+  leaf is about, and inserting anyway puts a second bank beside the real ones.
+
+  WHERE THE RIDERS LAND IS SIZED AGAINST A WHOLE-EPISODE AVERAGE, AND THAT IS
+  WRONG ON A HOST THAT IS STOPPED AT THE HAND-OFF. `layout.margin_m` is raised
+  by `requires.min_reaction_s` against `ego_cruise_speed()`, so on
+  02f1ad081f41550e — ego 0.24 m/s at the hand-off, 3.29 m/s averaged — the near
+  rider was placed 4.94 m ahead of a standing car and the policy rear-ended it
+  2.1 s later. Measured across the ten hosts, the budget a policy actually gets
+  (hand-off to contact, ego on its logged speed profile) is 1.0 s / 1.4 s /
+  1.9 s on 054e4984e1b55ec9, 02b68b9cc51f506a and 0057ce5b81c35a81 — under the
+  1.5 s this leaf declares — against 2.7-3.4 s on the rest. The declaration is
+  not enforced anywhere; treat `min_reaction_s` here as documentation until it
+  is, and check a new host with the sweep in docs/navsafe_eval_edited_scene.md
+  rather than trusting the number.
+  This leaf used to declare five cyclists in five different RELATIONSHIPS to
+  the ego (crossing, oncoming, kerbside, in-lane, a second crossing), which is
+  five leaves wearing one label: a cyclist crossing from a side street is R-2's
+  event only by accident, and the crossing cases duplicated R-3's template. The
+  leaf is now one relationship — sharing the carriageway — with the bank
+  supplying the variety.
+
+insert:
+  world_version: car2sim_6cam_static@nre-ga
+  ego: {replay_frames: 8}
+  # Ahead of the ego and strung out, not abreast: a bunch riding shoulder to
+  # shoulder is one obstacle, and the event type is about repeatedly judging whether
+  # there is room to pass.
+  #
+  # `at: handoff` because this event type's event is a RELATIONSHIP to the ego, so
+  # the riders belong beside it. The default `straight` window scans forward
+  # for a junction-free stretch and put the pair 80 m up the road on
+  # 2575048779565f0b. The span is what separates the two encounters, and 30 m
+  # of it at these hosts' speeds meant the ego had finished the episode before
+  # reaching the second rider.
+  # BESIDE the ego, not ahead of it. A rider that starts 10 m up the road is
+  # already past the moment the event type is about; the ego should come upon them
+  # where it is. `span_m` is what separates the two riders, and 6 m is a bike
+  # length plus a gap.
+  layout: {at: handoff, span_m: 6.0, margin_m: 0.0, min_spacing_m: 4.0}
+  requires: {min_reaction_s: 1.5}
+  pair_id: r2_bank
+  cast:
+    - slot: cyclist
+      # TWO riders, not the whole bank. Seven at 8 m apart need 48 m of straight
+      # and were refused on the shorter hosts; two need 8 m and fit anywhere,
+      # while still giving the ego two separate passing decisions rather than
+      # one long obstacle. Variety across the BANK now comes from picking
+      # different pairs per host (`--variety`), not from crowding one clip.
+      assets: {family: bicycle_rider, source: assetharvester}
+      count: 2
+      variety: rotate
+      track: {type: CYCLIST}
+      # A car2sim recon opens its actor layer only to a PEDESTRIAN-class track;
+      # scoring still sees a CYCLIST (see `track:` above).
+      render_class: pedestrian
+      leaf_variety_slot: "cyclist {i}/{n}"
+      authored:
+        template: dynamic
+        # Where a cyclist belongs on THIS host: its mapped bike lane if it
+        # has one, else the EGO'S OWN lane. Named rather than measured, so the
+        # same rule re-bakes on any qualifying clip. It used to be "the
+        # rightmost same-direction lane", which is where a cyclist rides but
+        # not necessarily where THIS ego drives: on a road with a parking lane
+        # or a second carriageway that lane is 3-8 m off the ego's line, so the
+        # riders were never in its way and there was no overtake to judge.
+        reference: bike_lane_chain
+        arc: auto
+        # SLOWER THAN THIS HOST'S EGO, which is the whole leaf: the ego has to
+        # decide whether there is room to pass. An absolute speed cannot say
+        # that. "Real urban cycling pace, 15-22 km/h" was true of the 5.0 / 4.4
+        # m/s that stood here and still wrong, because a nuPlan city log's ego
+        # averages about 18 km/h itself — the riders matched or beat it, drew
+        # away from the hand-off, and the ego never saw them (measured: ego
+        # 2.4-8.2 m/s across the R-2 hosts, median 5.3).
+        #
+        # The nearer rider is the slower one so the pair SEPARATES as they
+        # ride; the other way round they close up into the single obstacle the
+        # layout comment above is about.
+        # The gap the ego has to close is what decides whether the overtake
+        # happens inside a 200-frame (20 s) episode at all, so the deficit is
+        # sized against it: the near rider is 10 m ahead and 40% slower, the
+        # far one 22 m ahead and 28% slower.
+        speed: ["ego*0.45", "ego*0.55"]
+        # The band a rider is physically capable of, 7-23 km/h. A fraction of a
+        # crawling ego is not a speed anyone rides, so the arithmetic is capped
+        # by what a cyclist actually does. Two scalars, not a `[lo, hi]` pair:
+        # a list here is indexed PER ACTOR, so a pair would give rider 1 the
+        # floor and rider 2 the ceiling.
+        speed_min: 1.5
+        speed_max: 6.5
+        # ON THE LANE'S OWN LINE. The riders used to be placed against the
+        # kerb -- `boundary_right+0.3` -- which is where a cyclist rides and
+        # which the reviewer asked for. It did not survive contact: the spawn
+        # honoured the offset and the actor was back on the centreline by the
+        # second frame, so every R-2 render opened with the pair snapping
+        # sideways. The offset is dropped rather than kept alongside the fix,
+        # because a kerbside line that a policy-driven actor cannot hold is a
+        # setting that only ever produces that jump again.
+        lateral: [0.0, 0.0]
