@@ -148,6 +148,14 @@ A scenario whose frozen recipe inserts actors runs edited; every other scenario 
 
 Policy adapters live in [`navsafe/policy`](navsafe/policy), and the model code they load lives in [`navsafe/modelzoo`](navsafe/modelzoo). Pass the adapter name and the matching checkpoint to the evaluator; weights are downloaded from the dataset's `model_zoo/`. The [policies guide](docs/models.md) lists every supported model, its checkpoint and its options, and explains how to add your own.
 
+## Roadmap
+
+NavSafe-∞ is actively maintained. Planned work:
+
+- [ ] Improved rendering quality
+- [ ] Automatic reasoning labels
+- [ ] More data
+
 ## Citation
 
 If NavSafe-∞ supports your research, please cite our [paper](https://arxiv.org/abs/2609.26618):
