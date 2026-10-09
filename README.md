@@ -51,6 +51,16 @@ This repository provides the toolbox for scenario mining, reconstruction prepara
 
 Evaluation reports **driving score (DS)**, **success rate (SR)**, **driving efficiency (DE)**, and **comfort**, together with category-level capability scores. See the [leaderboard](https://navsafe-vail.github.io/#leaderboard) for policy comparisons and the [scoring guide](docs/navsafe_termination_and_success.md) for termination and success semantics.
 
+## Roadmap
+
+NavSafe-∞ is under active development. We maintain the benchmark, fix reported issues, and keep extending it. The following is planned:
+
+- [ ] **Higher rendering quality.** Improve the fidelity of the reconstructed scenes under large deviations from the logged trajectory. We follow progress in the vision and 3D Gaussian splatting communities closely and will keep incorporating new advances into the benchmark.
+- [ ] **More data.** Extend the benchmark beyond the current 280 scenarios with additional scenarios and source datasets.
+- [ ] **Automatic reasoning labeling.** Provide an automatic labeling pipeline that annotates scenarios with reasoning about the scene, to support the training and evaluation of reasoning-capable driving policies.
+
+NavSafe-∞ is meant to be a shared resource for closed-loop driving safety, and we welcome contributions from the community. If you have questions about the project, please [open an issue](https://github.com/VAIL-UCLA/NavSafe-infty/issues). Your feedback directly shapes what we build next and helps move the field forward.
+
 ## Quick Start
 
 ### 1. Install
@@ -147,14 +157,6 @@ A scenario whose frozen recipe inserts actors runs edited; every other scenario 
 ## Policy Integration
 
 Policy adapters live in [`navsafe/policy`](navsafe/policy), and the model code they load lives in [`navsafe/modelzoo`](navsafe/modelzoo). Pass the adapter name and the matching checkpoint to the evaluator; weights are downloaded from the dataset's `model_zoo/`. The [policies guide](docs/models.md) lists every supported model, its checkpoint and its options, and explains how to add your own.
-
-## Roadmap
-
-NavSafe-∞ is actively maintained. Planned work:
-
-- [ ] Improved rendering quality
-- [ ] Automatic reasoning labels
-- [ ] More data
 
 ## Citation
 
