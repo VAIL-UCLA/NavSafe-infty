@@ -1,3 +1,23 @@
 [submodule "third_party/IsaacLab"]
 	path = third_party/IsaacLab
 	url = https://github.com/isaac-sim/IsaacLab.git
+[submodule "third_party/AutoVLA"]
+	path = third_party/AutoVLA
+	url = https://github.com/ucla-mobility/AutoVLA.git
+	update = none
+[submodule "third_party/DriveLaW"]
+	path = third_party/DriveLaW
+	url = https://github.com/xiaomi-research/drivelaw.git
+	update = none
+[submodule "third_party/DriveVLA-W0"]
+	path = third_party/DriveVLA-W0
+	url = https://github.com/BraveGroup/DriveVLA-W0.git
+	update = none
+[submodule "third_party/ResWorld"]
+	path = third_party/ResWorld
+	url = https://github.com/mengtan00/ResWorld.git
+	update = none
+[submodule "third_party/SimWAM"]
+	path = third_party/SimWAM
+	url = https://github.com/H-EmbodVis/SimWAM.git
+	update = none

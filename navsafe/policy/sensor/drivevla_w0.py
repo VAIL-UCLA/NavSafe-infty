@@ -50,6 +50,7 @@ from navsafe.policy.sensor.vla_client import (
     EgoPoseHistory,
     VLASubprocessClient,
     navsim_command_one_hot,
+    upstream_checkout,
     vla_python,
     vla_server_dir,
 )
@@ -59,8 +60,11 @@ from navsafe.policy.sensor.utils.frames import (
     renderer_bgr_to_rgb,
 )
 
-DEFAULT_REPO_PATH = os.path.expanduser("~/.cache/navsafe/repos/DriveVLA-W0")
+DEFAULT_REPO_PATH = upstream_checkout("DriveVLA-W0")
 DEFAULT_CHECKPOINT = model_path('drivevla_w0/Emu3_Flow_Matching_Action_Expert_PDMS_87.2')
+# Shared base models, published under the model zoo's `_base/` directory.
+DEFAULT_VQ_PATH = model_path('_base/emu3-visiontokenizer')
+DEFAULT_VLM_PATH = model_path('_base/emu3-stage1')
 
 # action_frames / action_dim from the inference script's DataArguments.
 ACTION_FRAMES = 8
@@ -122,14 +126,14 @@ class DriveVLAW0Adapter(SensorPolicy):
         super().__init__(checkpoint_path, config_path=config_path, **kwargs)
         self.repo_path = (repo_path
                           or os.environ.get("NAVSAFE_DRIVEVLA_W0_REPO", DEFAULT_REPO_PATH))
-        # The three assets that ship beside the checkpoint rather than inside
-        # it. Defaulted next to the weights, which is how the HF release is
-        # laid out, and overridable for a split install.
-        ckpt_dir = os.path.dirname(self.checkpoint_path.rstrip("/"))
+        # The assets that do not ship inside the checkpoint. The VQ tokenizer
+        # and the base VLM default to the model zoo's `_base/`, which is how
+        # the dataset is laid out; the normaliser and the FAST tokenizer come
+        # from the upstream checkout. Each is overridable for a split install.
         self.vision_tokenizer_path = (
             vision_tokenizer_path
             or os.environ.get("NAVSAFE_DRIVEVLA_W0_VQ")
-            or os.path.join(ckpt_dir, "Emu3-VisionTokenizer"))
+            or DEFAULT_VQ_PATH)
         # Emu3Pi0 builds its VLM with Emu3MoE.from_pretrained on THIS path and
         # reads the tokenizer from it too, so it must be the base VLM the
         # checkpoint was fine-tuned from -- the checkpoint's own nested
@@ -137,7 +141,7 @@ class DriveVLAW0Adapter(SensorPolicy):
         self.vlm_model_path = (
             vlm_model_path
             or os.environ.get("NAVSAFE_DRIVEVLA_W0_VLM")
-            or os.path.join(ckpt_dir, "Emu3-Stage1"))
+            or DEFAULT_VLM_PATH)
         self.norm_stats_path = (
             norm_stats_path
             or os.environ.get("NAVSAFE_DRIVEVLA_W0_NORM_STATS")

@@ -50,6 +50,7 @@ from navsafe.policy.sensor.vla_client import (
     EgoPoseHistory,
     VLASubprocessClient,
     local_velocity_acceleration,
+    upstream_checkout,
     vla_server_dir,
 )
 from navsafe.utils.camera_utils import (
@@ -57,7 +58,7 @@ from navsafe.utils.camera_utils import (
     OPENSCENE_CAMERA_PARAMS,
 )
 
-DEFAULT_REPO_PATH = os.path.expanduser("~/.cache/navsafe/repos/ResWorld")
+DEFAULT_REPO_PATH = upstream_checkout("ResWorld")
 DEFAULT_CHECKPOINT = model_path('resworld/resworld_trained.pth')
 DEFAULT_CONFIG = "projects/configs/resworld/resworld_config.py"
 

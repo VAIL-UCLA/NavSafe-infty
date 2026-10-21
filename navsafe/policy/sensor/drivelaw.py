@@ -16,7 +16,10 @@ contract.
 
 ``checkpoint_path`` is the DriveLaW-Act inference config yaml (the repo takes
 ``config_file``, which names the weights it loads); ``repo_path`` locates the
-checkout.
+checkout.  The model zoo ships that yaml as ``inference_front.template.yaml``
+with ``${DRIVELAW_ZOO}`` and ``${DRIVELAW_REPO}`` placeholders; the adapter
+fills them with the template's own directory and ``repo_path`` before handing
+the config to the server.  A config without placeholders is passed unchanged.
 """
 
 from __future__ import annotations
@@ -35,6 +38,7 @@ from navsafe.policy.sensor.vla_client import (
     VLASubprocessClient,
     local_velocity_acceleration,
     navsim_command_one_hot,
+    upstream_checkout,
     vla_python,
     vla_server_dir,
 )
@@ -44,9 +48,12 @@ from navsafe.policy.sensor.utils.frames import (
     renderer_bgr_to_rgb,
 )
 
-DEFAULT_REPO_PATH = os.path.expanduser("~/.cache/navsafe/repos/DriveLaW")
+DEFAULT_REPO_PATH = upstream_checkout("DriveLaW")
 # forward_test asserts T_cond == 4; this is not a tunable.
 COND_FRAMES = 4
+# Placeholders in the model zoo's inference_front.template.yaml.
+ZOO_PLACEHOLDER = "${DRIVELAW_ZOO}"
+REPO_PLACEHOLDER = "${DRIVELAW_REPO}"
 
 
 @register_policy("drivelaw")
@@ -65,13 +72,28 @@ class DriveLaWAdapter(SensorPolicy):
         self._tmpdir = tempfile.TemporaryDirectory(prefix="drivelaw_")
         self._frames = ImageHistory(self._tmpdir.name, maxlen=COND_FRAMES)
 
+    def _materialize_config(self) -> str:
+        """The config path to hand the server, with template placeholders filled."""
+        with open(self.checkpoint_path) as f:
+            text = f.read()
+        if ZOO_PLACEHOLDER not in text and REPO_PLACEHOLDER not in text:
+            return self.checkpoint_path
+        zoo = os.path.dirname(os.path.abspath(self.checkpoint_path))
+        text = (text.replace(ZOO_PLACEHOLDER, zoo)
+                    .replace(REPO_PLACEHOLDER, os.path.abspath(self.repo_path)))
+        path = os.path.join(self._tmpdir.name, "inference_front.yaml")
+        with open(path, "w") as f:
+            f.write(text)
+        return path
+
     def load_model(self):
         script = str(vla_server_dir() / "drivelaw_server.py")
-        print(f"Starting DriveLaW server (config={self.checkpoint_path})...")
+        config = self._materialize_config()
+        print(f"Starting DriveLaW server (config={config})...")
         self.client = VLASubprocessClient(
             vla_python(), script,
             ["--repo", self.repo_path,
-             "--config", self.checkpoint_path,
+             "--config", config,
              "--view-mode", self.view_mode])
         self.model = self.client
         print("DriveLaW server ready.")

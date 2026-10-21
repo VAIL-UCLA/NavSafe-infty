@@ -212,9 +212,6 @@ def main() -> int:
         "ACCEPT_EULA": "Y",
         "OMNI_KIT_ACCEPT_EULA": "YES",
         "LD_PRELOAD": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6",
-        # Per-run camdump: the file opens in APPEND mode, so a shared path
-        # silently mixes runs and poisons any jitter analysis.
-        "NUREC_GRPC_CAMDUMP": str(out_dir / "camdump.txt"),
     })
     if not args.no_trace and not pure_replay:
         # The canonical trace and the rubric verdict. Skipped for a pure replay:

@@ -48,8 +48,10 @@ class VLASubprocessClient:
         # filesystem) needs its extra packages somewhere else, so allow an
         # explicit side site-dir. Set *after* the -u, which is what makes it
         # win; it is opt-in precisely so the host's PYTHONPATH never leaks in.
+        # Only the shared VLA interpreter gets it: a model with an interpreter
+        # of its own (ResWorld's py3.8) cannot import packages built for it.
         extra_pythonpath = os.environ.get("NAVSAFE_VLA_EXTRA_PYTHONPATH")
-        if extra_pythonpath:
+        if extra_pythonpath and os.path.abspath(python) == os.path.abspath(vla_python()):
             cmd += [f"PYTHONPATH={extra_pythonpath}"]
         # NAVSAFE_VLA_GPU gives the model its own GPU, so it does not share
         # VRAM with the simulator. Unset, it inherits the evaluator's.
@@ -270,3 +272,8 @@ def navsim_command_one_hot(ego_state: Dict) -> List[float]:
 def vla_server_dir() -> Path:
     return (Path(__file__).resolve().parents[2]
             / "modelzoo" / "navsim" / "vla_server")
+
+
+def upstream_checkout(name: str) -> str:
+    """The pinned submodule ``third_party/<name>`` of this NavSafe checkout."""
+    return str(Path(__file__).resolve().parents[3] / "third_party" / name)

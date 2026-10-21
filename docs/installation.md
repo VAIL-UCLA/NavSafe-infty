@@ -21,7 +21,7 @@ uv sync --locked --python 3.12
 source .venv/bin/activate
 ```
 
-In an existing checkout, run `git submodule update --init --recursive` before `uv sync`. The locked environment contains CUDA PyTorch, Isaac Sim, Isaac Lab and the policy dependencies. Keep `.venv` on a local disk rather than a network filesystem.
+In an existing checkout, run `git submodule update --init --recursive` before `uv sync`. The locked environment contains CUDA PyTorch, Isaac Sim, Isaac Lab and the policy dependencies. Keep `.venv` on a local disk rather than a network filesystem. The vision-language and world-model policies run in separate environments and fetch their upstream code as extra submodules; see [models that run outside the NavSafe environment](models.md#models-that-run-outside-the-navsafe-environment).
 
 Check the installation:
 

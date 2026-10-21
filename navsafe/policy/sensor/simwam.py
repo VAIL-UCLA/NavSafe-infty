@@ -49,6 +49,7 @@ from navsafe.policy.sensor.vla_client import (
     VLASubprocessClient,
     local_velocity_acceleration,
     navsim_command_one_hot,
+    upstream_checkout,
     vla_python,
     vla_server_dir,
 )
@@ -58,7 +59,7 @@ from navsafe.policy.sensor.utils.frames import (
     renderer_bgr_to_rgb,
 )
 
-DEFAULT_REPO_PATH = os.path.expanduser("~/.cache/navsafe/repos/SimWAM")
+DEFAULT_REPO_PATH = upstream_checkout("SimWAM")
 DEFAULT_CHECKPOINT = model_path('simwam/weights/SimWAM-RL.pt')
 # The supervised task config, which fixes the camera size (384x672) and
 # trajectory_mode=absolute — the latter decides the denormalisation the server

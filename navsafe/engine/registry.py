@@ -196,7 +196,6 @@ _FIRST_PARTY_MODULES: Tuple[str, ...] = (
     "navsafe.policy.sensor.alpamayo_r1",
     "navsafe.policy.sensor.openpilot",
     "navsafe.policy.sensor.recogdrive",
-    "navsafe.policy.sensor.recogdrive_rerank",
     "navsafe.policy.sensor.mtdrive",
     "navsafe.policy.sensor.autovla",
     "navsafe.policy.sensor.drivelaw",

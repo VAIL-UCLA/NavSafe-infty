@@ -30,6 +30,7 @@ from navsafe.policy.sensor.vla_client import (
     VLASubprocessClient,
     local_velocity_acceleration,
     navsim_command_one_hot,
+    upstream_checkout,
     vla_python,
     vla_server_dir,
 )
@@ -37,7 +38,7 @@ from navsafe.utils.camera_utils import NAVSIM_CAM_CONFIGS
 from navsafe.policy.sensor.utils.frames import crop_to_navsim_aspect
 
 DEFAULT_BASE_MODEL = model_path("_base/qwen2.5-vl-3b-instruct")
-DEFAULT_REPO = os.path.expanduser("~/.cache/navsafe/repos/AutoVLA")
+DEFAULT_REPO = upstream_checkout("AutoVLA")
 
 # AutoVLA free-text instruction, indexed by the navsim command ONE-HOT
 # ([left, straight, right, unknown]) — the same list and the same indexing
