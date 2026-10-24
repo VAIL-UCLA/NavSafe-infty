@@ -24,6 +24,14 @@ wrong-way event types. Those scenarios run unedited.
 | V-11 | 10 | 0 | 10 |
 | **Total** | **90** | **62** | **28** |
 
+## Reconstruction
+
+The recipes are measured against one 20 s reconstruction per scenario (`host.world_version:
+navsafe280-20s-colmap@nre-ga26.04`, `host.artifact: <token>.usdz`), not the four 5 s reconstructions of the first
+release. Spawn poses and controllers are in ego frame-0 coordinates and read the road height from the log
+(`z_to_ground: 0`), so they did not change; only the host fields and `selection.recon_windows` did, which are
+outside the actor checksums.
+
 ## Using a recipe
 
 The evaluator selects the recipe for a scenario from this directory when given

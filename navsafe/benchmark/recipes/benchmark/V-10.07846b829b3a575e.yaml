@@ -22,7 +22,7 @@ scenario: unsafe_merge
 nuplan_type: null
 provenance: mined
 frozen_at: '2026-09-04'
-host: {scene: c2cb80b0-dc82-5a80-9038-da778e4d246d, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: c2cb80b0-dc82-5a80-9038-da778e4d246d, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 07846b829b3a575e.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -271,7 +271,7 @@ selection:
   scenario_id: 07846b829b3a575e_20s
   arrow_scene: c2cb80b0-dc82-5a80-9038-da778e4d246d
   host_family: navsafe_20s
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [07846b829b3a575e]
   qualify:
   - {name: merge_pressure, ok: true, evidence: 'work zone: lane 52881 at -2.2 m (closed_lane), pinch at
       +105 m'}

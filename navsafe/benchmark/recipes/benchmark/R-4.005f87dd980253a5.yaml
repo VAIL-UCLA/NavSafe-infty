@@ -22,7 +22,7 @@ scenario: animal_dart_out
 nuplan_type: null
 provenance: constructed
 frozen_at: '2026-09-03'
-host: {scene: c1e69288-0595-5f1d-8305-abca05d7d9b5, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: c1e69288-0595-5f1d-8305-abca05d7d9b5, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 005f87dd980253a5.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -317,7 +317,7 @@ selection:
   scenario_id: 005f87dd980253a5_20s
   arrow_scene: c1e69288-0595-5f1d-8305-abca05d7d9b5
   host_family: navsafe_20s
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [005f87dd980253a5]
   qualify:
   - {name: crosswalk_on_route, ok: true, evidence: '2 crossing(s); first crosswalk_18835 at +16 m, 14
       m long at 64 deg to the route'}

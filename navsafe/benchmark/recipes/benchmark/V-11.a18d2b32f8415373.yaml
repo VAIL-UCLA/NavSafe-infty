@@ -22,7 +22,7 @@ scenario: driving_wrong_way
 nuplan_type: null
 provenance: mined
 frozen_at: '2026-09-01'
-host: {scene: 2bb8418d-715c-5d5d-9111-02c852f3e05f, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: 2bb8418d-715c-5d5d-9111-02c852f3e05f, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: a18d2b32f8415373.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -271,7 +271,7 @@ selection:
   scenario_id: a18d2b32f8415373_20s
   arrow_scene: 2bb8418d-715c-5d5d-9111-02c852f3e05f
   host_family: navsafe_20s
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [a18d2b32f8415373]
   qualify:
   - {name: two_way_road, ok: true, evidence: "opposing lane 18228 at -3.1 m, steady (\xB10.5 m) over a\
       \ 60 m straight stretch at +45 m"}

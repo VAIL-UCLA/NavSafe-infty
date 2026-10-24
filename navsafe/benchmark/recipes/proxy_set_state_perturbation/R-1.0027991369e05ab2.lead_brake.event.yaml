@@ -4,7 +4,7 @@ scenario: ''
 nuplan_type: null
 provenance: constructed
 frozen_at: '2026-09-12'
-host: {scene: a33d4ff4-4c7a-5029-bc09-99d50b54999d, world_version: installed_reconstruction, temporal_extent_s: 19.900000000000002}
+host: {scene: a33d4ff4-4c7a-5029-bc09-99d50b54999d, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 0027991369e05ab2.usdz, temporal_extent_s: 19.900000000000002}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline: []

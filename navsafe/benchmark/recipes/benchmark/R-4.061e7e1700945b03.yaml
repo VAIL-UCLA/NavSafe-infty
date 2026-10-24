@@ -22,7 +22,7 @@ scenario: animal_dart_out
 nuplan_type: null
 provenance: constructed
 frozen_at: '2026-08-30'
-host: {scene: 733683d7-e631-5fb2-b5c2-0c9ab1e5b6a3, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: 733683d7-e631-5fb2-b5c2-0c9ab1e5b6a3, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 061e7e1700945b03.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -317,7 +317,7 @@ selection:
   scenario_id: 061e7e1700945b03_20s
   arrow_scene: 733683d7-e631-5fb2-b5c2-0c9ab1e5b6a3
   host_family: navsafe_20s
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [061e7e1700945b03]
   qualify:
   - {name: crosswalk_on_route, ok: false, evidence: no marked crossing on the ego's route past the hand-off
       (a crossing here would be mid-block)}

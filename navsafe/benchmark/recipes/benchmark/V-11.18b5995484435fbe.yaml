@@ -22,7 +22,7 @@ scenario: driving_wrong_way
 nuplan_type: null
 provenance: mined
 frozen_at: '2026-08-28'
-host: {scene: 69650a55-d7eb-57cf-aa57-b932a095a9ad, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: 69650a55-d7eb-57cf-aa57-b932a095a9ad, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 18b5995484435fbe.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -272,7 +272,7 @@ selection:
   scenario_id: 18b5995484435fbe_20s
   arrow_scene: 69650a55-d7eb-57cf-aa57-b932a095a9ad
   host_family: navsafe_20s
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [18b5995484435fbe]
   qualify:
   - {name: two_way_road, ok: false, evidence: 'the ego route never holds its heading for 20 m past the
       hand-off, so ''the road beside it'' is not a well-posed question on this host (all turning / junction)'}

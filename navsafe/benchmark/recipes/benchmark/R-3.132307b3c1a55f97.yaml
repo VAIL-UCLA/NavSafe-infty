@@ -22,7 +22,7 @@ scenario: micromobility_crossing
 nuplan_type: null
 provenance: constructed
 frozen_at: '2026-08-31'
-host: {scene: 13a0ebab-1365-58a8-87b2-b5f0508bee66, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: 13a0ebab-1365-58a8-87b2-b5f0508bee66, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 132307b3c1a55f97.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -477,7 +477,7 @@ selection:
   scenario_id: 132307b3c1a55f97_20s
   arrow_scene: 13a0ebab-1365-58a8-87b2-b5f0508bee66
   host_family: custom
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [132307b3c1a55f97]
   qualify:
   - {name: crosswalk_on_route, ok: false, evidence: no marked crossing on the ego's route past the hand-off
       (a crossing here would be mid-block)}

@@ -22,7 +22,7 @@ scenario: illegal_turn
 nuplan_type: null
 provenance: constructed
 frozen_at: '2026-09-08'
-host: {scene: 51c441df-1d4e-546e-8750-78f07c0951f8, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: 51c441df-1d4e-546e-8750-78f07c0951f8, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: e9567d54464052f7.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -301,6 +301,6 @@ selection:
   scenario_id: e9567d54464052f7_20s
   arrow_scene: 51c441df-1d4e-546e-8750-78f07c0951f8
   host_family: custom
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [e9567d54464052f7]
   qualify: []
   miner: tag

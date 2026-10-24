@@ -22,7 +22,7 @@ scenario: unsafe_merge
 nuplan_type: null
 provenance: constructed
 frozen_at: '2026-09-08'
-host: {scene: 2e4d22ff-4d20-5b28-87f6-bed0f6416273, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: 2e4d22ff-4d20-5b28-87f6-bed0f6416273, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 6c9e40634f705f56.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -2031,7 +2031,7 @@ selection:
   scenario_id: 6c9e40634f705f56
   arrow_scene: 2e4d22ff-4d20-5b28-87f6-bed0f6416273
   host_family: custom
-  recon_windows: []
+  recon_windows: [6c9e40634f705f56]
   qualify:
   - {name: merge_pressure (info), ok: true, evidence: 'map merge: lane 20186 closes 13.2 -> 0.2 m at +18
       m'}

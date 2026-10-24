@@ -22,7 +22,7 @@ scenario: in_lane_incident
 nuplan_type: null
 provenance: constructed
 frozen_at: '2026-09-04'
-host: {scene: b9a83435-557a-5d0c-a83b-ecb45989a489, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: b9a83435-557a-5d0c-a83b-ecb45989a489, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: b023b7bcbab05bcb.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -331,7 +331,7 @@ selection:
   scenario_id: b023b7bcbab05bcb_20s
   arrow_scene: b9a83435-557a-5d0c-a83b-ecb45989a489
   host_family: navsafe_20s
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [b023b7bcbab05bcb]
   qualify:
   - {name: multi_lane, ok: true, evidence: '3 same-direction lane(s) at +95 m (need 3): [-3.51, -0.17,
       3.11]'}

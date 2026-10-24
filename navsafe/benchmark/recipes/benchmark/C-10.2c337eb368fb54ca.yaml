@@ -22,7 +22,7 @@ scenario: wrong_way_crash
 nuplan_type: null
 provenance: mined
 frozen_at: '2026-08-28'
-host: {scene: 0a309680-d07c-5a33-8e43-4dfc82c6e925, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: 0a309680-d07c-5a33-8e43-4dfc82c6e925, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 2c337eb368fb54ca.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -272,7 +272,7 @@ selection:
   scenario_id: 2c337eb368fb54ca_20s
   arrow_scene: 0a309680-d07c-5a33-8e43-4dfc82c6e925
   host_family: navsafe_20s
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [2c337eb368fb54ca]
   qualify:
   - {name: two_way_road, ok: false, evidence: "the nearest opposing lane jumps 4.7 m across the straight\
       \ stretch (['19990', '18895', '19936']) \u2014 junction connectors, not a steady opposing carriageway"}

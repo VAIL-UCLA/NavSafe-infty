@@ -4,7 +4,7 @@ scenario: wrong_way_crash
 nuplan_type: null
 provenance: constructed
 frozen_at: '2026-09-12'
-host: {scene: 327739a1-cd0b-50b8-92ff-676c8c309716, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: 327739a1-cd0b-50b8-92ff-676c8c309716, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 2bd04a0902095129.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -436,7 +436,7 @@ selection:
   scenario_id: 2bd04a0902095129_20s
   arrow_scene: 327739a1-cd0b-50b8-92ff-676c8c309716
   host_family: navsafe_20s
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [2bd04a0902095129]
   qualify:
   - {name: two_way_road, ok: true, evidence: "opposing lane 47716 at -8.1 m, steady (\xB10.2 m) over a\
       \ 70 m straight stretch at +25 m"}

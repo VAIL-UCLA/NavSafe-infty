@@ -22,7 +22,7 @@ scenario: micromobility_crossing
 nuplan_type: null
 provenance: constructed
 frozen_at: '2026-08-31'
-host: {scene: a2f4c912-258c-5ea3-8433-aa1e8a157ed9, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: a2f4c912-258c-5ea3-8433-aa1e8a157ed9, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 0802a51b0a1d512c.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -476,7 +476,7 @@ selection:
   scenario_id: 0802a51b0a1d512c_20s
   arrow_scene: a2f4c912-258c-5ea3-8433-aa1e8a157ed9
   host_family: custom
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [0802a51b0a1d512c]
   qualify:
   - {name: crosswalk_on_route, ok: true, evidence: '1 crossing(s); first crosswalk_18462 at +16 m, 18
       m long at 73 deg to the route'}

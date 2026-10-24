@@ -22,7 +22,7 @@ scenario: bicycle_crossing
 nuplan_type: null
 provenance: constructed
 frozen_at: '2026-09-03'
-host: {scene: 676fda24-87fe-5fa2-bebc-2296adb653ec, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: 676fda24-87fe-5fa2-bebc-2296adb653ec, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 054e4984e1b55ec9.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -3366,7 +3366,7 @@ selection:
   scenario_id: 054e4984e1b55ec9_20s
   arrow_scene: 676fda24-87fe-5fa2-bebc-2296adb653ec
   host_family: navsafe_20s
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [054e4984e1b55ec9]
   qualify:
   - {name: bike_permitted_lane, ok: true, evidence: the ego's own lane 70283 at -0.8 m}
   - {name: straight_stretch (info), ok: true, evidence: 25 m window at +10 m (heading drift 9 deg)}

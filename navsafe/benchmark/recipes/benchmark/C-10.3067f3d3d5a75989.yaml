@@ -22,7 +22,7 @@ scenario: wrong_way_crash
 nuplan_type: null
 provenance: mined
 frozen_at: '2026-08-28'
-host: {scene: b14be2a7-0ae8-5a4e-91f4-cd385af01cf1, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: b14be2a7-0ae8-5a4e-91f4-cd385af01cf1, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 3067f3d3d5a75989.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -272,7 +272,7 @@ selection:
   scenario_id: 3067f3d3d5a75989_20s
   arrow_scene: b14be2a7-0ae8-5a4e-91f4-cd385af01cf1
   host_family: navsafe_20s
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [3067f3d3d5a75989]
   qualify:
   - {name: two_way_road, ok: false, evidence: "opposing lane at 1/3 stations of the straight stretch (need\
       \ >= 2) \u2014 one-way road"}

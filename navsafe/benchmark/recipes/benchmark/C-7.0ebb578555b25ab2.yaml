@@ -22,7 +22,7 @@ scenario: head_on_meeting
 nuplan_type: null
 provenance: constructed
 frozen_at: '2026-09-04'
-host: {scene: 9157e59f-6f56-540a-ac0f-b955f885d295, world_version: car2sim_6cam_static@nre-ga}
+host: {scene: 9157e59f-6f56-540a-ac0f-b955f885d295, world_version: navsafe280-20s-colmap@nre-ga26.04, artifact: 0ebb578555b25ab2.usdz}
 frame: ego_frame0
 ego: {replay_frames: 8, cam_height: navsim, z_to_ground: 0.0}
 route_polyline:
@@ -1633,7 +1633,7 @@ selection:
   scenario_id: 0ebb578555b25ab2_20s
   arrow_scene: 9157e59f-6f56-540a-ac0f-b955f885d295
   host_family: navsafe_20s
-  recon_windows: [s1, s2, s3, s4]
+  recon_windows: [0ebb578555b25ab2]
   qualify:
   - {name: narrow_corridor, ok: true, evidence: opposing centreline 2.9 m away}
   - {name: oncoming_vehicle_in_log (info), ok: false, evidence: no in-log vehicle drives the opposing

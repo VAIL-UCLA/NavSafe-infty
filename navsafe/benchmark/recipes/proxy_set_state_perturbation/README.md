@@ -25,6 +25,14 @@ The two recipes of a pair differ only in `policy.enabled`, except for
 `I-1.6fc91bf02f225d1b.lead_brake` and `V-9.3a5278b27c87565f.lead_brake`, whose
 authored paths also differ.
 
+## Reconstruction
+
+The recipes are measured against the single 20 s reconstruction of each scenario
+(`host.world_version: navsafe280-20s-colmap@nre-ga26.04`, `host.artifact: <token>.usdz`). Only those host fields and
+`selection.recon_windows` changed; spawns, authored paths and controllers did not, and `index.json` records the new
+`prepared_sha256` of every file (`reconstruction_update`). A takeover still needs the vehicle's asset in the bundle's
+`ah_assets/`, which is harvested from the same 20 s clip.
+
 ## Files
 
 - `*.yaml` — the 112 recipes. They are frozen: each actor is checksum-pinned, and
