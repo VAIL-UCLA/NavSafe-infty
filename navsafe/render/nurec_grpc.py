@@ -59,6 +59,13 @@ directory of posed copies spanning one gait cycle; each is inserted as its own
 server track, and one is shown per frame, chosen from the distance travelled
 so that the feet do not slide. Each pose costs server memory once per window.
 
+*Ground.* ``NUREC_GRPC_GROUND_MAP`` names a ground-height map of the served
+reconstruction (``.npz`` with ``z``, ``x0``, ``y0``, ``cell``, in its world
+frame), or a directory of ``<scene_id>.npz``. With one, an inserted asset is
+placed on the reconstructed ground under it at every frame, instead of at the
+one height its recipe gives, which ignores slopes, curbs and the gap between the
+recorded altitude and the reconstructed road.
+
 *Harvested replacements.* ``NUREC_GRPC_ASSET_REPLACE`` names a manifest of
 harvested assets that replace the reconstruction's own actors
 (``_replace_harvested_assets``).
@@ -288,6 +295,10 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
         # agent_states clamps z to 0 — pin the ground z per id so short assets
         # (a cone) don't fall back to the ego IMU altitude (~1.7 m up).
         self._injected_ground_z: Dict[str, float] = {}
+        # NUREC_GRPC_GROUND_MAP, loaded on first use: {"z", "x0", "y0", "cell"},
+        # or False when there is none.
+        self._ground_map: Any = None
+        self._ground_logged: set = set()
         # Injected tracks that carry a GAIT rather than one static asset:
         # {logical tid: {"ids": [<tid>#ph0, ...], "stride_m": float}}. The
         # phase ids are what the server knows; the logical tid is what
@@ -1387,16 +1398,25 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
         heading = float(state.get("heading", 0.0))
         ox, oy, _ = self._origin_offset.tolist()
         tid = str(state.get("id"))
+        e0 = self._eval_pos0 if self._eval_pos0 is not None else np.zeros(2)
+        wx = (float(pos[0]) - float(e0[0])) - ox
+        wy = (float(pos[1]) - float(e0[1])) - oy
         if tid in self._injected_ground_z:
-            # Inserted assets are placed at the ground height
-            # recorded in the recipe, which was measured at the
-            # spawn. It is kept constant: estimating the current
-            # road height from the ego's track is wrong wherever
-            # the actor is not near the ego. The value is the
-            # road height itself, since an inserted asset's
-            # origin is at its base, whereas a logged actor's z
-            # is its box centre.
-            z = self._injected_ground_z[tid]
+            # An inserted asset's origin is at its base, so its z is
+            # the ground itself (a logged actor's z is its box
+            # centre). The reconstructed ground under the asset, from
+            # NUREC_GRPC_GROUND_MAP, is used at every frame. Without
+            # a map the height recorded in the recipe is kept
+            # constant: estimating the road height from the ego's
+            # track is wrong wherever the actor is not near the ego.
+            z = self._ground_z_at(wx, wy)
+            if tid not in self._ground_logged:
+                self._ground_logged.add(tid)
+                logger.info("nurec_grpc: %s at world (%.2f, %.2f): ground z %s, recipe z %.2f",
+                            tid, wx, wy, "none" if z is None else f"{z:.2f}",
+                            self._injected_ground_z[tid])
+            if z is None:
+                z = self._injected_ground_z[tid]
         elif pos.shape[0] >= 3 and pos[2] != 0.0:
             z = float(pos[2])
         else:
@@ -1411,10 +1431,51 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
                        [0.0, 0.0, 1.0]])
         m = np.eye(4)
         m[:3, :3] = Rz
-        e0 = self._eval_pos0 if self._eval_pos0 is not None else np.zeros(2)
-        m[:3, 3] = [(float(pos[0]) - float(e0[0])) - ox,
-                    (float(pos[1]) - float(e0[1])) - oy, z]
+        m[:3, 3] = [wx, wy, z]
         return m
+
+    def _ground_z_at(self, x: float, y: float) -> Optional[float]:
+        """Reconstructed ground height at world (x, y), or None.
+
+        Median of the known cells in the 3 x 3 cells around (x, y) of the
+        NUREC_GRPC_GROUND_MAP grid, so one noisy cell does not make the asset
+        jump. Away from the reconstructed ground (a path that starts far from
+        the ego, up to hundreds of metres out) the nearest known cell is used,
+        so the asset never jumps between the recipe height and the ground.
+        None without a map.
+        """
+        if self._ground_map is None:
+            self._ground_map = False
+            spec = os.environ.get("NUREC_GRPC_GROUND_MAP", "").strip()
+            path = Path(spec) if spec else None
+            if path is not None and path.is_dir():
+                path = path / f"{self._scene_id}.npz"
+            if path is not None and path.is_file():
+                with np.load(path) as d:
+                    self._ground_map = {k: d[k] for k in ("z", "x0", "y0", "cell")}
+                self._ground_map["known"] = np.argwhere(~np.isnan(self._ground_map["z"]))
+                logger.info("nurec_grpc: inserted assets follow the ground map %s", path)
+            elif spec:
+                logger.warning("nurec_grpc: NUREC_GRPC_GROUND_MAP=%s has no map for scene "
+                               "%s; inserted assets keep their recipe height", spec,
+                               self._scene_id)
+        g = self._ground_map
+        if not g:
+            return None
+        cell = float(g["cell"])
+        i = int(math.floor((x - float(g["x0"])) / cell))
+        j = int(math.floor((y - float(g["y0"])) / cell))
+        z = g["z"]
+        if 0 <= i < z.shape[0] and 0 <= j < z.shape[1]:
+            win = z[max(i - 1, 0):i + 2, max(j - 1, 0):j + 2]
+            if not np.isnan(win).all():
+                return float(np.nanmedian(win))
+        known = g["known"]
+        if not len(known):
+            return None
+        d2 = (known[:, 0] - i) ** 2 + (known[:, 1] - j) ** 2
+        k = int(np.argmin(d2))
+        return float(z[known[k, 0], known[k, 1]])
 
     # ------------------------------------------------------------------
     # Level B: server-side asset insertion (edit_assets)
@@ -1460,6 +1521,15 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
         server (signs take a special static-separation path), while VEHICLE /
         PEDESTRIAN inserts succeed.
         """
+        # NUREC_GRPC_INSERT_CLASS forces one class for every insert, and with it the layer: on the nuPlan
+        # recons a PEDESTRIAN insert lands in dynamic_deformables, whose deformation network (trained on the
+        # scene's own walkers) moves, scales and tears an asset it never saw; VEHICLE puts it in
+        # dynamic_rigids, which renders it as authored. The class only picks the layer.
+        forced = os.environ.get("NUREC_GRPC_INSERT_CLASS", "").strip()
+        if forced:
+            sem = forced if "." in forced else self._class_literal(forced.upper())
+            if sem is not None:
+                return sem
         want = str(meta.get("nurec_semantic_class")
                    or meta.get("type") or "").strip()
         if "." in want:
@@ -1575,11 +1645,16 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
         the real track dims still reach sim state / scoring via the scenario
         track — this AABB only feeds the server.
         """
-        raw = os.environ.get("NUREC_GRPC_ASSET_DIMS_OFFSET", "1.0,1.0,0.25")
-        off = [float(v) for v in raw.split(",")]
+        off = self._dims_offset()
         extent = self._asset_box_extent(dims)
         return self._make_aabb(
             AABB, off[0] + extent[0], off[1] + extent[1], off[2] + extent[2])
+
+    @staticmethod
+    def _dims_offset() -> List[float]:
+        """The server's asset_bank ``dims_offset`` (NRE default 1.0, 1.0, 0.25)."""
+        raw = os.environ.get("NUREC_GRPC_ASSET_DIMS_OFFSET", "1.0,1.0,0.25")
+        return [float(v) for v in raw.split(",")]
 
     def _server_asset_path(self, asset_id: str, dims=None) -> str:
         """The asset the server should load: our metric PLY pre-divided by the
@@ -2035,6 +2110,12 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
                 kw = {"original_id": tid, "replacement_id": plys[tid]}
                 sz = sizes.get(tid)
                 if sz and all(v > 0.0 for v in sz):
+                    # The server scales a harvested PLY (normalised to unit
+                    # length) by (object_size - dims_offset).max(), so the
+                    # track's own box alone renders a 4.6 m car 3.6 m long,
+                    # its wheels off the road. Adding dims_offset back makes
+                    # the scale the box's real length.
+                    sz = [v + o for v, o in zip(sz, self._dims_offset())]
                     kw["object_size"] = AABB(size_x=sz[0], size_y=sz[1], size_z=sz[2])
                 actions.append(Action(**kw))
             if not actions:

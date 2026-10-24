@@ -105,8 +105,8 @@ SCENES=$(grep "Available scenes" /tmp/serve.log 2>/dev/null | tail -1)
 echo "[serve] $SCENES"
 MISSING=()
 for T in "${TODO[@]}"; do
-  for S in 1 2 3 4; do
-    echo "$SCENES" | grep -q "${T}s${S}" || MISSING+=("${T}s${S}")
+  for SID in $(python3 -c 'import json,sys; print(" ".join(c["scene_id"] for c in json.load(open(sys.argv[1]))["subclips"]))' "$BUNDLES/$T/manifest.json"); do
+    echo "$SCENES" | grep -q "$SID" || MISSING+=("$SID")
   done
 done
 if [ ${#MISSING[@]} -gt 0 ]; then

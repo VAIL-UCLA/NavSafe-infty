@@ -8,8 +8,8 @@
 # Arguments after CHECKPOINT are appended to the evaluator command line, where
 # a later flag overrides an earlier one.
 #
-# The renderer keeps four reconstructions resident (about 18 GiB, more with
-# inserted and harvested assets), so on 24 GB GPUs it gets one to itself and the
+# The renderer keeps the bundle's reconstructions resident (four 5 s models: about 18 GiB; one 20 s model:
+# less), more with inserted and harvested assets, so on 24 GB GPUs it gets one to itself and the
 # simulator and policy use another. One larger GPU can serve both.
 #
 #   NAVSAFE_DATA_ROOT    dataset root; the bundle is full_test/<TOKEN> below it
@@ -182,9 +182,10 @@ else
   echo "[serve] $SCENES"
   # A scene the renderer does not hold would be rendered without the
   # reconstruction, which looks like poor quality rather than a missing file.
-  for S in 1 2 3 4; do
-    echo "$SCENES" | grep -q "${TOKEN}s${S}" \
-      || { echo "[serve] missing scene ${TOKEN}s${S}" >&2; exit 1; }
+  # The scene ids are the manifest's subclips: four 5 s windows in the first release, one 20 s model since.
+  for SID in $(python3 -c 'import json,sys; print(" ".join(c["scene_id"] for c in json.load(open(sys.argv[1]))["subclips"]))' "$B/manifest.json"); do
+    echo "$SCENES" | grep -q "$SID" \
+      || { echo "[serve] missing scene $SID" >&2; exit 1; }
   done
   # The port is bound some minutes after the scene list is printed.
   for _ in $(seq 1 120); do
@@ -215,6 +216,11 @@ print(";".join("%s,%s/offsets/%s.json,%d,%d"
 PY
 )"
 export NUREC_GRPC_HOST=$RHOST NUREC_GRPC_PORT=$RPORT
+# Inserted assets stand on the reconstructed ground (ground/<scene_id>.npz) when the bundle has it.
+[ -d "$B/ground" ] && export NUREC_GRPC_GROUND_MAP="${NUREC_GRPC_GROUND_MAP:-$B/ground}"
+# Inserted assets go to the rigid actor layer: a PEDESTRIAN or CYCLIST insert lands in dynamic_deformables, whose
+# deformation network splits an asset it never saw (a cyclist's torso drifts off the bike).
+export NUREC_GRPC_INSERT_CLASS="${NUREC_GRPC_INSERT_CLASS:-VEHICLE}"
 # recon renders with the reconstruction's own calibrated cameras.
 export NUREC_GRPC_CAM_RIG=${NUREC_GRPC_CAM_RIG:-recon} NUREC_GRPC_TIMEOUT_S="${NUREC_GRPC_TIMEOUT_S:-600}"
 # 5d12ad55fdd858e1: window s1 refuses the recipe's PEDESTRIAN class and takes
