@@ -247,7 +247,7 @@ class SemiReactiveTraffic(TrafficManager):
         self._idm_policy_count = 0
         self._episode_step = 0
         self.pose_overrides.clear()
-        env.agent_manager.reset(env.sim.stage, timestep=0)
+        env.agent_manager.reset(timestep=0)
 
     def step(self, env: Any, dt: float) -> None:
         manager = env.agent_manager
@@ -289,9 +289,8 @@ class SemiReactiveTraffic(TrafficManager):
         # 2. Replay everyone the decision left on the log.
         skip_ego = bool(getattr(env, "_ego_override_active", False))
         # Excluded agents are skipped from the replay too: their owner
-        # publishes a pose for them every frame, and replaying their logged
-        # track underneath it would fight that owner on the USD prim.
-        manager.update_agents(stage=env.sim.stage, timestep=t,
+        # publishes a pose for them every frame.
+        manager.update_agents(timestep=t,
                               skip_ego=skip_ego,
                               skip_agents=set(self._idm) | set(self.exclude_ids))
 
@@ -303,7 +302,6 @@ class SemiReactiveTraffic(TrafficManager):
             for agent_id, veh in self._idm.items():
                 self._act(agent_id, veh, objects, dt)
                 pos, heading = veh.pose()
-                manager.set_agent_pose(env.sim.stage, agent_id, pos, heading)
                 self.pose_overrides[agent_id] = {
                     "position": np.array([pos[0], pos[1], 0.0]),
                     "heading": heading,
@@ -576,8 +574,8 @@ class SemiReactiveTraffic(TrafficManager):
         veh.s = min(veh.s + veh.v * dt, veh.route.length)
         if float(np.hypot(*(veh.route.position_at(veh.s) - veh.route.end))) \
                 < DEST_REGION_RADIUS_M:
-            # MetaDrive despawns here; holding the final pose keeps the prim
-            # count stable for the renderer.
+            # MetaDrive despawns here; holding the final pose keeps the
+            # agent count stable for the renderer.
             veh.arrived = True
             veh.v = 0.0
 

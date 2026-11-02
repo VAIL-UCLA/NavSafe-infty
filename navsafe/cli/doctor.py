@@ -1,7 +1,7 @@
 # Copyright (c) 2022-2026, The NavSafe Project Developers.
 # SPDX-License-Identifier: Apache-2.0
 
-"""``navsafe doctor`` — diagnose the NavSafe environment without booting kit.
+"""``navsafe doctor`` — diagnose the NavSafe environment.
 
 Checks the environment requirements documented in
 ``docs/installation.md`` and prints one PASS / WARN / FAIL line per check,
@@ -9,10 +9,9 @@ each with the exact remediation command. Exits non-zero iff any check FAILs.
 
 Design constraints:
 
-* **Never boots IsaacSim.** Presence/version checks read package *metadata*
+* **Imports nothing heavy.** Presence/version checks read package *metadata*
   (:func:`importlib.metadata.version`) and module specs
-  (:func:`importlib.util.find_spec`) — no ``import isaacsim``, no
-  ``SimulationApp``.
+  (:func:`importlib.util.find_spec`).
 * **Degrades gracefully.** On a machine without the heavy stack (e.g. the
   stock CI runner) the missing pieces are reported as FAIL/WARN lines with
   install directions — never a traceback.
@@ -22,22 +21,12 @@ Design constraints:
 The checks (see ``docs/installation.md`` for the rationale behind each pin):
 
 ==================  ==========================================================
-python-version      Python must be 3.12 (IsaacSim 6.0 ships cp312 wheels only)
-numpy-pin           ``numpy==2.3.1`` (IsaacSim 6.0 ABI; IsaacLab's URDF
-                    importers silently downgrade it)
-warp-pin            ``warp-lang==1.12.0`` — a newer pip warp shadows IsaacSim's
-                    bundled warp, replicator fails to load, and the ``assets``
-                    render backend silently captures BLACK frames
-websockets-pin      ``websockets==12.0`` (IsaacSim kernel / viser override)
-isaacsim            installed and version 6.x
-isaaclab            importable (source-installed, NOT in ``uv.lock``)
-uv-no-sync          ``UV_NO_SYNC=1`` guard so a plain ``uv sync``/``uv run``
-                    does not remove the source-installed IsaacLab
-eula                ``ACCEPT_EULA`` / ``OMNI_KIT_ACCEPT_EULA`` exported
+python-version      Python must be 3.12 (``requires-python`` in pyproject.toml)
+numpy-pin           ``numpy==2.3.1`` (the locked version)
 conda-ld-preload    ``LD_PRELOAD`` hint when conda is on PATH (GLIBCXX_3.4.30
-                    kit bootstrap abort)
+                    abort in native extensions)
 cuda-visibility     GPU present; ``CUDA_VISIBLE_DEVICES`` pins one device on
-                    multi-GPU hosts (policy and IsaacSim must share a device)
+                    multi-GPU hosts
 py123d-data-root    ``PY123D_DATA_ROOT``, when set, points at an existing dir
 ==================  ==========================================================
 """
@@ -56,9 +45,6 @@ _DOCS = "docs/installation.md"
 
 # Documented pins (single place; keep in sync with pyproject.toml).
 _NUMPY_PIN = "2.3.1"
-_WARP_PIN = "1.12.0"
-_WEBSOCKETS_PIN = "12.0"
-_ISAACSIM_MAJOR = "6"
 
 _PASS, _WARN, _FAIL = "PASS", "WARN", "FAIL"
 
@@ -156,7 +142,7 @@ def _check_python(p: Probe) -> CheckResult:
         return CheckResult("python-version", _PASS, f"Python {got}")
     return CheckResult(
         "python-version", _FAIL,
-        f"Python {got} — NavSafe requires 3.12 (IsaacSim 6.0 ships cp312 wheels only)",
+        f"Python {got} — NavSafe requires 3.12",
         f"uv sync --all-extras --python 3.12   (see {_DOCS})",
     )
 
@@ -172,133 +158,8 @@ def _check_numpy(p: Probe) -> CheckResult:
         return CheckResult("numpy-pin", _PASS, f"numpy {v}")
     return CheckResult(
         "numpy-pin", _FAIL,
-        f"numpy {v} != {_NUMPY_PIN} (IsaacSim 6.0 ABI; IsaacLab's nvidia-srl-usd* "
-        "importers are the usual culprit for a silent downgrade)",
-        f'uv pip install "numpy=={_NUMPY_PIN}"   (see {_DOCS} install step 3)',
-    )
-
-
-def _check_warp(p: Probe) -> CheckResult:
-    v = p.dist_version("warp-lang")
-    if v is None:
-        # Not having a pip warp at all is safe: IsaacSim uses its bundled
-        # omni.warp.core. Only a *different* pip version shadows it.
-        return CheckResult(
-            "warp-pin", _PASS,
-            "no pip warp-lang installed (IsaacSim's bundled warp is used)",
-        )
-    if v == _WARP_PIN:
-        return CheckResult("warp-pin", _PASS, f"warp-lang {v}")
-    if _version_tuple(v) > _version_tuple(_WARP_PIN):
-        detail = (
-            f"warp-lang {v} > {_WARP_PIN}: a newer pip warp SHADOWS IsaacSim's "
-            "bundled warp — replicator fails to load and the `assets` render "
-            "backend silently captures BLACK frames"
-        )
-    else:
-        detail = f"warp-lang {v} != {_WARP_PIN} (pin required by omni.replicator.core)"
-    return CheckResult(
-        "warp-pin", _FAIL, detail,
-        f'uv pip install "warp-lang=={_WARP_PIN}"   (see {_DOCS} / pyproject [tool.uv])',
-    )
-
-
-def _check_websockets(p: Probe) -> CheckResult:
-    v = p.dist_version("websockets")
-    if v is None:
-        return CheckResult(
-            "websockets-pin", _WARN,
-            "websockets is not installed (required by the IsaacSim kernel)",
-            f"uv sync --all-extras --python 3.12   (see {_DOCS})",
-        )
-    if v == _WEBSOCKETS_PIN:
-        return CheckResult("websockets-pin", _PASS, f"websockets {v}")
-    return CheckResult(
-        "websockets-pin", _FAIL,
-        f"websockets {v} != {_WEBSOCKETS_PIN} (IsaacSim kernel hard-pins 12.0; "
-        "the uv override resolves the viser conflict — something re-resolved it)",
-        f'uv pip install "websockets=={_WEBSOCKETS_PIN}"   (see pyproject '
-        "[tool.uv] override-dependencies)",
-    )
-
-
-def _check_isaacsim(p: Probe) -> CheckResult:
-    v = p.dist_version("isaacsim")
-    if v is None:
-        if p.module_present("isaacsim"):
-            return CheckResult(
-                "isaacsim", _WARN,
-                "`isaacsim` module found but no `isaacsim` distribution metadata — "
-                "cannot verify the 6.x pin",
-                f"uv sync --all-extras --python 3.12   (see {_DOCS})",
-            )
-        return CheckResult(
-            "isaacsim", _FAIL,
-            "IsaacSim is not installed (heavy stack absent — expected on a "
-            "CI/laptop checkout, required on sim machines)",
-            f"uv sync --all-extras --python 3.12   (see {_DOCS}; IsaacSim 6.0.0 "
-            "resolves from https://pypi.nvidia.com via pyproject [tool.uv])",
-        )
-    if v.split(".")[0] == _ISAACSIM_MAJOR:
-        return CheckResult("isaacsim", _PASS, f"isaacsim {v}")
-    return CheckResult(
-        "isaacsim", _FAIL,
-        f"isaacsim {v} — NavSafe pins IsaacSim 6.0.0 (pyproject [project.dependencies])",
+        f"numpy {v} != {_NUMPY_PIN} (the locked version)",
         f"uv sync --all-extras --python 3.12   (see {_DOCS})",
-    )
-
-
-def _check_isaaclab(p: Probe) -> CheckResult:
-    if p.module_present("isaaclab"):
-        return CheckResult("isaaclab", _PASS, "isaaclab importable (source install)")
-    return CheckResult(
-        "isaaclab", _FAIL,
-        "IsaacLab is not importable. It is source-installed (NOT in uv.lock) — "
-        "a plain `uv sync` / `uv run` removes it",
-        "git clone --branch v3.0.0-beta https://github.com/isaac-sim/IsaacLab.git "
-        "../IsaacLab && (cd ../IsaacLab && ./isaaclab.sh -i); then restore numpy: "
-        f'uv pip uninstall nvidia-srl-usd nvidia-srl-usd-to-urdf && uv pip install '
-        f'"numpy=={_NUMPY_PIN}"   (see {_DOCS} steps 2-3)',
-    )
-
-
-def _check_uv_no_sync(p: Probe) -> CheckResult:
-    if not p.module_present("isaaclab"):
-        # Without a source-installed IsaacLab there is nothing for a plain
-        # `uv sync` to remove; the isaaclab check above already reports it.
-        return CheckResult(
-            "uv-no-sync", _PASS, "n/a (no source-installed IsaacLab to protect)"
-        )
-    if p.env.get("UV_NO_SYNC", "").lower() in ("1", "true", "yes", "on"):
-        return CheckResult(
-            "uv-no-sync", _PASS, f"UV_NO_SYNC={p.env['UV_NO_SYNC']}"
-        )
-    return CheckResult(
-        "uv-no-sync", _WARN,
-        "UV_NO_SYNC is not set: a plain `uv sync` / `uv run` reconciles the env "
-        "to uv.lock and would REMOVE the source-installed IsaacLab",
-        "export UV_NO_SYNC=1   (or always `uv run --no-sync ...`; re-sync with "
-        f"`uv sync --inexact` — see {_DOCS} install notes)",
-    )
-
-
-def _check_eula(p: Probe) -> CheckResult:
-    # Accepting values only — ACCEPT_EULA=N is set but does NOT accept.
-    accepting = ("y", "yes", "1", "true")
-    bad = [
-        var for var in ("ACCEPT_EULA", "OMNI_KIT_ACCEPT_EULA")
-        if p.env.get(var, "").lower() not in accepting
-    ]
-    if not bad:
-        return CheckResult(
-            "eula", _PASS, "ACCEPT_EULA and OMNI_KIT_ACCEPT_EULA accept"
-        )
-    return CheckResult(
-        "eula", _WARN,
-        f"{' and '.join(bad)} not set to an accepting value — anything that "
-        "boots IsaacSim (simulation, evaluation scripts, smoke "
-        "renders) will refuse or hang",
-        "export ACCEPT_EULA=Y OMNI_KIT_ACCEPT_EULA=YES",
     )
 
 
@@ -314,7 +175,7 @@ def _check_conda_ld_preload(p: Probe) -> CheckResult:
     return CheckResult(
         "conda-ld-preload", _WARN,
         "conda is on PATH without an LD_PRELOAD guard: conda's libstdc++ can "
-        "shadow the system one and abort the kit bootstrap with "
+        "shadow the system one and abort native extensions with "
         "`GLIBCXX_3.4.30 not found`",
         "export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6   "
         f"(see {_DOCS} troubleshooting)",
@@ -334,9 +195,9 @@ def _check_cuda_visibility(p: Probe) -> CheckResult:
         return CheckResult(
             "cuda-visibility", _WARN,
             "nvidia-smi unavailable or failed (missing or unhealthy NVIDIA "
-            "driver?) — fine for light dev, but every IsaacSim-backed "
-            "workflow needs an NVIDIA GPU (driver 535+)",
-            "install/repair the NVIDIA driver (535+) on sim machines",
+            "driver?) — fine for light dev, but evaluation needs an NVIDIA "
+            "GPU (driver 535+)",
+            "install/repair the NVIDIA driver (535+) on eval machines",
         )
     if len(gpus) == 0:
         return CheckResult(
@@ -347,7 +208,7 @@ def _check_cuda_visibility(p: Probe) -> CheckResult:
         return CheckResult(
             "cuda-visibility", _WARN,
             f"{len(gpus)} GPUs visible and CUDA_VISIBLE_DEVICES unset — the "
-            "policy and IsaacSim must share a device or renders come back empty",
+            "policy runs on the first one",
             "export CUDA_VISIBLE_DEVICES=0   (pick one device)",
         )
     pinned = f", CUDA_VISIBLE_DEVICES={cvd}" if cvd is not None else ""
@@ -375,12 +236,6 @@ def _check_py123d_data_root(p: Probe) -> CheckResult:
 _CHECKS = (
     _check_python,
     _check_numpy,
-    _check_warp,
-    _check_websockets,
-    _check_isaacsim,
-    _check_isaaclab,
-    _check_uv_no_sync,
-    _check_eula,
     _check_conda_ld_preload,
     _check_cuda_visibility,
     _check_py123d_data_root,
@@ -425,8 +280,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         prog="navsafe doctor",
         description=(
-            "Diagnose the NavSafe environment: version pins, IsaacSim/IsaacLab "
-            "presence, EULA/CUDA env vars. Never boots IsaacSim."
+            "Diagnose the NavSafe environment: version pins and CUDA env vars."
         ),
     )
     parser.parse_args(argv)

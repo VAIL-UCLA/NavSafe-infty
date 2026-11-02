@@ -21,7 +21,7 @@ the LLD pass per design §13.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 
 
 @dataclass
@@ -90,21 +90,6 @@ class EnvCfg:
     from lagging behind — or being rear-ended by — faster ``log_replay``
     traffic. Set an explicit float to override (used for training/ablations)."""
 
-    execution_mode: str = "kinematic"
-    """How the ego integrates actions: ``"kinematic"`` (pure-Python bicycle
-    model — the default and the only option without IsaacLab) or
-    ``"physics"`` (PhysX rigid-body proxy integrates commanded velocities
-    via ``sim.step()``; requires IsaacLab)."""
-
-    contact_dynamics: Optional[bool] = None
-    """Physical contact response between the ego physics proxy and replay
-    agents: invisible box colliders track every replay agent and PhysX
-    resolves ego contact impulses (a replay car that hits the ego pushes it
-    instead of passing through). ``None`` (default) = auto: enabled
-    whenever ``execution_mode="physics"`` (the only mode with a PhysX ego
-    body). ``True`` = require it (construction raises ``ValueError``
-    without physics mode). ``False`` = off."""
-
     scenario_path: Optional[str] = None
     """Optional generic data path. Prefer ``py123d_data_root``; the py123d
     loader falls back to this (then ``data_directory``) when it is unset."""
@@ -153,21 +138,6 @@ class EnvCfg:
     })
     """Reward component weights for RL training."""
 
-    # ------------------------------------------------------------------
-    # Asset / rendering knobs
-    # ------------------------------------------------------------------
-
-
-    use_real_assets: bool = True
-    """Whether to spawn real USD assets for agents. When ``False`` the
-    replay manager falls back to cube proxies. Mirrors
-    ``ScenarioReplayEnvCfg.use_real_assets`` (default ``True``); read
-    directly by :meth:`NavSafeEnv._setup_scene` under IsaacSim."""
-
-
-    vehicle_assets_path: Optional[str] = None
-    """Path to vehicle USD assets directory."""
-
     #: Half-open ``[start, stop)`` py123d iteration window to materialise, or
     #: None for the whole scene. Set from a mined nuPlan scenario window so an
     #: episode loads the tagged situation instead of the entire log.
@@ -207,48 +177,8 @@ class EnvCfg:
     """Whether to spawn/control the ego vehicle from scenario data.
     Mirrors the legacy ``ScenarioReplayEnvCfg`` default (``True``)."""
 
-    spawn_pedestrians: bool = True
-    """Whether to spawn pedestrian agents from scenario data."""
-
-    spawn_cyclists: bool = True
-    """Whether to spawn cyclist agents from scenario data."""
-
-
-    spawn_agent_visuals: bool = True
-    """Whether to spawn agent *visual* prims (meshes/cubes) into the USD scene.
-    Set ``False`` when NuRec renders agent visuals; the symbolic agent states
-    (used by collision + EPDMS) are kept regardless."""
-
-    build_lanes: bool = True
-    """Whether to build lane geometry in the scene."""
-
-    build_lane_markings: bool = True
-    """Whether to build lane marking geometry."""
-
-    build_lane_boundaries: bool = True
-    """Whether to derive white lane lines from per-lane boundary polylines
-    (structured lane edges, in addition to the explicit painted road_lines)."""
-
-    build_crosswalks: bool = True
-    """Whether to build crosswalk geometry."""
-
-    build_sidewalks: bool = True
-    """Whether to build sidewalk geometry."""
-
-    build_boundaries: bool = True
-    """Whether to build road boundary geometry."""
-
-
     ego_agent_id: Optional[str] = None
     """Ego agent track ID. If None, uses sdc_id from scenario metadata."""
-
-    asset_selection_strategy: str = "hash"
-    """Asset selection strategy: ``"hash"``, ``"random"``, ``"sequential"``,
-    or ``"weighted"``."""
-
-    asset_random_seed: Optional[int] = None
-    """Random seed for reproducible asset selection."""
-
 
     camera_resolution_scale: float = 1.0
     """Multiplier applied to requested camera width/height before capture
@@ -258,35 +188,6 @@ class EnvCfg:
 
 
 
-
-    # ------------------------------------------------------------------
-    # Optional ego sensor-enable slots (legacy compat)
-    #
-    # Each is opt-in: leave ``None`` to disable, or assign a sensor cfg
-    # instance from ``navsafe.component.sensors`` to enable. Typed as
-    # ``Optional[Any]`` (not the concrete cfg classes) on purpose — those
-    # classes use IsaacLab's ``@configclass`` and would pull IsaacSim in
-    # at import time, breaking the pure-Python import-safety guarantee of
-    # this module. The runtime resolves/validates them when IsaacSim is
-    # present. Mirrors the ``ego_*`` slots on ``ScenarioReplayEnvCfg``.
-    # ------------------------------------------------------------------
-
-    ego_lidar: Optional[Any] = None
-    """Optional ego LiDAR sensor cfg. ``None`` disables; assign an
-    ``EgoLidarCfg`` from ``navsafe.component.sensors`` to enable."""
-
-    ego_imu: Optional[Any] = None
-    """Optional ego IMU sensor cfg. ``None`` disables; assign an
-    ``EgoImuCfg`` from ``navsafe.component.sensors`` to enable."""
-
-    ego_contact: Optional[Any] = None
-    """Optional ego contact sensor cfg. ``None`` disables; assign an
-    ``EgoContactSensorCfg`` from ``navsafe.component.sensors`` to enable."""
-
-
-    ego_frame_transformer: Optional[Any] = None
-    """Optional ego frame-transformer cfg. ``None`` disables; assign an
-    ``EgoFrameTransformerCfg`` from ``navsafe.component.sensors`` to enable."""
 
     # ------------------------------------------------------------------
     # Eval/replay compatibility fields (merged from the retired

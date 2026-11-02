@@ -24,7 +24,6 @@ def build_eval_env_cfg(args: Any) -> EnvCfg:
 def _build_py123d_cfg(args: Any) -> EnvCfg:
     """Build a py123d symbolic scene configuration for NuRec gRPC rendering."""
     backend: Any = getattr(args, "render_backend", "nurec_grpc")
-    nurec = backend == "nurec_grpc"
     cfg = dataclasses.replace(
         VISION_TRAIN,
         scenario_source="py123d",
@@ -44,32 +43,15 @@ def _build_py123d_cfg(args: Any) -> EnvCfg:
         py123d_max_scenes=None,
         loop_replay=False,
         dt=args.sim_dt,
-        # The env integrates the ego with PhysX only for the evaluator's
-        # "physics" execution mode; teleport/controller use the kinematic env.
-        execution_mode=(
-            "physics"
-            if getattr(args, "execution_mode", "teleport") == "physics"
-            else "kinematic"
-        ),
         spawn_ego_vehicle=True,
         required_bundles=[],
         render_backend=backend,
         nurec_work_dir=getattr(args, "nurec_work_dir", None),
-        # Suppress the procedural scene for the NuRec backend — the
-        # reconstruction is the scene.
-        build_lanes=not nurec,
-        build_lane_markings=not nurec,
-        build_lane_boundaries=not nurec,
-        spawn_agent_visuals=not nurec,
     )
     cfg.start_scenario_index = args.py123d_scene_index
     if getattr(args, "eval_seed", None) is not None:
         cfg.seed = int(args.eval_seed)
     cfg.remove_agents = getattr(args, "remove_agents", False)
-    # Tri-state pass-through (None = auto: on iff physics mode). The env's
-    # ValueError enforces the explicit-True/physics pairing loudly instead
-    # of a silent downgrade here.
-    cfg.contact_dynamics = getattr(args, "contact_dynamics", None)
     cfg.max_episode_steps = _episode_cap(args)
     return cfg
 

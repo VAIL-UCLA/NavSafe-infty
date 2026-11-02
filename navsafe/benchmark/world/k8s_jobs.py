@@ -255,7 +255,7 @@ apt-get update -qq && apt-get install -y -qq git curl python3-venv \
 
 export PATH=$HOME/.local/bin:$HOME/.cargo/bin:$PATH
 # Wheel cache on the PVC: the first eval job downloads the stack, the rest
-# reuse it. Without this every job re-fetches torch and IsaacSim.
+# reuse it. Without this every job re-fetches torch.
 export UV_CACHE_DIR={uv_cache}
 export UV_PROJECT_ENVIRONMENT=/opt/navsafe/venv
 export VIRTUAL_ENV=/opt/navsafe/venv
@@ -272,15 +272,8 @@ command -v uv >/dev/null || {{ echo "FATAL: uv unavailable"; exit 1; }}
 # /root, never into the shared repo -- concurrent eval jobs must not race on
 # a .venv inside it.
 cd {navsafe}
-if ! /opt/navsafe/venv/bin/python -c "import isaacsim, isaaclab, navsafe" 2>/dev/null; then
+if ! /opt/navsafe/venv/bin/python -c "import navsafe" 2>/dev/null; then
   uv sync --all-extras --python 3.12
-  [ -d /root/IsaacLab/.git ] || git clone --depth 1 --branch v3.0.0-beta \
-    https://github.com/isaac-sim/IsaacLab.git /root/IsaacLab
-  for ext in isaaclab isaaclab_assets isaaclab_tasks isaaclab_rl isaaclab_mimic; do
-    d=/root/IsaacLab/source/$ext
-    [ -d "$d" ] && uv pip install --python /opt/navsafe/venv/bin/python --no-deps -e "$d"
-  done
-  uv pip install --python /opt/navsafe/venv/bin/python lazy_loader einops
 fi
 /opt/navsafe/venv/bin/python -m pip install --quiet grpcio protobuf 2>&1 | tail -1 || true
 
@@ -300,7 +293,6 @@ done
 # --- rollout -------------------------------------------------------------
 mkdir -p {out}
 LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6 CUDA_VISIBLE_DEVICES=0 \
-ACCEPT_EULA=Y OMNI_KIT_ACCEPT_EULA=YES \
   /opt/navsafe/venv/bin/python \
     {navsafe}/navsafe/benchmark/world/run_eval.py \
     --seed {work}/seeds/$C \
@@ -380,7 +372,7 @@ export UV_CACHE_DIR={cfg.UV_CACHE}
 # A SHARED venv on the PVC, or build one. Building it per job costs ~40
 # minutes of wall clock with a GPU sitting idle: the uv cache is on CephFS
 # while the venv goes on the pod's own disk, so uv cannot hardlink and copies
-# all 360 packages -- torch and IsaacSim included -- once per job. The
+# every package -- torch included -- once per job. The
 # The shared copy has to be SELF-CONTAINED: a venv built by uv points its
 # `bin/python` and its `pyvenv.cfg` at a uv-managed interpreter under $HOME,
 # and $HOME is /root in the workspace pod but /home in this image, so the
@@ -389,12 +381,7 @@ export UV_CACHE_DIR={cfg.UV_CACHE}
 # a missing PVC copy costs time rather than the run.
 VENV=/opt/navsafe/venv
 if [ -x {shared_venv}/bin/python ]; then
-  # ACCEPT_EULA here as well as at the rollout: `import isaacsim` PROMPTS for
-  # the Omniverse licence, and with no tty it fails on EOF -- so the probe
-  # answered "this venv does not work" for a venv that works perfectly, and
-  # every job silently rebuilt its own.
-  if ACCEPT_EULA=Y OMNI_KIT_ACCEPT_EULA=YES {shared_venv}/bin/python \
-       -c "import isaacsim, isaaclab, navsafe" 2>/dev/null; then
+  if {shared_venv}/bin/python -c "import navsafe" 2>/dev/null; then
     VENV={shared_venv}
     echo "using the shared venv at {shared_venv}"
   fi
@@ -408,15 +395,8 @@ for i in 1 2 3 4; do
 done
 command -v uv >/dev/null || {{ echo "FATAL: uv unavailable"; exit 1; }}
 cd {navsafe}
-if ! $VENV/bin/python -c "import isaacsim, isaaclab, navsafe" 2>/dev/null; then
+if ! $VENV/bin/python -c "import navsafe" 2>/dev/null; then
   uv sync --all-extras --python 3.12
-  [ -d /root/IsaacLab/.git ] || git clone --depth 1 --branch v3.0.0-beta \
-    https://github.com/isaac-sim/IsaacLab.git /root/IsaacLab
-  for ext in isaaclab isaaclab_assets isaaclab_tasks isaaclab_rl isaaclab_mimic; do
-    d=/root/IsaacLab/source/$ext
-    [ -d "$d" ] && uv pip install --python $VENV/bin/python --no-deps -e "$d"
-  done
-  uv pip install --python $VENV/bin/python lazy_loader einops
 fi
 $VENV/bin/python -m pip install --quiet grpcio protobuf 2>&1 | tail -1 || true
 
@@ -445,7 +425,6 @@ case "$H" in *NUREC_GRPC_HANDOFF*) eval "$H";; *) echo "FATAL: no hand-off for $
 
 mkdir -p {out}
 LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6 CUDA_VISIBLE_DEVICES=0 \
-ACCEPT_EULA=Y OMNI_KIT_ACCEPT_EULA=YES \
   $VENV/bin/python {navsafe}/navsafe/cli/eval_entry.py \
     --scenario-source py123d --py123d-data-root {corpus}/${{T}}_20s/arrow \
     --py123d-scene-index 0 --nurec-work-dir {corpus} \

@@ -209,8 +209,6 @@ def main() -> int:
         "PY123D_RECENTER": "1",
         "NUPLAN_MAPS_ROOT": str(cfg.NUPLAN_MAPS_DEVKIT),
         "NUPLAN_MAP_VERSION": "nuplan-maps-v1.0",
-        "ACCEPT_EULA": "Y",
-        "OMNI_KIT_ACCEPT_EULA": "YES",
         "LD_PRELOAD": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6",
     })
     if not args.no_trace and not pure_replay:

@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 # docs/installation.md) plus the heavy-stack markers. Resolved via package
 # METADATA (never imported: importing torch/warp here would drag the heavy
 # stack into every light caller and can have side effects).
-_PINNED_DISTS = ("numpy", "warp-lang", "websockets", "torch", "isaacsim")
+_PINNED_DISTS = ("numpy", "websockets", "torch")
 
 
 def _dist_version(dist: str) -> Optional[str]:
@@ -197,7 +197,7 @@ def collect_provenance(args: Any = None,
                              "PY123D_"))},
     }
     # Resolved versions of the documented pins (numpy==2.3.1,
-    # warp-lang==1.12.0, websockets==12.0, IsaacSim 6.x) — a run whose
+    # websockets==12.0, torch) — a run whose
     # numbers disagree with another's often differs HERE, not in argv.
     record["pinned_versions"] = {d: _dist_version(d) for d in _PINNED_DISTS}
     # Backwards-compatible flat keys (pre-existing run_meta.json consumers).

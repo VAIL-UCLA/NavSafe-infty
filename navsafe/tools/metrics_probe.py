@@ -26,24 +26,7 @@ ap.add_argument("--sim-dt", type=float, default=0.1)
 ap.add_argument("--output-dir", required=True)
 ap.set_defaults(scenario_source="py123d", render_backend="nurec_grpc", execution_mode="teleport")
 
-import os
-import sys
-
-from navsafe.cli.isaac_boot import ensure_isaac_glib_preload  # noqa: E402
-
-if "--help" in sys.argv or "-h" in sys.argv:
-    ap.parse_args()
-
-ensure_isaac_glib_preload()
-
-from isaaclab.app import AppLauncher  # noqa: E402
-
-AppLauncher.add_app_launcher_args(ap)
 args = ap.parse_args()
-args.headless = True
-args.enable_cameras = True
-app_launcher = AppLauncher(args)
-simulation_app = app_launcher.app
 
 import numpy as np  # noqa: E402
 import torch  # noqa: E402

@@ -35,7 +35,6 @@ NUREC_GRPC_HANDOFF="$HANDOFF" NAVSAFE_NO_OVERLAY=1 \
 PYTHONPATH="${NAVSAFE_NRE_STUBS:+$NAVSAFE_NRE_STUBS:}$NAVSAFE_ROOT${PYTHONPATH:+:$PYTHONPATH}" \
   NUREC_GRPC_CAM_RIG="${NUREC_GRPC_CAM_RIG:-recon}" \
   PY123D_RECENTER=1 NUPLAN_MAP_VERSION="${NUPLAN_MAP_VERSION:-nuplan-maps-v1.0}" \
-  ACCEPT_EULA=Y OMNI_KIT_ACCEPT_EULA=YES \
   timeout 1800 "$PY" "$NAVSAFE_ROOT/navsafe/cli/eval_entry.py" \
     --scenario-source py123d --py123d-data-root $DR --py123d-scene-index 0 \
     --render-backend nurec_grpc --model-type drivor --checkpoint "$NAVSAFE_CHECKPOINT" \

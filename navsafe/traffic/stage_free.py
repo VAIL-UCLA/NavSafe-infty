@@ -1,29 +1,18 @@
 # Copyright (c) 2022-2026, The NavSafe Project Developers.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Reactive traffic that runs without a USD stage.
+"""Traffic whose actors are driven entirely by their own drivers.
 
-Every traffic manager shipped before this one is welded to IsaacSim:
-``LogReplayTraffic`` and ``SemiReactiveTraffic`` both call
-``env.agent_manager.update_agents(stage=env.sim.stage, ...)`` and
-``set_agent_pose(env.sim.stage, ...)``. That is fine for the IsaacLab driver
-and useless for the closed-loop evaluator, which runs the **pure-Python** step
-loop — and, in this deployment, is the only loop that runs at all:
+A manager here computes each actor's pose itself and publishes it into
+``pose_overrides`` — the dict the env merges over the logged track state before
+handing it to collision, TTC, the BEV and the renderer. Nothing else is needed
+for the metrics to see it.
 
-    isaaclab/scene/interactive_scene.py:40 imports isaaclab_contrib
-    unconditionally; isaaclab_contrib is not installed in the venv; so
-    `from isaaclab.envs import DirectRLEnv` raises, `_HAS_ISAACLAB` is False,
-    `_advance_replay_agent_prims` returns at its first line, and
-    `_traffic_manager.step()` is never called.
-
-So a reactive actor needs a manager that owns no prims. This one computes
-poses and publishes them into ``pose_overrides`` — the dict the env already
-merges over logged track state before handing it to collision, TTC, the BEV
-and the renderer. Nothing else is needed to be seen by the metrics.
-
-The split this makes explicit: **advancing an agent is a decision, posing a
-prim is a rendering detail**. `_advance_replay_agent_prims` conflated the two,
-which is why the decision half was unreachable off IsaacSim.
+``stage_free = True`` tells the env how to step it: before the agent list is
+rebuilt (so the list reflects this frame), with the list built from the logged
+tracks plus these overrides in :meth:`NavSafeEnv._update_agents`. Managers
+without the flag (``LogReplayTraffic``, ``SemiReactiveTraffic``) are stepped
+after the rebuild; see :meth:`NavSafeEnv.step`.
 """
 
 from __future__ import annotations
@@ -87,8 +76,8 @@ class StageFreeTraffic(TrafficManager):
     """Base for managers that publish ``pose_overrides`` and touch no USD.
 
     Subclasses fill :attr:`drivers`. The env recognises ``stage_free`` and
-    steps the manager from its own loop instead of from the IsaacLab-only
-    prim hook.
+    steps the manager before it rebuilds the agent list (see the module
+    docstring).
     """
 
     #: the env checks this to decide where to call `step` from

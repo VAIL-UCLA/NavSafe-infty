@@ -121,63 +121,6 @@ class EgoDynamics:
         self.trajectory.append(state)
         return state
 
-    def compute_velocity_command(self, steer: float, accel: float) -> Dict[str, Any]:
-        """Bicycle-model velocity command for one step — without integrating.
-
-        Mirrors :meth:`step` exactly (same clipping, sign conventions and
-        slip-angle beta) but returns the commanded world-frame velocities
-        instead of mutating the pose. The physics execution mode writes
-        these to the PhysX rigid body and lets the solver integrate; a
-        PhysX step of ``dt`` then reproduces :meth:`step`'s pose delta.
-
-        Returns:
-            ``{"lin_vel_w": (vx, vy, 0.0), "yaw_rate": wz, "speed": v_new}``.
-            ``lin_vel_w``/``yaw_rate`` are computed at the CURRENT speed
-            (matching step()'s integrate-then-update-speed order) — write
-            them to the body and step PhysX. ``speed`` is the NEW
-            post-accel speed: the physics caller must pass it (not the
-            PhysX-measured speed) to :meth:`apply_external_state`,
-            otherwise commanded acceleration never takes effect.
-        """
-        steer = float(np.clip(steer, -1.0, 1.0))
-        accel_input = float(np.clip(accel, -1.0, 1.0))
-        steer_angle = -steer * self.cfg.max_steer_angle
-        if accel_input >= 0:
-            accel_val = accel_input * self.cfg.max_accel
-        else:
-            accel_val = accel_input * self.cfg.max_brake
-
-        beta = atan(0.5 * tan(steer_angle))
-        new_speed = float(np.clip(self.speed + accel_val * self.cfg.dt,
-                                  0.0, self.cfg.max_speed))
-        # step() integrates position with the CURRENT speed and updates the
-        # speed afterwards — command the current speed so one PhysX step of
-        # dt reproduces step()'s pose delta exactly; report the new speed.
-        lin_vel = (
-            self.speed * cos(self.heading + beta),
-            self.speed * sin(self.heading + beta),
-            0.0,
-        )
-        yaw_rate = (2.0 * self.speed / self.cfg.wheelbase) * sin(beta)
-        return {"lin_vel_w": lin_vel, "yaw_rate": yaw_rate, "speed": new_speed}
-
-    def apply_external_state(self, x: float, y: float, heading: float,
-                             speed: float) -> Dict[str, Any]:
-        """Adopt an externally integrated pose (PhysX read-back) as ego state.
-
-        Mirrors the bookkeeping :meth:`step` performs after integrating
-        (frame counter + trajectory history) so ``env.frame`` and recorded
-        trajectories stay truthful in physics execution mode.
-        """
-        self.x = float(x)
-        self.y = float(y)
-        self.heading = float(heading)
-        self.speed = float(np.clip(speed, 0.0, self.cfg.max_speed))
-        self.frame += 1
-        state = self.get_state()
-        self.trajectory.append(state)
-        return state
-
     def get_state(self) -> Dict[str, Any]:
         """Return current ego state."""
         return {

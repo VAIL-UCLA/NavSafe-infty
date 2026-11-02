@@ -21,7 +21,7 @@ uv sync --locked --python 3.12
 source .venv/bin/activate
 ```
 
-In an existing checkout, run `git submodule update --init --recursive` before `uv sync`. The locked environment contains CUDA PyTorch, Isaac Sim, Isaac Lab and the policy dependencies. Keep `.venv` on a local disk rather than a network filesystem. The vision-language and world-model policies run in separate environments and fetch their upstream code as extra submodules; see [models that run outside the NavSafe environment](models.md#models-that-run-outside-the-navsafe-environment).
+In an existing checkout, run `git submodule update --init --recursive` before `uv sync`. The locked environment contains CUDA PyTorch and the policy dependencies. Keep `.venv` on a local disk rather than a network filesystem. The vision-language and world-model policies run in separate environments and fetch their upstream code as extra submodules; see [models that run outside the NavSafe environment](models.md#models-that-run-outside-the-navsafe-environment).
 
 Check the installation:
 
@@ -33,27 +33,15 @@ navsafe event types        # lists the event-type definitions
 
 ### System packages
 
-A desktop Linux installation already has the libraries Isaac Sim loads. A minimal container image, such as `ubuntu:22.04`, needs them installed:
+A minimal container image, such as `ubuntu:22.04`, needs these libraries installed:
 
 ```bash
-apt-get update && apt-get install -y git curl ca-certificates \
-  libglu1-mesa libxt6 libgl1 libglx0 libegl1 libglib2.0-0 libxrandr2 libxinerama1 \
-  libxcursor1 libxi6 libxext6 libxrender1 libx11-6 libxfixes3 libxdamage1 libsm6 \
-  libice6 libgomp1
+apt-get update && apt-get install -y git curl ca-certificates libgl1 libglib2.0-0 libgomp1
 ```
 
-In a container, also set `NVIDIA_DRIVER_CAPABILITIES=all` so that the graphics libraries of the driver are available.
+## Renderer
 
-## Simulator and renderer
-
-Isaac Sim starts unattended once you have accepted the NVIDIA terms and set:
-
-```bash
-export ACCEPT_EULA=Y
-export OMNI_KIT_ACCEPT_EULA=YES
-```
-
-Camera images come from an NVIDIA NuRec renderer, which runs in the NRE container image. Either:
+The simulation state is stepped in Python; no simulator is installed. Camera images come from an NVIDIA NuRec renderer, which runs in the NRE container image. Either:
 
 - install Docker with NVIDIA GPU support and get an [NGC API key](https://org.ngc.nvidia.com/setup/api-key), and let the [evaluation scripts](navsafe_eval.md#local-docker-wrapper) start the renderer; or
 - run the renderer yourself, for example as a [Kubernetes sidecar](../deploy/kubernetes/README.md), and [connect to it](navsafe_eval.md#existing-renderer).

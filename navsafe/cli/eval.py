@@ -1,8 +1,8 @@
 """``navsafe eval``: closed-loop evaluation of a policy on one scenario.
 
 A thin launcher. The evaluator itself is :mod:`navsafe.cli.eval_entry`, which
-starts Isaac Sim when it is imported, so it runs in a subprocess and ``--help``
-is answered here without loading the simulator.
+imports torch and the policy stack, so it runs in a subprocess and ``--help``
+is answered here without loading them.
 """
 
 from __future__ import annotations
@@ -24,11 +24,9 @@ docs/navsafe_eval.md; for the complete list, run
 
     python -m navsafe.cli.eval_entry --help
 
-which needs Isaac Sim to be installed.
-
 Example:
 
-  ACCEPT_EULA=Y navsafe eval \\
+  navsafe eval \\
       --py123d-data-root "$NAVSAFE_DATA_ROOT/full_test/<token>/arrow" \\
       --render-backend nurec_grpc \\
       --model-type pdm_closed --checkpoint none \\

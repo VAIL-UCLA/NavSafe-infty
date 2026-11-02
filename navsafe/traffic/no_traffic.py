@@ -23,7 +23,7 @@ class NoTrafficManager(TrafficManager):
 
     Reset is also a no-op by default.  Subclasses that want
     "spawn at frame 0 then freeze" can override :meth:`reset` to call
-    ``env.agent_manager.reset(env.sim.stage, timestep=0)`` while
+    ``env.agent_manager.reset(timestep=0)`` while
     keeping :meth:`step` empty.
     """
 

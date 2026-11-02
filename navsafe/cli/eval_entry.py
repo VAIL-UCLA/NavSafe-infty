@@ -2,11 +2,12 @@
 """Evaluate a policy on py123d Arrow data using NuRec gRPC observations."""
 
 import argparse
+import os
 from pathlib import Path
 
 # The benchmark's own recipes, resolved by path rather than by importing
-# navsafe.benchmark — argument parsing happens long before the Isaac app is
-# launched and the heavy imports below become legal.
+# navsafe.benchmark, so argument parsing stays fast and errors in the
+# arguments surface before the heavy imports below.
 _AUTOSELECT_DEFAULT_DIR = (
     Path(__file__).resolve().parents[2]
     / "navsafe" / "benchmark" / "recipes" / "benchmark"
@@ -136,14 +137,14 @@ ap.add_argument(
     "--controller",
     default="lqr",
     choices=["pure_pursuit", "pid", "lqr"],
-    help="Tracker used by the controller/physics execution modes. Default lqr.",
+    help="Tracker used by the controller execution mode. Default lqr.",
 )
 ap.add_argument(
     "--execution-mode",
     default="controller",
-    choices=["teleport", "controller", "physics"],
+    choices=["teleport", "controller"],
     help="How the ego executes plans: tracker + bicycle model (default), "
-    "arc-paced teleport along the plan, or tracker + PhysX-integrated ego. "
+    "or arc-paced teleport along the plan. "
     "The default is 'controller' because teleport places the ego AT the "
     "planned waypoints, so a trajectory the vehicle could never track is "
     "executed exactly and the tracking error it would have cost is invisible; "
@@ -151,15 +152,6 @@ ap.add_argument(
     "cadence, not dynamics) so comfort is excluded under it. Use "
     "--execution-mode teleport --controller pure_pursuit to reproduce numbers "
     "recorded against the old defaults.",
-)
-ap.add_argument(
-    "--contact-dynamics",
-    default=None,
-    action=argparse.BooleanOptionalAction,
-    help="PhysX contact response between replay agents and the "
-    "ego: a replay car that hits the ego physically pushes "
-    "it. Default: auto — on whenever --execution-mode "
-    "physics. --no-contact-dynamics disables",
 )
 ap.add_argument(
     "--terminate-on-collision",
@@ -266,27 +258,6 @@ ap.add_argument(
 )
 ap.add_argument("--render-backend", default="nurec_grpc", choices=["nurec_grpc"],
                 help="NuRec gRPC renderer (default).")
-ap.add_argument(
-    "--no-real-assets",
-    action="store_true",
-    help="Spawn replay agents as primitive cubes instead of real "
-    "USD meshes (debug: isolate the referenced-asset render path).",
-)
-ap.add_argument(
-    "--no-road",
-    action="store_true",
-    help="Skip building the road map geometry (lanes/markings/"
-    "crosswalks/sidewalks/boundaries) so only the sky + grass "
-    "background renders. Baseline isolation aid.",
-)
-ap.add_argument(
-    "--hide-ego",
-    action="store_true",
-    help="Make the ego vehicle's visual mesh invisible to the camera "
-    "(the camera is mounted on the ego, so its own body otherwise "
-    "appears as a dark wedge in the frame). Camera/physics keep "
-    "working — only the visual is hidden.",
-)
 ap.add_argument("--camera-resolution-scale", type=float, default=0.5)
 # temporal-consistency flags the adapter helper reads (unused for transfuser)
 ap.add_argument("--enable-temporal-consistency", action="store_true")
@@ -463,23 +434,6 @@ ap.add_argument(
     "the event type.",
 )
 
-# ── IsaacSim glib preload (shared helper, must run before AppLauncher) ────────
-# IsaacSim's bundled libgobject needs g_dir_unref (glib >= 2.80); on older system
-# glib the GPU/USD stack fails to boot. The shared, stdlib-only helper fixes the
-# load order (LD_PRELOAD re-exec) before AppLauncher. Lives outside ``navsafe``
-# so it imports without pulling torch.
-import os  # noqa: E402
-import sys  # noqa: E402
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from navsafe.cli.isaac_boot import ensure_isaac_glib_preload  # noqa: E402
-
-ensure_isaac_glib_preload()
-
-# IsaacSim app (with cameras) must launch before NavSafeEnv / omni imports.
-from isaaclab.app import AppLauncher
-
-AppLauncher.add_app_launcher_args(ap)
 args = ap.parse_args()
 if args.py123d_frame_window is not None:
     start, stop = args.py123d_frame_window
@@ -487,29 +441,21 @@ if args.py123d_frame_window is not None:
         ap.error("--py123d-frame-window requires py123d and 0 <= START < STOP")
 if args.log_level:
     import logging as _logging
-    # force=True: IsaacSim's bootstrap installs its own root handlers, so a
-    # plain basicConfig here would be a no-op.
     _logging.basicConfig(level=args.log_level.upper(), force=True)
-# Reject the unimplemented mode before the slow simulator start.
+# Reject the unimplemented mode before the heavy imports.
 if args.eval_mode != "closed_loop":
     ap.error(
         f"--eval-mode {args.eval_mode} was parsed but never implemented — the "
         "evaluator always runs closed-loop. For a pure log-replay (open-loop) "
         "run, use --ego-replay-frames >= --eval-frames.")
-# Likewise refuse the unwired traffic mode pre-boot (the env raises the same
-# NotImplementedError, but only after the full IsaacSim boot — through
-# navsafe batch-eval that would pay one boot per scene just to fail).
-# Message mirrors navsafe.env._bootstrap.IDM_TRAFFIC_UNWIRED_MSG, which
-# cannot be imported here without pulling navsafe in before AppLauncher.
+# Likewise refuse the unwired traffic mode before the imports (the env raises
+# the same NotImplementedError, but only once it is built). Message mirrors
+# navsafe.env._bootstrap.IDM_TRAFFIC_UNWIRED_MSG.
 if args.traffic_mode == "idm":
     ap.error(
         "--traffic-mode idm is not wired (it was a silent no-op — agents "
         "replayed the log). Use log_replay, semi_reactive (the wired "
         "reactive mode), or no_traffic.")
-args.headless = True
-args.enable_cameras = True
-app_launcher = AppLauncher(args)
-simulation_app = app_launcher.app
 
 from navsafe.env import NavSafeEnv
 from navsafe.evaluation.eval_env_config import build_eval_env_cfg
@@ -520,9 +466,9 @@ from navsafe.evaluation.unified_evaluator import (
 )
 
 if args.log_level:
-    # Re-assert after the imports: AppLauncher installs root handlers and
-    # unified_evaluator calls basicConfig at import, either of which can undo
-    # the level set above. Setting it on the package logger survives both.
+    # Re-assert after the imports: unified_evaluator calls basicConfig at
+    # import, which can undo the level set above. Setting it on the package
+    # logger survives that.
     import logging as _logging
     _logging.getLogger("navsafe").setLevel(args.log_level.upper())
 
@@ -803,18 +749,6 @@ if args.recipe:
 if _edits:
     env_cfg.scenario_edits = _edits
 
-if args.no_real_assets:
-    env_cfg.use_real_assets = False
-
-if args.no_road:
-    # Disable the whole map build (the env gate is `build_lanes or
-    # build_lane_markings`), leaving only the grass ground + sky.
-    env_cfg.build_lanes = False
-    env_cfg.build_lane_markings = False
-    env_cfg.build_crosswalks = False
-    env_cfg.build_sidewalks = False
-    env_cfg.build_boundaries = False
-
 # NuRec camera resolution follows the evaluation configuration.
 env_cfg.camera_resolution_scale = args.camera_resolution_scale
 
@@ -830,23 +764,6 @@ print(
     flush=True,
 )
 env = _env_cls(env_cfg)
-
-if args.hide_ego:
-    # Hide the ego's visual mesh (it's mounted under .../ego_vehicle/ and shows
-    # as a dark wedge from the on-board camera). The camera sensor and physics
-    # are unaffected — only the rendered geometry under ego_vehicle is hidden.
-    from pxr import UsdGeom
-
-    _stage = env.sim.stage
-    _hidden = 0
-    for _prim in _stage.Traverse():
-        _p = _prim.GetPath().pathString
-        # The ego visual lives under .../agents/vehicle_ego/ (the camera mount
-        # "ego_vehicle/chassis" is remapped to it). Hide its geometry prims.
-        if ("vehicle_ego" in _p or "/ego_vehicle/" in _p) and _prim.IsA(UsdGeom.Gprim):
-            UsdGeom.Imageable(_prim).MakeInvisible()
-            _hidden += 1
-    print(f"[navsafe-eval] hid {_hidden} ego visual meshes", flush=True)
 
 adapter = create_model_adapter_from_args(args)
 scorer = create_trajectory_scorer(args)
@@ -1063,11 +980,10 @@ if args.wandb:
     log_metrics(_run, {f"eval/{k}": v for k, v in _metrics.items()})
     finish(_run)
 
-# Release env resources BEFORE the app: the renderer's close() undoes
-# server-side edit_assets state (nurec_grpc restore_model_parameters) — skip
-# it and inserted assets leak into later evals on the warm shared server.
+# Release env resources: the renderer's close() undoes server-side
+# edit_assets state (nurec_grpc restore_model_parameters) — skip it and
+# inserted assets leak into later evals on the warm shared server.
 try:
     env.close()
 except Exception as _exc:  # noqa: BLE001 — teardown must not mask results
     print(f"[navsafe-eval] env.close() failed: {_exc}", flush=True)
-simulation_app.close()

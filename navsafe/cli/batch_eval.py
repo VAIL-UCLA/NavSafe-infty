@@ -54,7 +54,7 @@ Wrapper-level flags (consumed here, not forwarded):
                           takes precedence over --num-scenes.
   --output-dir DIR        Base output dir (default {_DEFAULT_OUTPUT_BASE});
                           each scene writes to DIR/scene_<i>/.
-  -h, --help              Print this message and exit (no IsaacSim load).
+  -h, --help              Print this message and exit.
 
 Exactly one of --num-scenes / --scene-indices is required. Every other
 argument is forwarded verbatim to each per-scene the evaluator run. To
@@ -70,7 +70,7 @@ unscorable count and excluded from any mean.
 
 Example:
 
-  ACCEPT_EULA=Y navsafe batch-eval --num-scenes 3 \\
+  navsafe batch-eval --num-scenes 3 \\
       --model-type pdm_closed --checkpoint none \\
       --py123d-data-root data --render-backend nurec_grpc \\
       --output-dir outputs/batch_eval/pdm_closed

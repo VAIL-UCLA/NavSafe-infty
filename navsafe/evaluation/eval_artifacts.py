@@ -74,11 +74,10 @@ class EvalArtifactWriter:
             return False
 
     def _save_extra_sensor_artifacts(self, frame_dir) -> None:
-        """Persist optional sensor outputs (LiDAR/IMU/contact + cam extras).
+        """Persist optional camera extras (depth / semseg / normals / ...).
 
-        Each block is gated on the corresponding env getter returning
-        non-None.  All writes are isolated so a single failure doesn't
-        suppress the others.
+        Gated on the env exposing ``get_camera_extras``. Each write is
+        isolated so a single failure doesn't suppress the others.
         """
         env = self.env
 
@@ -92,118 +91,6 @@ class EvalArtifactWriter:
                 extras = {}
             for dt, arr in extras.items():
                 self._save_camera_extra(frame_dir, dt, arr)
-
-        # ── LiDAR (point cloud) ───────────────────────────────────────
-        get_lidar = getattr(env, "get_lidar_returns", None)
-        if callable(get_lidar):
-            try:
-                hits = get_lidar()
-            except Exception as exc:
-                logger.debug("[vis] get_lidar_returns failed: %s", exc)
-                hits = None
-            if hits is not None:
-                arr = np.asarray(hits)
-                try:
-                    np.save(str(frame_dir / "lidar.npy"), arr)
-                except Exception as exc:
-                    logger.warning("[vis] lidar.npy write failed: %s", exc)
-                try:
-                    self._save_lidar_bev(frame_dir, arr)
-                except Exception as exc:
-                    logger.debug("[vis] lidar.png render failed: %s", exc)
-
-        # ── IMU ───────────────────────────────────────────────────────
-        get_imu = getattr(env, "get_imu_state", None)
-        if callable(get_imu):
-            try:
-                imu = get_imu()
-            except Exception as exc:
-                logger.debug("[vis] get_imu_state failed: %s", exc)
-                imu = None
-            if imu is not None:
-                try:
-                    EvalArtifactWriter._dump_npz(frame_dir / "imu.npz", imu)
-                except Exception as exc:
-                    logger.warning("[vis] imu.npz write failed: %s", exc)
-
-        # ── Contact sensor ────────────────────────────────────────────
-        get_contact = getattr(env, "get_contact_state", None)
-        if callable(get_contact):
-            try:
-                ct = get_contact()
-            except Exception as exc:
-                logger.debug("[vis] get_contact_state failed: %s", exc)
-                ct = None
-            if ct is not None:
-                try:
-                    EvalArtifactWriter._dump_npz(frame_dir / "contact.npz", ct)
-                except Exception as exc:
-                    logger.warning("[vis] contact.npz write failed: %s", exc)
-
-    def _save_lidar_bev(self, frame_dir, hits) -> None:
-        """Render an ego-centred BEV scatter of the LiDAR returns.
-
-        Points arrive in world frame with shape ``(num_envs, num_rays, 3)``
-        or ``(num_rays, 3)``.  We pull the first env, transform into the
-        ego frame (translate by -ego_xy, rotate by -heading so +x points
-        forward / up in the image), drop hits beyond the lidar's max
-        range, and rasterise a scatter coloured by height.  Output is
-        ``frame_dir/lidar.png`` so the visualisation auto-discovery
-        emits ``lidar.gif`` alongside ``topdown.gif`` / ``cam_f0.gif``.
-        """
-        import cv2  # local import: cv2 is already a hot-path dep above
-
-        pts = np.asarray(hits)
-        if pts.ndim == 3:
-            pts = pts[0]
-        # Drop misses: IsaacLab returns NaN/Inf when a ray doesn't hit
-        # anything inside max_distance.  Without this filter the BEV
-        # scatter ends up empty (NaN→0 cast collapses every point to
-        # the origin) and the cast emits a RuntimeWarning per frame.
-        pts = pts[np.isfinite(pts).all(axis=1)]
-        if pts.size == 0:
-            return
-
-        ego = self.env.get_ego_state()
-        ex, ey = float(ego["position"][0]), float(ego["position"][1])
-        heading = float(ego.get("heading", 0.0))
-
-        dx = pts[:, 0] - ex
-        dy = pts[:, 1] - ey
-        c, s = np.cos(-heading), np.sin(-heading)
-        fwd = c * dx - s * dy
-        left = s * dx + c * dy
-        z = pts[:, 2]
-
-        view_range = float(getattr(self.env.cfg.ego_lidar, "max_distance", 100.0))
-        size = 512
-        scale = size / (2.0 * view_range)
-        # Image axes: forward → up, left → left.  Row 0 is top of image.
-        u = (size * 0.5 - left * scale).astype(np.int32)
-        v = (size * 0.5 - fwd * scale).astype(np.int32)
-        valid = (u >= 0) & (u < size) & (v >= 0) & (v < size)
-        u, v, z = u[valid], v[valid], z[valid]
-        if u.size == 0:
-            return
-
-        img = np.zeros((size, size, 3), dtype=np.uint8)
-        z_lo, z_hi = float(np.min(z)), float(np.max(z))
-        z_norm = (z - z_lo) / max(z_hi - z_lo, 1e-3)
-        colors = cv2.applyColorMap(
-            (z_norm * 255).astype(np.uint8).reshape(-1, 1), cv2.COLORMAP_VIRIDIS
-        ).reshape(-1, 3)
-        img[v, u] = colors
-
-        # Ego marker: small filled triangle pointing up (forward).
-        cx, cy = size // 2, size // 2
-        cv2.drawMarker(img, (cx, cy), (0, 0, 255), markerType=cv2.MARKER_TILTED_CROSS,
-                       markerSize=10, thickness=2)
-        # Range rings every 25 m for visual reference.
-        for r in (25.0, 50.0, 75.0):
-            if r < view_range:
-                cv2.circle(img, (cx, cy), int(r * scale), (60, 60, 60), 1)
-
-        EvalArtifactWriter._safe_imwrite(frame_dir / "lidar.png", img)
 
     def _save_camera_extra(self, frame_dir, data_type: str, arr) -> None:
         """Persist one camera-extra annotator output to a sensible format.
@@ -257,10 +144,6 @@ class EvalArtifactWriter:
             np.save(str(frame_dir / f"{name}.npy"), a)
         except Exception as exc:
             logger.warning("[vis] camera-extra '%s' write failed: %s", data_type, exc)
-
-    @staticmethod
-    def _dump_npz(path, data: Dict) -> None:
-        np.savez(str(path), allow_pickle=True, **{k: np.asarray(v) for k, v in data.items()})
 
     def _render_frame_vis(
         self,
@@ -468,7 +351,7 @@ class EvalArtifactWriter:
                         logger.warning("[vis] render_front_cam_candidates failed at frame %d: %s",
                                        self.frame, exc)
 
-        # ── Optional ego sensors (LiDAR / IMU / contact) + cam extras ──
+        # ── Optional camera extras ──
         try:
             self._save_extra_sensor_artifacts(frame_dir)
         except Exception as exc:

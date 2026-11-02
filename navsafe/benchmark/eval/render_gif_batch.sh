@@ -71,7 +71,7 @@ echo "[render] ${#TODO[@]}/${#TOKENS[@]} token(s) to render: ${TODO[*]}"
 
 # --- 1. Use the environment installed by the public installation guide.
 PY="${NAVSAFE_PYTHON:-python}"
-"$PY" -c "import isaacsim, isaaclab, navsafe, huggingface_hub"
+"$PY" -c "import navsafe, huggingface_hub"
 cd "$NAVSAFE_ROOT"
 
 # --- 2. Fetch missing bundles without deleting the user's snapshot.
@@ -128,8 +128,8 @@ export NUREC_GRPC_HOST=localhost NUREC_GRPC_PORT=8080
 export NUREC_GRPC_CAM_RIG=${NUREC_GRPC_CAM_RIG:-recon} NUREC_GRPC_TIMEOUT_S=600
 export PY123D_RECENTER=1
 export NUPLAN_MAP_VERSION="${NUPLAN_MAP_VERSION:-nuplan-maps-v1.0}"
-export PYTHONPATH="$NAVSAFE_ROOT${ISAACLAB_PATH:+:$ISAACLAB_PATH}"
-export ACCEPT_EULA=Y OMNI_KIT_ACCEPT_EULA=YES UV_NO_SYNC=1
+export PYTHONPATH="$NAVSAFE_ROOT"
+export UV_NO_SYNC=1
 export LD_PRELOAD="${LD_PRELOAD:-/usr/lib/x86_64-linux-gnu/libstdc++.so.6}"
 export CUDA_VISIBLE_DEVICES=$GPU NAVSAFE_NUREC_GPUS=$GPU
 # Unannotated cameras (video, not the HUD/plan-ribbon debug view); topdown

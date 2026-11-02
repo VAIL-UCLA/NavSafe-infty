@@ -29,11 +29,9 @@ So the split is by ROLE: the recipe's actors run their authored policies, the
 rest is reactive background. Neither manager may touch the other's agents —
 see ``exclude_ids``.
 
-Stage note: this manager itself owns no USD prims (see
-:mod:`navsafe.traffic.stage_free`), which is what lets it run under the
-closed-loop evaluator's pure-Python loop. The delegate does touch the stage,
-and is stepped from here rather than from ``_advance_replay_agent_prims`` so
-that it is stepped exactly once.
+Stepping note: this manager is a :mod:`navsafe.traffic.stage_free` manager.
+The background delegate is stepped from here, and only from here, so that it
+is stepped exactly once per frame.
 """
 
 from __future__ import annotations
@@ -180,8 +178,8 @@ class NavSafeTraffic(StageFreeTraffic):
         """Run one background-manager call, disabling it if it cannot run.
 
         The delegate needs more of the env than this manager does — an agent
-        manager and a USD stage — so a harness that provides neither (or a
-        future env that drops them) would otherwise turn a working episode into
+        manager — so a harness that provides none (or a
+        future env that drops it) would otherwise turn a working episode into
         a crash. Degrading is the right answer; degrading QUIETLY is not, since
         traffic back on rails is the exact failure this delegation exists to
         remove. So it is said once, at WARNING, with the consequence spelled

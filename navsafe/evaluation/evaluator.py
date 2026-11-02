@@ -5,7 +5,7 @@ Each step:
     env.get_ego_state(), env.get_camera_images()   observation
     adapter.prepare_input / run_inference / parse_output   planned trajectory
     tracker.compute()                              steering and acceleration
-                                                   (controller and physics modes)
+                                                   (controller mode)
     env.step()                                     advance the simulation
     EPDMSLiveScorer.score_frame_live()             per-frame metrics
 
@@ -122,8 +122,8 @@ class EvaluationConfig:
             refused — use ego_replay_frames >= eval_frames for a pure
             log-replay run)
         controller_type: 'pid', 'pure_pursuit', or 'lqr' (tracker used by the
-            controller/physics execution modes)
-        execution_mode: 'teleport', 'controller' or 'physics'. This dataclass
+            controller execution mode)
+        execution_mode: 'teleport' or 'controller'. This dataclass
             still defaults to 'teleport' for the callers that construct it
             directly; the evaluator's CLI defaults to 'controller' + 'lqr'
             and always passes both explicitly
@@ -156,8 +156,6 @@ class EvaluationConfig:
     # "teleport": the ego is placed along the plan, paced by arc length.
     # "controller": a tracker computes steering and acceleration, and a
     # bicycle model integrates them.
-    # "physics": as "controller", but PhysX integrates the ego; the
-    # environment must be built with execution_mode="physics".
     execution_mode: str = "teleport"
     replan_rate: int = 1
     sim_dt: float = 0.1
@@ -228,7 +226,7 @@ class EvaluationConfig:
             raise ValueError(f"Invalid eval_mode: {self.eval_mode}")
         if self.controller_type not in ("pid", "pure_pursuit", "lqr"):
             raise ValueError(f"Invalid controller_type: {self.controller_type}")
-        if self.execution_mode not in ("teleport", "controller", "physics"):
+        if self.execution_mode not in ("teleport", "controller"):
             raise ValueError(f"Invalid execution_mode: {self.execution_mode}")
         if self.route_time_limit_s is not None:
             self.route_time_limit_s = float(self.route_time_limit_s)
@@ -251,9 +249,9 @@ class EvaluationConfig:
 class Evaluator:
     """Closed-loop evaluation orchestrator for UrbanSim.
 
-    Owns the simulation loop; delegates physics to ScenarioReplayEnv,
+    Owns the simulation loop; delegates the world state to NavSafeEnv,
     planning to a BaseModelAdapter, actuation to a TrajectoryTracker
-    (controller/physics execution modes) or arc-paced teleport (default),
+    (controller execution mode) or arc-paced teleport (default),
     and metric accumulation to the EPDMS live scorer
     (scorers/epdms_trajectory_scorer_fast.py::EPDMSLiveScorer — BridgeSim parity).
 
@@ -301,8 +299,8 @@ class Evaluator:
             logger.info("RGB requests omitted for the state-only policy; "
                         "NuRec setup and per-frame pose preparation remain enabled")
 
-        # Trajectory tracker for the controller and physics execution
-        # modes, created from the configuration unless the caller
+        # Trajectory tracker for the controller execution mode,
+        # created from the configuration unless the caller
         # supplied one. Unused in teleport mode.
         from navsafe.core.controllers import create_tracker
 
@@ -385,24 +383,14 @@ class Evaluator:
 
         _scenario_path = Path(scenario_path)
 
-        # Ask the env to load this scenario (env handles USD / agent rebuild)
+        # Ask the env to load this scenario
         self.env.load_scenario_from_path(_scenario_path)
 
-        # Controller/physics execution modes drive the ego through actions:
-        # the log-replay traffic must skip the ego track and the ego prim
-        # follows the integrated ego state.
+        # The controller execution mode drives the ego through actions:
+        # the log-replay traffic must skip the ego track.
         if (self.config.execution_mode != "teleport"
                 and hasattr(self.env, "set_ego_externally_driven")):
             self.env.set_ego_externally_driven(True)
-        # Physics mode requires an environment built with
-        # execution_mode="physics". Fail here instead of falling back
-        # to the bicycle model.
-        if (self.config.execution_mode == "physics"
-                and getattr(self.env, "_ego_phys_view", None) is None):
-            raise ValueError(
-                "EvaluationConfig.execution_mode='physics' but the env has no "
-                "PhysX ego proxy — build it with EnvCfg.execution_mode="
-                "'physics' (the evaluator --execution-mode physics does this).")
 
         # Reset components
         frame_dt = live_execution_dt(self.env)
@@ -1637,9 +1625,9 @@ class Evaluator:
     def _execute_controller_step(
         self, ego_state: Dict, replan_offset: int,
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Controller/physics execution: the tracker chases the cached plan
-        at its pacing speed and the env integrates the action (bicycle model,
-        or PhysX when the env is in physics execution mode). Returns
+        """Controller execution: the tracker chases the cached plan
+        at its pacing speed and the env integrates the action with the
+        bicycle model. Returns
         ``(action, remaining_plan)``.
         """
         # Only called after _run_inference_and_cache populated the cache.
@@ -1824,7 +1812,7 @@ class Evaluator:
         # across replans, handbacks, scenes, or later ordinary model outputs.
         self._cached_stop_command = validate_stop_command(parsed.get("stop_command"))
         if self._cached_stop_command is not None and self.config.execution_mode == "teleport":
-            raise ValueError("brake_to_stop requires controller or physics execution")
+            raise ValueError("brake_to_stop requires controller execution")
         traj_ego = np.asarray(parsed["trajectory"])  # (N, 2) ego frame [lateral, forward]
         parsed_speeds = parsed.get("trajectory_speeds_mps")
         if parsed_speeds is not None:

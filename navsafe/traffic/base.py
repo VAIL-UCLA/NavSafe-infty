@@ -14,8 +14,8 @@ class TrafficManager(ABC):
 
     A ``TrafficManager`` is constructed once per episode (or once and
     re-used across episodes by calling :meth:`reset`).  The env calls
-    :meth:`step` once per simulation timestep, before physics, to give
-    the manager an opportunity to update non-ego agent state.
+    :meth:`step` once per simulation timestep to give the manager an
+    opportunity to update non-ego agent state.
 
     Subclasses are free to read from and write to the env's agent state
     via the documented hooks (``env.agent_manager``, ``env.current_scenario``,
@@ -30,7 +30,7 @@ class TrafficManager(ABC):
     def step(self, env: Any, dt: float) -> None:
         """Advance non-ego agents by one simulation timestep.
 
-        Called from the env's pre-physics hook.  Implementations mutate
+        Called from :meth:`NavSafeEnv.step`.  Implementations mutate
         agent state on ``env`` (or its ``agent_manager``) in place.
 
         Args:

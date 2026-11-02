@@ -2,10 +2,10 @@
 
 This module holds the pure, env-instance-free logic that used to live at the top
 of ``navsafe_env.py``: the supported-axis table, the loader/traffic-manager
-factories, config validation, asset-bundle checks, and the IsaacLab cfg
-augmentation. None of it touches a live env, a sim, or a render backend — it is
-plain data + functions over an :class:`~navsafe.env.env_cfg.EnvCfg`, so it
-imports without IsaacSim and is trivially unit-testable in isolation.
+factories, config validation and asset-bundle checks. None of it touches a
+live env or a render backend — it is plain data + functions over an
+:class:`~navsafe.env.env_cfg.EnvCfg`, so it is trivially unit-testable in
+isolation.
 
 Extracted from ``navsafe_env.py`` to shrink that module and give the bootstrap
 concern its own narrow home. ``navsafe_env`` re-exports every public name here
@@ -110,9 +110,8 @@ def _make_traffic_manager(cfg: EnvCfg) -> Any:
     * ``"idm"``        → **refused** (:exc:`NotImplementedError`): the mode
       was a silent no-op — see :data:`IDM_TRAFFIC_UNWIRED_MSG`
 
-    Managers are imported lazily here so this module stays import-safe and
-    cheap to import; the traffic managers themselves are pure-Python and do
-    not pull in IsaacSim.
+    Managers are imported lazily here so this module stays cheap to
+    import.
 
     Args:
         cfg: The environment configuration.
@@ -167,15 +166,8 @@ def _validate_cfg(cfg: EnvCfg) -> None:
     """Validate that the EnvCfg axis combination is supported.
 
     Raises:
-        ValueError: If the combination is not in SUPPORTED_COMBINATIONS, or
-            the execution mode is unknown.
+        ValueError: If the combination is not in SUPPORTED_COMBINATIONS.
     """
-    execution_mode = getattr(cfg, "execution_mode", "kinematic")
-    if execution_mode not in ("kinematic", "physics"):
-        raise ValueError(
-            f"Unsupported EnvCfg.execution_mode: {execution_mode!r} "
-            "(expected 'kinematic' or 'physics')")
-
     # idm is recognised but unwired: refuse it HERE, before the combination
     # table, so the error explains itself instead of printing the whole
     # supported-combination list. (It used to select a manager whose step
@@ -234,65 +226,3 @@ def _check_asset_bundles(cfg: EnvCfg) -> None:
             f"Please fetch them with:\n{commands}\n\n"
             f"See `navsafe-pull-assets --help` for details."
         )
-
-
-def _augment_cfg_for_isaaclab(cfg: EnvCfg) -> None:
-    """Attach the attributes IsaacLab 3.0's ``DirectRLEnvCfg`` contract requires.
-
-    ``EnvCfg`` is intentionally a plain, IsaacSim-free dataclass (so the
-    pure-Python state path imports without IsaacSim). IsaacLab 3.0's
-    ``DirectRLEnv.__init__`` reads a richer config contract than the fork this
-    code was first written against (it now requires ``validate()``, ``seed``,
-    ``sim``, ``scene``, ``decimation``, the gym-space slots, …). Rather than
-    pull IsaacSim types into ``EnvCfg`` at class-definition time, we attach the
-    required attributes onto the instance here — only when IsaacLab is present,
-    importing its types lazily. Existing attributes are never overwritten.
-    """
-    from isaaclab.sim import SimulationCfg
-    from isaaclab.scene import InteractiveSceneCfg
-    from isaaclab.envs import ViewerCfg
-
-    def _default(name: str, value: Any) -> None:
-        if not hasattr(cfg, name):
-            setattr(cfg, name, value)
-
-    if not hasattr(cfg, "validate"):
-        cfg.validate = lambda *a, **k: None  # type: ignore[attr-defined]
-
-    render_kwargs: Dict[str, Any] = {}
-
-    # Single-env, render-capable simulation. NavSafeEnv builds its own road /
-    # agent geometry directly on ``sim.stage`` in ``_setup_scene`` (it does not
-    # register assets through InteractiveScene), so a minimal empty scene cfg
-    # is sufficient for DirectRLEnv to construct.
-    # Physics execution mode: zero gravity — the ego physics proxy is the
-    # only dynamic body (velocity-driven, no ground colliders exist), so
-    # global zero-g simply protects it during warmup substeps.
-    if getattr(cfg, "execution_mode", "kinematic") == "physics":
-        _default("sim", SimulationCfg(dt=float(getattr(cfg, "dt", 0.1)),
-                                      render_interval=1,
-                                      gravity=(0.0, 0.0, 0.0), **render_kwargs))
-    else:
-        _default("sim", SimulationCfg(dt=float(getattr(cfg, "dt", 0.1)),
-                                      render_interval=1, **render_kwargs))
-    _default("scene", InteractiveSceneCfg(num_envs=1, env_spacing=0.0))
-    _default("viewer", ViewerCfg())
-    _default("decimation", 1)
-    _default("seed", None)
-    _default("events", None)
-    _default("ui_window_class_type", None)        # skip the IsaacLab UI window
-    _default("action_noise_model", None)
-    _default("observation_noise_model", None)
-    # NavSafeEnv overrides _get_observations / _apply_action, so the exact gym
-    # spaces are not load-bearing for the render path — provide valid minimals.
-    _default("observation_space", 1)
-    _default("action_space", 2)
-    _default("state_space", 0)
-    _default("num_observations", None)
-    _default("num_actions", None)
-    _default("num_states", None)
-    _default("rerender_on_reset", False)
-    _default("num_rerenders_on_reset", 0)
-    _default("is_finite_horizon", False)
-    _default("episode_length_s", 1.0e9)           # effectively unbounded
-    _default("wait_for_textures", True)

@@ -8,15 +8,9 @@ agents along the trajectories recorded in the loaded ScenarioNet
 scenario — the canonical mode for closed-loop ego evaluation against
 a fixed traffic log.
 
-Per design.md §9, this manager is extracted from the log-replay logic
-in ``navsafe/envs/scenario_replay_env.py`` (the
-``agent_manager.update_agents(...)`` call inside
-``_pre_physics_step`` and the ``agent_manager.reset(...)`` call inside
-``_reset_idx``).  The retired ``ScenarioReplayEnv`` retains those
-calls during the migration window via deprecation shims; this class
-is the equivalent surface that the new
-:class:`~navsafe.env.navsafe_env.NavSafeEnv` will own once Phase 3
-task 3.19 (preset ``replay``) ports the env logic.
+The agent list itself is built by the env from the recorded tracks
+(:meth:`~navsafe.env.navsafe_env.NavSafeEnv._update_agents`); this
+manager advances the replay cursor of the env's ``agent_manager``.
 """
 
 from __future__ import annotations
@@ -57,16 +51,14 @@ class LogReplayTraffic(TrafficManager):
         env increments ``scenario_timestep`` each frame).
 
         Args:
-            env: A :class:`~navsafe.env.navsafe_env.NavSafeEnv` (or a
-                retired ``ScenarioReplayEnv``) exposing ``agent_manager``,
-                ``sim.stage``, and ``scenario_timestep``.
+            env: A :class:`~navsafe.env.navsafe_env.NavSafeEnv` exposing
+                ``agent_manager`` and ``scenario_timestep``.
             dt: Simulation timestep (s) — unused by log replay.
         """
         # Honor an env-level ego-override flag if the env exposes one.
         skip_ego = self.skip_ego or bool(getattr(env, "_ego_override_active", False))
 
         env.agent_manager.update_agents(
-            stage=env.sim.stage,
             timestep=env.scenario_timestep,
             skip_ego=skip_ego,
         )
@@ -74,9 +66,9 @@ class LogReplayTraffic(TrafficManager):
     def reset(self, env: Any) -> None:
         """Reset agents to the first frame of the scenario log.
 
-        Delegates to ``env.agent_manager.reset(stage, timestep=0)``.
+        Delegates to ``env.agent_manager.reset(timestep=0)``.
         """
-        env.agent_manager.reset(env.sim.stage, timestep=0)
+        env.agent_manager.reset(timestep=0)
 
 
 __all__ = ["LogReplayTraffic"]

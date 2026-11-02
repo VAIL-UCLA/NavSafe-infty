@@ -4,8 +4,8 @@
 """Trajectory-tracking controllers for controller-in-the-loop execution.
 
 Turns a policy's planned world-frame trajectory into normalized
-``(steer, accel)`` actions for :class:`~navsafe.core.ego_dynamics.EgoDynamics`
-(and, in physics execution mode, for the PhysX-integrated ego). This makes
+``(steer, accel)`` actions for :class:`~navsafe.core.ego_dynamics.EgoDynamics`.
+This makes
 the previously metadata-only ``controller_type`` evaluation config real:
 instead of teleporting the ego along the plan, a tracker chases it the way
 BridgeSim's PurePursuit + speed PID chased plans on a MetaDrive vehicle.
@@ -25,19 +25,13 @@ plan's pacing speed and full brake for a stop/gross overshoot. NavSafe adds
 proportional braking for ordinary negative error because its kinematic bicycle
 has no passive drag; otherwise a requested speed reduction never occurs.
 
-Future (Phase 3) execution modes plug in below this interface: a PhysX wheel
-articulation (``navsafe/component/robot/metadrive_vehicle.py``) or the
-``omni.physxvehicle`` vehicle SDK consume the same ``(steer, accel)`` —
-mapped to wheel/steer joint targets — so trackers stay execution-agnostic.
-
 Relationship to :class:`~navsafe.core.unified_controller.UnifiedController`:
 that earlier BridgeSim adaptation reads its speed target from the
 trajectory's column 3, which the evaluator populates with per-step
 position *gradients* (metres/step), not velocities — one reason it was
 instantiated but never called at the execution seam. These trackers
 supersede it for closed-loop execution (explicit pacing-speed input, the
-faithful PDM path followers, LQR support); ``UnifiedController`` remains
-for ``scripts/sensor_smoke_no_isaacsim.py``.
+faithful PDM path followers, LQR support).
 """
 
 from __future__ import annotations

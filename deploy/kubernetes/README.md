@@ -74,7 +74,7 @@ spec:
           command: ["bash", "-c"]
           args:
             - |
-              export NAVSAFE_DATA_ROOT=<dataset-mount> ACCEPT_EULA=Y OMNI_KIT_ACCEPT_EULA=YES
+              export NAVSAFE_DATA_ROOT=<dataset-mount>
               export NAVSAFE_RENDERER=existing NUREC_GRPC_HOST=127.0.0.1 NUREC_GRPC_PORT=8080
               export NAVSAFE_OUT_ROOT=<run-directory-on-a-volume> NAVSAFE_SHARD=<i>/<n>
               navsafe benchmark "<model-type>" "<checkpoint-path>"
@@ -92,7 +92,7 @@ spec:
           emptyDir: {medium: Memory, sizeLimit: 16Gi}
 ```
 
-The renderer takes several minutes to index all bundles before it accepts connections; the sweep waits for it. To split the sweep over several Jobs, give each a different `NAVSAFE_SHARD` and the same `NAVSAFE_OUT_ROOT`. Write the run directory to a volume, since the Pod's own storage is removed with it. The example gives each container its own GPU, which is what 24 GB GPUs require. Give the evaluator at least 4 CPU cores: Isaac Sim needs them while it starts, and with fewer an episode may not begin within the sweep's per-scenario timeout.
+The renderer takes several minutes to index all bundles before it accepts connections; the sweep waits for it. To split the sweep over several Jobs, give each a different `NAVSAFE_SHARD` and the same `NAVSAFE_OUT_ROOT`. Write the run directory to a volume, since the Pod's own storage is removed with it. The example gives each container its own GPU, which is what 24 GB GPUs require.
 
 The evaluator image can be a plain Ubuntu image that [installs NavSafe](../../docs/installation.md) when the container starts; see the system packages listed there.
 

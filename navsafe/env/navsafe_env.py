@@ -1,33 +1,24 @@
 """NavSafeEnv: the simulation environment.
 
-It holds the scenario, steps the ego (by override, bicycle model or PhysX),
+It holds the scenario, steps the ego (by override or bicycle model),
 lets a traffic manager move the other agents, detects collisions and asks the
 configured render backend for camera images. Behaviour is selected through
 ``EnvCfg``: scenario source, traffic mode, execution mode and render backend.
 
-The environment also runs without Isaac Sim, in which case the scene and
-sensor hooks do nothing and only the symbolic state is stepped.
+The state is symbolic and stepped in pure Python; the NuRec renderer draws the
+scene, so no simulator or USD stage is involved.
 """
 
 from __future__ import annotations
 
 import logging
 import os
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, cast
 
 import numpy as np
 
 if TYPE_CHECKING:
     from navsafe.scenario.scenario_description import ScenarioDescription
-
-# ── Lazy imports: IsaacLab ────────────────────────────────────────────
-try:
-    from isaaclab.envs import DirectRLEnv
-    _HAS_ISAACLAB = True
-except ImportError:  # pragma: no cover
-    DirectRLEnv = object  # type: ignore[assignment,misc]
-    _HAS_ISAACLAB = False
 
 # ── Lazy imports: gymnasium ───────────────────────────────────────────
 try:
@@ -52,7 +43,6 @@ logger = logging.getLogger(__name__)
 from navsafe.env._bootstrap import (  # noqa: E402  (after the lazy-import guards above)
     _DEFAULT_AGENT_DIMS,
     SUPPORTED_COMBINATIONS,
-    _augment_cfg_for_isaaclab,
     _check_asset_bundles,
     _format_supported_combinations,
     _get_cache_root,
@@ -61,11 +51,9 @@ from navsafe.env._bootstrap import (  # noqa: E402  (after the lazy-import guard
     _validate_cfg,
 )
 
-# Collaborator subsystems extracted from this God class (each owns its own
-# state behind a narrow interface; the env composes + delegates to them).
-from navsafe.env.sensor_rig import SensorRig  # noqa: E402
+# Camera subsystem, extracted from this class (it owns its own state behind a
+# narrow interface; the env composes + delegates to it).
 from navsafe.env.camera_manager import CameraManager  # noqa: E402
-from navsafe.env.scene_builder import SceneBuilder  # noqa: E402
 
 
 def _derive_ego_max_speed(velocity: Any, valid: Any, default: float = 15.0,
@@ -93,12 +81,33 @@ def _derive_ego_max_speed(velocity: Any, valid: Any, default: float = 15.0,
     return max(default, peak * margin)
 
 
+def _configure_seed(seed: int) -> None:
+    """Seed python, numpy and torch, and turn cuDNN autotuning on.
+
+    The same calls, in the same order, as IsaacLab's ``configure_seed(seed)``
+    (``torch_deterministic=False``), which the env's former IsaacLab base
+    class ran for a configured seed.
+    """
+    import random
+
+    import torch
+
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.deterministic = False
+
+
 # ======================================================================
 # NavSafeEnv
 # ======================================================================
 
 
-class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
+class NavSafeEnv:
     """The single configurable NavSafe environment.
 
     Replaces the seven retired env classes. Folds ego dynamics,
@@ -109,19 +118,20 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
 
     cfg: EnvCfg
 
+    #: One environment per process; step() returns ``(num_envs,)`` done flags.
+    num_envs: int = 1
+
     # Agent-id sentinel used for back-compat with the ego-only camera API.
     # Any call site that still passes ``agent_id="__ego__"`` (or omits it)
-    # continues to land on the historic ``/World/EgoCam_*`` prim path; new
-    # per-agent rigs use ``/World/AgentCam/{agent_id}/{cam_name}``. Ported
-    # verbatim from ``ScenarioReplayEnv.EGO_AGENT_ID``.
+    # renders from the ego rig. Ported verbatim from
+    # ``ScenarioReplayEnv.EGO_AGENT_ID``.
     EGO_AGENT_ID: str = "__ego__"
 
-    def __init__(self, cfg: EnvCfg, **kwargs: Any) -> None:
+    def __init__(self, cfg: EnvCfg) -> None:
         """Initialize NavSafeEnv.
 
         Args:
             cfg: Environment configuration dataclass.
-            **kwargs: Forwarded to DirectRLEnv.__init__ when available.
 
         Raises:
             ValueError: If the EnvCfg axis combination is unsupported.
@@ -180,8 +190,8 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
         # ── Ego override state (from scenario_replay_env.py) ──────────
         # Set by the evaluator (set_ego_override) to drive the ego along a
         # model-planned trajectory instead of replaying it from the log.
-        # _ego_externally_driven marks controller/physics execution modes
-        # (ego driven by actions; replay + prim posing must follow self._ego).
+        # _ego_externally_driven marks the controller execution mode
+        # (ego driven by actions; the replay must follow self._ego).
         self._ego_externally_driven: bool = False
         self._ego_override_active: bool = False
         self._ego_override_state: Optional[Dict[str, Any]] = None
@@ -191,57 +201,18 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
         # not reach this point. The managers are pure Python.
         self._traffic_manager: Any = _make_traffic_manager(cfg)
 
-        # Ego sensors (lidar, IMU, contact, cameras). Created before
-        # super().__init__(), which calls _setup_scene() and needs
-        # the rig to exist. The rig owns the sensor handles.
-        self._sensors = SensorRig(self)
-
-        # Scene construction helper, also created before
-        # super().__init__(). The scene state stays on the
-        # environment.
-        self._scene = SceneBuilder(self)
         # NB: the camera subsystem (self._cameras) is a LAZY property below, not
         # constructed here — capture only happens post-construction, and lazy
         # init keeps the camera wrappers working on minimally-built instances
         # (e.g. ``object.__new__(NavSafeEnv)`` in the renderer-wiring tests).
 
-        # ── Physics execution mode (PhysX-integrated ego) state ────────
-        # Populated by _author_ego_physics_proxy (during _setup_scene) and
-        # _init_ego_physics_view (after super().__init__).
-        self._ego_phys_proxy_path: Optional[str] = None
-        self._ego_phys_view: Any = None
-        self._ego_phys_indices: Any = None
-        # Contact-dynamics state (agent collider pool). Populated by
-        # _author_agent_contact_proxies / _init_agent_contact_view.
-        # cfg.contact_dynamics is tri-state: None = auto (on iff physics
-        # mode), True = required (raise without physics), False = off.
-        self._physical_contact: bool = False
-        self._contact_view: Any = None
-        self._contact_slots: List[Dict[str, Any]] = []
-        _cd = getattr(cfg, "contact_dynamics", None)
-        if _cd and cfg.execution_mode != "physics":
-            raise ValueError(
-                "EnvCfg.contact_dynamics=True requires execution_mode="
-                "'physics' — teleport/controller/kinematic egos have no "
-                "PhysX body to push.")
-        self._contact_dynamics: bool = (
-            cfg.execution_mode == "physics" if _cd is None else bool(_cd))
-        if cfg.execution_mode == "physics" and not _HAS_ISAACLAB:
-            raise ValueError(
-                "EnvCfg.execution_mode='physics' requires IsaacLab — the ego "
-                "is integrated by PhysX. Use 'kinematic' without the stack.")
+        # An explicit seed reseeds every RNG here, before the scenario is
+        # loaded, with cuDNN autotuning on -- what the IsaacLab base class
+        # did at this point, so seeded runs reproduce their earlier results.
+        if cfg.seed is not None:
+            _configure_seed(int(cfg.seed))
 
-        # IsaacLab 3.0's DirectRLEnv.__init__ calls self._setup_scene() *during*
-        # construction (via _init_sim), so all pure-Python state the scene build
-        # touches (e.g. self._scenario_data) must already exist — hence super()
-        # is invoked last, after the attribute initialisation above.
-        if _HAS_ISAACLAB:
-            _augment_cfg_for_isaaclab(cfg)
-            super().__init__(cfg, **kwargs)
-            if cfg.execution_mode == "physics":
-                self._init_ego_physics_view()
-                if self._contact_dynamics:
-                    self._init_agent_contact_view()
+        self._setup_scene()
 
         logger.info(
             "NavSafeEnv initialized: obs_kind=%s, traffic_mode=%s, "
@@ -343,36 +314,10 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
 
         Part of the evaluator contract: ``unified_evaluator`` /
         ``Evaluator`` read ``getattr(env, "device", "cpu")`` to build the
-        action tensor passed to :meth:`step`. On the IsaacLab path,
-        ``DirectRLEnv`` owns the device (derived from the running sim), so
-        defer to it; on the pure-Python path (no IsaacSim) there is no GPU
-        sim, so report ``"cpu"``.
+        action tensor passed to :meth:`step`, which brings it back to host.
+        The state is stepped on the CPU.
         """
-        if _HAS_ISAACLAB:
-            try:
-                return super().device  # DirectRLEnv.device → self.sim.device
-            except AttributeError:  # pragma: no cover — sim not yet built
-                return "cpu"
         return "cpu"
-
-    # Ego sensor handles, read-only views of the SensorRig.
-    @property
-    def ego_lidar_sensor(self) -> Any:
-        return self._sensors.ego_lidar_sensor
-
-    @property
-    def ego_imu_sensor(self) -> Any:
-        return self._sensors.ego_imu_sensor
-
-    @property
-    def ego_contact_sensor(self) -> Any:
-        return self._sensors.ego_contact_sensor
-
-
-    @property
-    def ego_frame_transformer_sensor(self) -> Any:
-        return self._sensors.ego_frame_transformer_sensor
-
 
     @property
     def _cameras(self) -> CameraManager:
@@ -478,9 +423,6 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
         See :meth:`CameraManager.get_camera_images_at_pose`.
         """
         return self._cameras.get_camera_images_at_pose(observer_pose, cam_configs)
-
-    # Sensor and camera capture. Simulator imports are done inside the
-    # methods so that this module imports without Isaac Sim.
 
     def get_agent_camera_images(self, cam_configs_by_agent: Dict[str, Dict[str, Dict]], capture_budget: Optional[int]=None) -> Dict[Tuple[str, str], np.ndarray]:
         return self._cameras.get_agent_camera_images(cam_configs_by_agent, capture_budget)
@@ -691,15 +633,6 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
         # which would otherwise pin the ego to an old pose.
         self.clear_ego_override()
 
-        # Physics execution mode: sync the PhysX proxy to the reset pose
-        # with zero velocity so the first sim.step integrates from rest.
-        if self._ego_phys_view is not None:
-            self._write_ego_proxy_state(
-                self._ego.x, self._ego.y, self._ego.heading)
-        self._physical_contact = False
-        if getattr(self, "_contact_view", None) is not None:
-            self._reset_agent_contact_proxies()
-
         obs = self._get_observations()
         info: Dict[str, Any] = {"frame": self.frame}
         return obs, info
@@ -727,35 +660,24 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
         steer = float(action[0]) if len(action) > 0 else 0.0
         accel = float(action[1]) if len(action) > 1 else 0.0
 
-        # Step the ego. In order of precedence: an active override
-        # sets the pose directly (teleport execution and warm-up
-        # replay); in physics mode the bicycle model issues a
-        # velocity command that PhysX integrates; otherwise the
+        # Step the ego. An active override sets the pose directly
+        # (teleport execution and warm-up replay); otherwise the
         # bicycle model integrates the state.
         if self._ego_override_active and self._ego_override_state is not None:
             self._sync_base_ego_state()
             # step_ego is skipped, so advance the ego frame counter here to
             # keep env.frame / info["frame"] truthful during overrides.
             self._ego.frame += 1
-            if self._ego_phys_view is not None:
-                ov = self._ego_override_state
-                vel = np.asarray(ov.get("velocity", np.zeros(3)), dtype=np.float64)
-                self._write_ego_proxy_state(
-                    self._ego.x, self._ego.y, self._ego.heading,
-                    lin_vel=(float(vel[0]), float(vel[1])))
             state = {"speed_kmh": self._ego.speed * 3.6}
-        elif self._ego_phys_view is not None:
-            state = self._step_ego_physics(steer, accel)
         else:
             state = self.step_ego(steer, accel)
         self._episode_step += 1
         self._common_step_counter += 1
         self._scenario_timestep += 1
 
-        # Advance reactive traffic before the agent list is rebuilt,
-        # so that the list reflects this frame. A manager that needs
-        # no USD stage is stepped here, not in the prim update, which
-        # does nothing without Isaac Lab.
+        # Advance a stage-free manager before the agent list is
+        # rebuilt, so that the list reflects this frame (see
+        # navsafe.traffic.stage_free).
         _tm = getattr(self, "_traffic_manager", None)
         # `_tm is not None` is already implied by the getattr default below
         # (None has no `stage_free`); spelled out so the checker sees it too.
@@ -765,10 +687,9 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
         # Update agents (traffic manager hook)
         self._update_agents()
 
-        # Move the agent prims to the current frame. The evaluator
-        # advances the environment through step(), so nothing else
-        # would update them.
-        self._advance_replay_agent_prims()
+        # Step the other traffic managers (log replay, semi-reactive)
+        # after the rebuild.
+        self._step_replay_traffic()
 
         # Refresh the symbolic agent list for every traffic mode
         # except log replay, where _update_agents() above already
@@ -778,11 +699,10 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
                 and self._scenario_data is not None):
             self._agent_states = self._collect_agent_states_for_renderer()
 
-        # Hand the renderer this frame's agent poses. Without this the
-        # renderer only ever hears from _pre_physics_step, which the
-        # Evaluator does not call, so nurec_grpc falls back to the poses it
-        # cached at scene load: a reactive actor would yield in the collision
-        # and TTC numbers while sailing along its spawn-time rail on camera.
+        # Hand the renderer this frame's agent poses. Without this
+        # nurec_grpc falls back to the poses it cached at scene load: a
+        # reactive actor would yield in the collision and TTC numbers while
+        # sailing along its spawn-time rail on camera.
         renderer = getattr(self, "_renderer", None)
         if renderer is not None and hasattr(renderer, "update_agents"):
             try:
@@ -792,11 +712,6 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
 
         # Check collision.
         self._collision, self._collision_at_fault = self.check_collision_at_fault()
-        # A physical contact impulse counts as a collision even if
-        # the box-overlap check missed it. Fault attribution still
-        # comes from the geometric check.
-        self._collision = self._collision or bool(
-            getattr(self, "_physical_contact", False))
         if self._collision:
             self._contact_detail = self._describe_contact()
 
@@ -838,13 +753,8 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
             "scenario_timestep": self._scenario_timestep,
             **reward_info,
         }
-        if getattr(self, "_contact_dynamics", False):
-            info["physical_contact"] = self._physical_contact
-            contact = self.get_contact_state()
-            if contact is not None:
-                info["contact_force"] = contact.get("net_forces_w")
-        # Return terminated/truncated as (num_envs,) arrays to match the
-        # DirectRLEnv contract the evaluator expects (it calls ``.any()``).
+        # Return terminated/truncated as (num_envs,) arrays; the
+        # evaluator calls ``.any()`` on them.
         n = getattr(self, "num_envs", 1) or 1
         terminated_arr = np.full((n,), bool(terminated), dtype=bool)
         truncated_arr = np.full((n,), bool(truncated), dtype=bool)
@@ -858,9 +768,8 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
         """Update agent states via traffic manager.
 
         For ``traffic_mode="log_replay"``, reads agent positions from
-        the scenario data at the current ``_scenario_timestep``. This
-        reproduces the core loop of ``ScenarioReplayEnv._pre_physics_step``
-        where agents are moved to their recorded positions each frame.
+        the scenario data at the current ``_scenario_timestep``, where
+        agents are moved to their recorded positions each frame.
 
         For other traffic modes, this is a no-op at HLD level (IDM and
         learned traffic are wired in tasks 3.20–3.24).
@@ -959,20 +868,15 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
 
             self._agent_states = states
 
-    # Isaac Sim scene lifecycle. These hooks do nothing without Isaac
-    # Lab, so the pure-Python step loop works without it.
+    # Scene lifecycle.
 
     def _ensure_scenario_loaded(self) -> None:
         """Load the scenario via the configured loader if not already set.
 
-        ``ScenarioReplayEnv`` loads its scenario in ``__init__`` (before
-        ``DirectRLEnv.__init__`` triggers ``_setup_scene``). On the
-        consolidated env, scenario loading normally happens at
-        :meth:`reset`, but the IsaacSim ``_setup_scene`` is invoked by
-        ``DirectRLEnv.__init__`` before the first ``reset()``. This helper
-        bridges that gap by dispatching the loader on demand, mirroring the
-        legacy load-then-build ordering. It is a no-op when scenario data is
-        already present or when the source has no input configured.
+        :meth:`_setup_scene` runs in ``__init__``, before the first
+        :meth:`reset`, and needs the scenario; this dispatches the loader on
+        demand. It is a no-op when scenario data is already present or when
+        the source has no input configured.
         """
         if self._scenario_data is not None:
             return
@@ -992,77 +896,18 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
         """
         return sd
 
-    def _extra_agent_manager_kwargs(self) -> Dict[str, Any]:
-        """Hook: extra kwargs for the :class:`ScenarioReplayManager` build.
-
-        Empty in the base env — subclasses use it to opt into manager
-        behaviours (e.g. ``spawn_z_from_track`` for mesh insertion into the
-        NuRec reconstruction) without changing the base construction.
-        """
-        return {}
-
-
     def _setup_scene(self) -> None:
-        """Build the USD scene: road geometry, agents, and scene dressing.
+        """Load the scenario and index its agents; install it in the renderer.
 
-        Ported from ``ScenarioReplayEnv._setup_scene``. Builds road geometry
-        via :class:`~navsafe.scene.scenario_map_builder.ScenarioMapBuilder`
-        and spawns/replays agents via
-        :class:`~navsafe.manager.scenario_replay_manager.ScenarioReplayManager`,
-        gated on the ``build_*`` / ``spawn_*`` cfg flags. All IsaacSim, USD,
-        and manager calls are reached only when IsaacLab is installed; the
-        method returns immediately otherwise so the pure-Python paths import
-        and run without IsaacSim.
+        Runs once from ``__init__``, before the first :meth:`reset`.
         """
-        if not _HAS_ISAACLAB:
-            return
-
-
-        # Lazy imports — these pull in IsaacSim/USD and must never run at
-        # module import time.
-        from navsafe.scene.scenario_map_builder import ScenarioMapBuilder
-        from navsafe.manager.scenario_replay_manager import ScenarioReplayManager
-
-        # Scenario must be available before we can build geometry/agents.
         self._ensure_scenario_loaded()
         scenario = self._scenario_data
-
-        # Resolve vehicle_assets_path relative to the working directory.
-        veh_path = self.cfg.vehicle_assets_path
-        if veh_path and not os.path.isabs(veh_path):
-            veh_path = os.path.abspath(veh_path)
-
-        # Keep the IsaacSim replay cursor in sync with the pure-Python one.
         self._scenario_timestep = 0
-
-        # Build the symbolic scene and simulation agents.
-        self._build_scenario_content(scenario, veh_path=veh_path)
-
-        # Set up the scene renderer with scenario data and env reference.
+        if scenario is None:
+            return
+        self._build_scenario_content(scenario)
         self._setup_renderer_for_scenario(scenario, force=True)
-
-        # Physics execution mode: the invisible rigid-body proxy must exist
-        # before the parent setup so PhysX parses it during sim.reset()'s
-        # warmup (force_load_physics_from_usd). Authored before the extra
-        # sensors so the contact sensor can attach to the proxy path.
-        if getattr(self.cfg, "execution_mode", "kinematic") == "physics":
-            self._author_ego_physics_proxy()
-            # The kinematic agent collider pool shares the same constraint:
-            # every PhysX actor must exist before sim.reset()'s physics
-            # parse, and the pool can never grow afterwards (actor add/
-            # remove invalidates the tensor views).
-            if self._contact_dynamics:
-                self._author_agent_contact_proxies()
-
-        # Optional ego sensors (LiDAR / IMU / contact); each is gated on the
-        # corresponding cfg slot being non-None inside _setup_extra_sensors.
-        try:
-            self._setup_extra_sensors()
-        except Exception as exc:  # pragma: no cover — Linux+IsaacSim only
-            logger.warning("[NavSafeEnv] _setup_extra_sensors failed: %s", exc)
-
-        # Call the IsaacLab parent setup.
-        super()._setup_scene()
 
     @staticmethod
     def _scenario_identity(scenario: Any) -> str:
@@ -1104,709 +949,31 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
         self._renderer_scenario_id = marker
         return True
 
-    def _build_scenario_content(
-        self,
-        scenario: Any,
-        *,
-        veh_path: Optional[str] = None,
-        reuse_ego_prims: Optional[Dict[int, str]] = None,
-    ) -> None:
-        """Build the scenario-dependent USD content: map meshes + agent prims.
+    def _build_scenario_content(self, scenario: Any) -> None:
+        """Index the scenario's agents for per-timestep state queries.
 
-        The ONE shared code path between construction (``_setup_scene``) and
-        the mid-run scenario rebuild (``_maybe_rebuild_scenario_scene``).
-        Assigns ``self.map_builder`` / ``self.agent_manager`` only after the
-        spawn succeeds, so a failed rebuild does not strand a half-populated
-        manager. Records the built scenario's id in ``_built_scenario_id``.
-
-        Args:
-            scenario: The ScenarioDescription dict to materialize.
-            veh_path: Pre-resolved ``cfg.vehicle_assets_path`` (absolute);
-                resolved here when omitted.
-            reuse_ego_prims: ``{env_id: prim_path}`` of surviving ego prims to
-                adopt instead of respawning during scene rebuilds.
+        Assigns ``self.agent_manager``, which the traffic managers and
+        :meth:`_collect_agent_states_for_renderer` read.
         """
         from navsafe.manager.scenario_replay_manager import (
             ScenarioReplayManager,
         )
-        from navsafe.scene.scenario_map_builder import ScenarioMapBuilder
 
-        if veh_path is None:
-            veh_path = self.cfg.vehicle_assets_path
-            if veh_path and not os.path.isabs(veh_path):
-                veh_path = os.path.abspath(veh_path)
-
-        # `build_map` and `spawn_agents` append
-        # `envs/env_{id}/<scope>` to the parent they are given, so
-        # the parent must be the world root, not the environment's
-        # own path.
-        world_root = self.scene.env_prim_paths[0].rsplit("/envs/", 1)[0]
-
-        map_builder = ScenarioMapBuilder(
-            scenario=cast("ScenarioDescription", scenario),
-            stage=self.sim.stage,
-        )
-        # Gate the derived lane-edge lines like the other build_* flags (the
-        # numeric look tunables stay as builder attributes).
-        map_builder.draw_lane_boundaries = self.cfg.build_lane_boundaries
-
-        if self.cfg.build_lanes or self.cfg.build_lane_markings:
-            logger.info("[NavSafeEnv] Building map...")
-            for env_id in range(self.num_envs):
-                map_elements = map_builder.build_map(
-                    env_id=env_id, parent_prim_path=world_root)
-                logger.info(
-                    "[NavSafeEnv] Environment %d: Lanes=%d, Markings=%d",
-                    env_id,
-                    len(map_elements["lanes"]),
-                    len(map_elements["lane_markings"]),
-                )
-
-        manager = ScenarioReplayManager(
+        self.agent_manager = ScenarioReplayManager(
             scenario=cast("ScenarioDescription", scenario),
             num_envs=self.num_envs,
-            device=self.device,
-            asset_selection_strategy=self.cfg.asset_selection_strategy,
-            random_seed=self.cfg.asset_random_seed,
-            use_real_assets=self.cfg.use_real_assets,
-            vehicle_assets_path=cast(str, veh_path),
-            # Upstream hook (nurec backends override this to thread extra
-            # manager kwargs); the shared build path must honor it for BOTH
-            # construction and the mid-run scenario rebuild.
-            **self._extra_agent_manager_kwargs(),
         )
 
-        # Spawn agents according to the configuration. With the NuRec
-        # backend the other agents are drawn by the reconstruction,
-        # so only the ego chassis is spawned, as the mount for the
-        # camera rig. Symbolic agent states still come from the
-        # scenario tracks.
-        ego_only = not getattr(self.cfg, "spawn_agent_visuals", True)
-        logger.info(
-            "[NavSafeEnv] Spawning agents%s...",
-            " (ego-only: NuRec renders other agents in the reconstruction)"
-            if ego_only else "",
-        )
-        skip_types: set = set()
-        if not getattr(self.cfg, "spawn_pedestrians", True):
-            skip_types.add("PEDESTRIAN")
-        if not getattr(self.cfg, "spawn_cyclists", True):
-            skip_types.add("CYCLIST")
-        agent_info = manager.spawn_agents(
-            stage=self.sim.stage,
-            parent_prim_path=world_root,
-            skip_types=skip_types,
-            ego_only=ego_only,
-            reuse_ego_prims=reuse_ego_prims,
-        )
-        logger.info(
-            "[NavSafeEnv] Spawned agents: Vehicles=%d, Pedestrians=%d, "
-            "Cyclists=%d",
-            len(agent_info["vehicles"]),
-            len(agent_info["pedestrians"]),
-            len(agent_info["cyclists"]),
-        )
+    def _step_replay_traffic(self) -> None:
+        """Step a traffic manager that is not stage-free (log replay, semi-reactive).
 
-        self.map_builder = map_builder
-        self.agent_manager = manager
-        # Identity of the scenario whose content is on the stage.
-        # reset() rebuilds the map and agents when the scenario has
-        # changed.
-        self._built_scenario_id = self._scenario_identity(scenario)
-
-
-    def _author_ego_physics_proxy(self) -> None:
-        """Author the invisible PhysX rigid body that integrates the ego.
-
-        The ego *visual* prim cannot own physics: with fabric enabled PhysX
-        writes poses to Fabric only (updateToUsd=False) while NavSafe's
-        render delegate reads transforms from USD — a physics-owned visual
-        prim would render frozen. Instead a bare, invisible Xform carries
-        the rigid body; the visual prim keeps following ``self._ego`` via
-        :meth:`_advance_replay_agent_prims`.
-
-        Dynamic (not kinematic) so PhysX integrates commanded velocities;
-        gravity disabled and zero damping so nothing but the commands moves
-        it (no ground colliders exist). Explicit mass/inertia keep PhysX
-        happy with a shapeless body and pin the COM to the prim origin.
+        A stage-free manager was already stepped in :meth:`step`; stepping it
+        again here would advance its actors twice per frame.
         """
-        from pxr import Gf, UsdGeom, UsdPhysics
-
-        import isaaclab.sim.schemas as schemas
-
-        proxy_path = "/World/envs/env_0/ego_physics_proxy"
-        stage = self.sim.stage
-        xform = UsdGeom.Xform.Define(stage, proxy_path)
-        prim = xform.GetPrim()
-        schemas.define_rigid_body_properties(
-            proxy_path,
-            schemas.RigidBodyPropertiesCfg(
-                rigid_body_enabled=True,
-                kinematic_enabled=False,
-                disable_gravity=True,
-                linear_damping=0.0,
-                angular_damping=0.0,
-            ),
-            stage=stage,
-        )
-        mass = UsdPhysics.MassAPI.Apply(prim)
-        mass.CreateMassAttr(1500.0)
-        mass.CreateDiagonalInertiaAttr(Gf.Vec3f(2000.0, 2000.0, 3000.0))
-        UsdGeom.Imageable(prim).MakeInvisible()
-        self._ego_phys_proxy_path = proxy_path
-        if self._contact_dynamics:
-            self._author_ego_contact_collider(stage, proxy_path)
-
-    @staticmethod
-    def _author_contact_box(stage: Any, parent_path: str,
-                            dims: Tuple[float, float, float]) -> None:
-        """Author an invisible unit-cube collider scaled to ``dims``.
-
-        ``purpose=guide`` keeps the box out of every render pass even if
-        visibility is toggled; the collider participates in PhysX only.
-        """
-        from pxr import Gf, UsdGeom, UsdPhysics
-
-        cube = UsdGeom.Cube.Define(stage, parent_path + "/collider")
-        cube.CreateSizeAttr(1.0)
-        UsdGeom.Xformable(cube).AddScaleOp().Set(Gf.Vec3f(*dims))
-        UsdPhysics.CollisionAPI.Apply(cube.GetPrim())
-        img = UsdGeom.Imageable(cube.GetPrim())
-        img.CreatePurposeAttr(UsdGeom.Tokens.guide)
-        img.MakeInvisible()
-
-    def _author_ego_contact_collider(self, stage: Any,
-                                     proxy_path: str) -> None:
-        """Give the ego physics proxy a box collider + contact reporting.
-
-        The box uses the same ego dims as the symbolic shapely detector, so
-        physical and symbolic contact agree. Z translation and roll/pitch
-        are locked (zero-g, no ground colliders): contacts stay planar even
-        against boxes of differing heights.
-        """
-        from pxr import PhysxSchema
-
-        import isaaclab.sim.schemas as schemas
-
-        ecfg = self._ego.cfg
-        self._author_contact_box(
-            stage, proxy_path,
-            (float(ecfg.ego_length), float(ecfg.ego_width),
-             float(ecfg.ego_height)))
-        # PhysxContactReportAPI so the optional EgoContactSensorCfg scaffold
-        # can report net forces from this body.
-        schemas.activate_contact_sensors(proxy_path, threshold=0.0,
-                                         stage=stage)
-        body = PhysxSchema.PhysxRigidBodyAPI.Apply(
-            stage.GetPrimAtPath(proxy_path))
-        body.CreateLockedPosAxisAttr(4)   # lock z translation
-        body.CreateLockedRotAxisAttr(3)   # lock roll | pitch
-
-    # Park pose for contact-proxy slots whose agent is currently invalid —
-    # far outside any scene content, spaced so parked boxes never touch.
-    _CONTACT_PARK_XY = (1.0e4, 1.0e4)
-
-    # Agent contact bodies are dynamic, very heavy and velocity-driven
-    # each frame. Kinematic targets are not supported by the tensor
-    # backend in use. With this mass ratio the ego cannot deflect an
-    # agent, and the per-frame velocity command corrects any drift.
-    _CONTACT_AGENT_MASS = 1.0e6
-
-    def _author_agent_contact_proxies(self) -> None:
-        """Author the agent collider pool: one slot per non-ego track.
-
-        Slots are invisible box colliders on heavy velocity-driven rigid
-        bodies — they push the ego proxy but are (effectively) never pushed
-        themselves, keeping replay agents log-authoritative. Agent-agent
-        contacts are filtered out via a self-filtered collision group:
-        replay traffic frequently overlaps slightly, and unfiltered dynamic
-        boxes would jitter apart. The pool is created once, before
-        ``super()._setup_scene()`` (PhysX parses USD during ``sim.reset()``)
-        and is never grown/shrunk afterwards: adding or removing PhysX
-        actors invalidates every omni.physics.tensors view (including
-        ``_ego_phys_view``). Scenario switches rebind slots instead
-        (:meth:`_rebind_agent_contact_proxies`).
-        """
-        from pxr import Gf, PhysxSchema, UsdGeom, UsdPhysics
-
-        import isaaclab.sim.schemas as schemas
-
-        stage = self.sim.stage
-        scope_path = "/World/envs/env_0/contact_proxies"
-        UsdGeom.Scope.Define(stage, scope_path)
-        self._contact_slots = []
-        ego_id = self.agent_manager.ego_agent_id
-        slot = 0
-        for agent_id in self.agent_manager.tracks:
-            if agent_id == ego_id:
-                continue
-            init = self.agent_manager.get_initial_state(agent_id)
-            if init is None:
-                continue
-            dims = (float(init.get("length", 4.5) or 4.5),
-                    float(init.get("width", 1.8) or 1.8),
-                    float(init.get("height", 1.5) or 1.5))
-            path = f"{scope_path}/slot_{slot:04d}"
-            xform = UsdGeom.Xform.Define(stage, path)
-            prim = xform.GetPrim()
-            UsdGeom.Xformable(xform).AddTranslateOp().Set(
-                Gf.Vec3d(self._CONTACT_PARK_XY[0] + 20.0 * slot,
-                         self._CONTACT_PARK_XY[1], 0.0))
-            schemas.define_rigid_body_properties(
-                path,
-                schemas.RigidBodyPropertiesCfg(
-                    rigid_body_enabled=True,
-                    kinematic_enabled=False,
-                    disable_gravity=True,
-                    linear_damping=0.0,
-                    angular_damping=0.0,
-                ),
-                stage=stage,
-            )
-            mass = UsdPhysics.MassAPI.Apply(prim)
-            mass.CreateMassAttr(self._CONTACT_AGENT_MASS)
-            mass.CreateDiagonalInertiaAttr(
-                Gf.Vec3f(1.0e7, 1.0e7, 1.0e7))
-            body = PhysxSchema.PhysxRigidBodyAPI.Apply(prim)
-            body.CreateLockedPosAxisAttr(4)   # lock z translation
-            body.CreateLockedRotAxisAttr(3)   # lock roll | pitch
-            self._author_contact_box(stage, path, dims)
-            img = UsdGeom.Imageable(prim)
-            img.CreatePurposeAttr(UsdGeom.Tokens.guide)
-            img.MakeInvisible()
-            self._contact_slots.append({
-                "path": path, "agent_id": agent_id, "dims": dims,
-                "parked": True,
-            })
-            slot += 1
-        # Self-filtered collision group: agent boxes never collide with each
-        # other, only with the (non-member) ego proxy.
-        group = UsdPhysics.CollisionGroup.Define(
-            stage, f"{scope_path}/agents_group")
-        group.CreateFilteredGroupsRel().AddTarget(group.GetPath())
-        group.GetCollidersCollectionAPI().CreateIncludesRel().AddTarget(
-            scope_path)
-        self._disable_foreign_colliders()
-        logger.info("[NavSafeEnv] contact_dynamics: %d agent collider "
-                    "slots authored", len(self._contact_slots))
-
-    def _disable_foreign_colliders(self) -> None:
-        """``collisionEnabled=False`` on every non-contact-proxy collider.
-
-        The agent visual USDs and the road-surface mesh ship
-        ``CollisionAPI``-tagged geometry. Pre-feature those static colliders
-        were inert — the only dynamic body (the shapeless ego proxy) could
-        not touch anything — but with contact colliders live they jam the
-        simulation: a contact box at z=0 permanently penetrates the
-        road-surface mesh and friction freezes it within a frame (measured).
-        Colliding with visual meshes is also wrong by design: contact
-        semantics belong to the box proxies (track dims), not to whatever
-        geometry a renderable asset happens to ship. Re-run after every
-        scenario rebuild (respawned visuals bring fresh colliders).
-        """
-        from pxr import UsdPhysics
-
-        stage = self.sim.stage
-        n = 0
-        for prim in stage.Traverse():
-            if not prim.HasAPI(UsdPhysics.CollisionAPI):
-                continue
-            path = str(prim.GetPath())
-            if ("/contact_proxies/" in path
-                    or "/ego_physics_proxy" in path):
-                continue
-            try:
-                UsdPhysics.CollisionAPI(prim).CreateCollisionEnabledAttr(
-                    False)
-                n += 1
-            except Exception:  # pragma: no cover — instance proxies etc.
-                logger.info("[NavSafeEnv] could not disable collider on "
-                            "%s", path)
-        if n:
-            logger.info("[NavSafeEnv] contact_dynamics: disabled %d "
-                        "foreign colliders (road/visual-mesh geometry)", n)
-
-    def _init_agent_contact_view(self) -> None:
-        """Create the batched PhysX tensor view over the collider pool."""
-        import warp as wp
-
-        if not self._contact_slots:
-            logger.warning("[NavSafeEnv] contact_dynamics: no non-ego "
-                           "tracks — contact pool empty")
-            return
-        view = self.sim.physics_sim_view.create_rigid_body_view(
-            "/World/envs/env_0/contact_proxies/slot_*")
-        n = len(self._contact_slots)
-        if view.count != n:
-            raise RuntimeError(
-                f"contact proxy view count {view.count} != authored slots "
-                f"{n} — stage/physics parse mismatch")
-        # Map view row -> slot via prim paths when the view exposes them
-        # (view order is not guaranteed to match authoring order). Fallback:
-        # slot paths are zero-padded, so lexicographic == authoring order.
-        paths = list(getattr(view, "prim_paths", None) or [])
-        if paths:
-            by_path = {s["path"]: s for s in self._contact_slots}
-            self._contact_slots = [by_path[p] for p in paths]
-        self._contact_view = view
-        self._contact_tf_np = np.zeros((n, 7), dtype=np.float32)
-        self._contact_tf_buf = wp.zeros((n, 7), dtype=wp.float32,
-                                        device=self.sim.device)
-        self._contact_vel_np = np.zeros((n, 6), dtype=np.float32)
-        self._contact_vel_buf = wp.zeros((n, 6), dtype=wp.float32,
-                                         device=self.sim.device)
-        self._contact_all_indices = wp.array(
-            list(range(n)), dtype=wp.uint32, device=self.sim.device)
-        self._reset_agent_contact_proxies()
-
-    def _slot_pose_row(self, i: int, slot: Dict[str, Any],
-                       state: Optional[Dict[str, Any]]) -> None:
-        """Fill staging row ``i`` with the slot's pose (park pose if None)."""
-        if state is None:
-            self._contact_tf_np[i] = (
-                self._CONTACT_PARK_XY[0] + 20.0 * i,
-                self._CONTACT_PARK_XY[1], 0.0, 0.0, 0.0, 0.0, 1.0)
-            return
-        half = 0.5 * float(state["heading"])
-        pos = state["position"]
-        self._contact_tf_np[i] = (float(pos[0]), float(pos[1]), 0.0,
-                                  0.0, 0.0, np.sin(half), np.cos(half))
-
-    def _write_agent_contact_targets(self, timestep: int) -> None:
-        """Velocity-drive every collider box toward its next replay pose.
-
-        Each active slot gets ``(target - current)/dt`` as a velocity
-        command for the coming PhysX substep, so contacts carry the replay
-        velocity — a 10 m/s car imparts a 10 m/s-scale impulse instead of a
-        zero-velocity overlap resolution — and any post-contact drift
-        self-corrects on the next frame. Park/unpark transitions teleport
-        instead: a velocity command to/from the park pose would drag the
-        box across the scene at enormous speed.
-        """
-        mgr = self.agent_manager
-        timestep = min(max(timestep, 0),
-                       max(0, int(mgr.scenario_length) - 1))
-        dt = float(self.cfg.dt) or 0.1
-        current = self._contact_view.get_transforms().numpy()
-        teleport_rows = []
-        self._contact_vel_np[:] = 0.0
-        for i, slot in enumerate(self._contact_slots):
-            state = mgr.get_agent_state(slot["agent_id"], timestep)
-            valid = bool(state is not None and state.get("valid", True))
-            if not valid:
-                if not slot["parked"]:
-                    slot["parked"] = True
-                    self._slot_pose_row(i, slot, None)
-                    teleport_rows.append(i)
-                continue
-            self._slot_pose_row(i, slot, state)
-            if slot["parked"]:
-                slot["parked"] = False
-                teleport_rows.append(i)
-                continue
-            tgt = self._contact_tf_np[i]
-            cur = current[i]
-            self._contact_vel_np[i, 0] = (tgt[0] - cur[0]) / dt
-            self._contact_vel_np[i, 1] = (tgt[1] - cur[1]) / dt
-            # Yaw rate from the shortest quaternion yaw difference (both
-            # quats are pure-yaw by construction / planar locks).
-            cur_yaw = 2.0 * np.arctan2(cur[5], cur[6])
-            tgt_yaw = 2.0 * np.arctan2(tgt[5], tgt[6])
-            dyaw = np.arctan2(np.sin(tgt_yaw - cur_yaw),
-                              np.cos(tgt_yaw - cur_yaw))
-            self._contact_vel_np[i, 5] = dyaw / dt
-        if teleport_rows:
-            self._teleport_contact_rows(teleport_rows)
-        self._contact_vel_buf.assign(self._contact_vel_np)
-        self._contact_view.set_velocities(
-            self._contact_vel_buf, self._contact_all_indices)
-
-    def _teleport_contact_rows(self, rows: List[int]) -> None:
-        """Velocity-free teleport of the given slot rows (park/unpark)."""
-        import warp as wp
-
-        self._contact_tf_buf.assign(self._contact_tf_np)
-        idx = wp.array(rows, dtype=wp.uint32, device=self.sim.device)
-        self._contact_view.set_transforms(self._contact_tf_buf, idx)
-        self._contact_vel_np[rows] = 0.0
-        self._contact_vel_buf.assign(self._contact_vel_np)
-        self._contact_view.set_velocities(self._contact_vel_buf, idx)
-
-    def _reset_agent_contact_proxies(self) -> None:
-        """Teleport every slot to its timestep-0 pose (or park) at reset."""
-        if self._contact_view is None:
-            return
-        mgr = self.agent_manager
-        for i, slot in enumerate(self._contact_slots):
-            state = mgr.get_agent_state(slot["agent_id"], 0)
-            valid = bool(state is not None and state.get("valid", True))
-            slot["parked"] = not valid
-            self._slot_pose_row(i, slot, state if valid else None)
-        self._teleport_contact_rows(list(range(len(self._contact_slots))))
-        self._physical_contact = False
-
-    def _rebind_agent_contact_proxies(self) -> None:
-        """Rebind the fixed slot pool to a new scenario's non-ego tracks.
-
-        Slots are matched to tracks greedily by box length (both sorted) —
-        collider dims across vehicle tracks differ by decimeters, an
-        acceptable approximation. The cube's scale op is updated best-effort
-        (omni.physx resyncs collider geometry on shape-attribute edits).
-        Surplus tracks get no collider (warning); surplus slots stay parked.
-        No PhysX actors are created or destroyed, so every tensor view stays
-        valid.
-        """
-        if self._contact_view is None:
-            return
-        from pxr import Gf, UsdGeom
-
-        stage = self.sim.stage
-        mgr = self.agent_manager
-        ego_id = mgr.ego_agent_id
-        tracks = []
-        for agent_id in mgr.tracks:
-            if agent_id == ego_id:
-                continue
-            init = mgr.get_initial_state(agent_id)
-            if init is None:
-                continue
-            tracks.append((agent_id,
-                           (float(init.get("length", 4.5) or 4.5),
-                            float(init.get("width", 1.8) or 1.8),
-                            float(init.get("height", 1.5) or 1.5))))
-        if len(tracks) > len(self._contact_slots):
-            logger.warning(
-                "[NavSafeEnv] contact_dynamics: new scenario has %d "
-                "non-ego tracks but only %d collider slots — %d agents "
-                "will have no physical collider",
-                len(tracks), len(self._contact_slots),
-                len(tracks) - len(self._contact_slots))
-        tracks.sort(key=lambda t: t[1][0])
-        slots = sorted(self._contact_slots, key=lambda s: s["dims"][0])
-        for slot, (agent_id, dims) in zip(slots, tracks):
-            slot["agent_id"] = agent_id
-            slot["parked"] = True
-            if dims != slot["dims"]:
-                slot["dims"] = dims
-                try:
-                    cube = UsdGeom.Cube(
-                        stage.GetPrimAtPath(slot["path"] + "/collider"))
-                    ops = UsdGeom.Xformable(cube).GetOrderedXformOps()
-                    if ops:
-                        ops[0].Set(Gf.Vec3f(*dims))
-                except Exception:  # pragma: no cover — best-effort rescale
-                    logger.info("[NavSafeEnv] contact collider rescale "
-                                "failed for %s", slot["path"])
-        for slot in slots[len(tracks):]:
-            slot["agent_id"] = ""
-            slot["parked"] = True
-        # The rebuild respawned agent visuals (and the map) with fresh
-        # CollisionAPI geometry — neutralize it again.
-        self._disable_foreign_colliders()
-        self._reset_agent_contact_proxies()
-
-    def _init_ego_physics_view(self) -> None:
-        """Create the PhysX tensor view over the ego proxy (post sim.reset()).
-
-        Also pauses play-driven physics stepping: camera captures pump raw
-        Kit app updates, and with ``/app/player/playSimulations`` enabled
-        each capture tick would step PhysX again — double-integrating the
-        ego. IsaacLab's ``sim.step()`` calls ``physx_sim.simulate()``
-        directly, so manual stepping is unaffected by the pause.
-        """
-        import warp as wp
-
-        assert self._ego_phys_proxy_path is not None
-        self._ego_phys_view = self.sim.physics_sim_view.create_rigid_body_view(
-            self._ego_phys_proxy_path)
-        self._ego_phys_indices = wp.array(
-            [0], dtype=wp.uint32, device=self.sim.device)
-        # Preallocated staging buffers: the write helpers run on the 10 Hz
-        # step path — reuse pinned numpy + device arrays instead of
-        # allocating a fresh wp.array (GPU alloc + launch) every frame.
-        self._ego_phys_tf_np = np.zeros((1, 7), dtype=np.float32)
-        self._ego_phys_vel_np = np.zeros((1, 6), dtype=np.float32)
-        self._ego_phys_tf_buf = wp.zeros((1, 7), dtype=wp.float32,
-                                         device=self.sim.device)
-        self._ego_phys_vel_buf = wp.zeros((1, 6), dtype=wp.float32,
-                                          device=self.sim.device)
-        self.set_ego_externally_driven(True)
-        self.sim.set_setting("/app/player/playSimulations", False)
-
-    def _step_ego_physics(self, steer: float, accel: float) -> Dict[str, Any]:
-        """Physics-mode ego step: command velocities, integrate, read back.
-
-        The bicycle model turns the action into a velocity command, PhysX
-        integrates it for one substep of ``cfg.dt``, and the resulting pose
-        is adopted as the ego state. ``cmd["speed"]`` (post-accel), NOT the
-        PhysX-measured speed, is applied — the command was issued at the
-        current speed by design (see ``compute_velocity_command``).
-
-        With ``contact_dynamics``: the agent collider pool is targeted at
-        the next replay frame before the substep, and a contact is detected
-        by the residual between commanded and PhysX-measured velocity (in
-        zero-g with zero damping they match exactly unless a contact
-        impulse intervened). On contact frames the ego adopts the measured
-        longitudinal speed so a shove persists into subsequent motion;
-        lateral/backward components survive in the pose only (the bicycle
-        model carries no such state).
-        """
-        cmd = self._ego.compute_velocity_command(steer, accel)
-        if self._contact_view is not None:
-            self._write_agent_contact_targets(self._scenario_timestep + 1)
-        self._write_ego_proxy_velocity(cmd)
-        self.sim.step(render=False)  # one PhysX substep of cfg.dt
-        x, y, yaw = self._read_ego_proxy_pose()
-        self._physical_contact = False
-        speed = cmd["speed"]
-        if self._contact_view is not None:
-            v = self._ego_phys_view.get_velocities().numpy()[0]
-            residual = float(np.hypot(v[0] - cmd["lin_vel_w"][0],
-                                      v[1] - cmd["lin_vel_w"][1]))
-            if residual > 0.05:
-                self._physical_contact = True
-                speed = max(0.0, float(v[0]) * np.cos(yaw)
-                            + float(v[1]) * np.sin(yaw))
-        return self._ego.apply_external_state(x, y, yaw, speed)
-
-    def _write_ego_proxy_state(self, x: float, y: float, heading: float,
-                               lin_vel: Tuple[float, float] = (0.0, 0.0),
-                               yaw_rate: float = 0.0) -> None:
-        """Teleport the physics proxy (pure-yaw quaternion) + set velocities."""
-        half = 0.5 * float(heading)
-        self._ego_phys_tf_np[0] = (x, y, 0.0, 0.0, 0.0, np.sin(half), np.cos(half))
-        self._ego_phys_tf_buf.assign(self._ego_phys_tf_np)  # host→device copy
-        self._ego_phys_view.set_transforms(
-            self._ego_phys_tf_buf, self._ego_phys_indices)
-        self._ego_phys_vel_np[0] = (lin_vel[0], lin_vel[1], 0.0, 0.0, 0.0, yaw_rate)
-        self._ego_phys_vel_buf.assign(self._ego_phys_vel_np)
-        self._ego_phys_view.set_velocities(
-            self._ego_phys_vel_buf, self._ego_phys_indices)
-
-    def _write_ego_proxy_velocity(self, cmd: Dict[str, Any]) -> None:
-        """Write a bicycle-model velocity command for PhysX to integrate."""
-        self._ego_phys_vel_np[0] = (cmd["lin_vel_w"][0], cmd["lin_vel_w"][1],
-                                    0.0, 0.0, 0.0, cmd["yaw_rate"])
-        self._ego_phys_vel_buf.assign(self._ego_phys_vel_np)
-        self._ego_phys_view.set_velocities(
-            self._ego_phys_vel_buf, self._ego_phys_indices)
-
-    def _read_ego_proxy_pose(self) -> Tuple[float, float, float]:
-        """Read back the PhysX-integrated proxy pose as (x, y, yaw)."""
-        tf = self._ego_phys_view.get_transforms().numpy()[0]
-        qx, qy, qz, qw = (float(v) for v in tf[3:7])
-        yaw = float(np.arctan2(2.0 * (qw * qz + qx * qy),
-                               1.0 - 2.0 * (qy * qy + qz * qz)))
-        return float(tf[0]), float(tf[1]), yaw
-
-    def _pre_physics_step(self, actions: Any) -> None:
-        """Update agent states before the physics step.
-
-        Ported from ``ScenarioReplayEnv._pre_physics_step``: delegates the
-        non-ego agent update to the configured traffic manager (selected on
-        ``cfg.traffic_mode``), then syncs the collected agent states to the
-        renderer and to the pure-Python collision state, and applies the ego
-        override (model-planned trajectory) when active. No-op without
-        IsaacLab.
-
-        The traffic manager replaces the previous inline
-        agent-state and reactive-traffic update block:
-
-        * ``LogReplayTraffic`` advances every agent to the current replay
-          timestep (skipping the ego when an override is active).
-        * ``SemiReactiveTraffic`` updates admitted reactive followers.
-        * ``NoTrafficManager`` is a no-op (agents stay at their spawn pose).
-
-        Args:
-            actions: Actions tensor (unused in pure replay mode).
-        """
-        if not _HAS_ISAACLAB:
-            return
         if getattr(self, "agent_manager", None) is None:
             return
-
-        # Drive the USD agent prims (non-ego via the traffic manager + the ego
-        # override) to the current replay frame.
-        self._advance_replay_agent_prims()
-
-        # Collect agent states and sync to the pure-Python agent list so
-        # check_collision() and the renderer see the current poses.
-        agent_states = self._collect_agent_states_for_renderer()
-        self._agent_states = agent_states
-
-        # Notify the renderer of updated agent positions.
-        self._ensure_renderer()
-        self._renderer.update_agents(agent_states)
-
-        # Sync the bicycle-model ego fields from scenario/override data.
-        self._sync_base_ego_state()
-
-    def _advance_replay_agent_prims(self) -> None:
-        """Re-pose the IsaacSim USD agent prims to the current replay frame.
-
-        This is the USD-side, per-frame agent update shared by both env
-        drivers:
-
-        * :meth:`_pre_physics_step` — the IsaacLab ``DirectRLEnv`` / online-RL
-          path, and
-        * :meth:`step` — the path the
-          :class:`~navsafe.evaluation.evaluator.Evaluator` drives, which does
-          **not** route through ``_pre_physics_step``.
-
-        It delegates non-ego agents to the configured traffic manager (which
-        advances every replay track to ``env.scenario_timestep`` and toggles
-        per-frame visibility), then re-poses the ego prim from the active ego
-        override so the ego mesh tracks the planned trajectory instead of being
-        left frozen at its spawn pose.
-
-        It mutates only USD prim transforms — never the pure-Python ego or
-        collision state — and is a no-op when IsaacLab is unavailable or no
-        replay manager is attached, so the pure-Python step loop is unaffected.
-        """
-        if not _HAS_ISAACLAB:
-            return
-        if getattr(self, "agent_manager", None) is None:
-            return
-
-        # Let the traffic manager update the other agents. A manager
-        # that needs no USD stage was already stepped in step();
-        # stepping it again here would advance its actors twice per
-        # frame.
         if not getattr(self._traffic_manager, "stage_free", False):
             self._traffic_manager.step(self, self.cfg.dt)
-
-        # Pose the ego prim from whichever source owns the ego this
-        # step: the override when active; else the integrated ego
-        # state when the ego is driven by a controller; otherwise the
-        # traffic replay has already posed it.
-        ego_pose: Optional[Dict[str, Any]] = None
-        if self._ego_override_active and self._ego_override_state is not None:
-            ego_pose = self._ego_override_state
-        elif self._ego_externally_driven:
-            ego_pose = {
-                "position": np.array(
-                    [self._ego.x, self._ego.y, 0.0], dtype=np.float32),
-                "heading": float(self._ego.heading),
-            }
-        if ego_pose is not None:
-            ego_id = getattr(self.agent_manager, "ego_agent_id", None)
-            if ego_id is not None:
-                key = (0, ego_id)
-                prim_path = self.agent_manager.agent_prims.get(key)
-                if prim_path:
-                    prim = self.sim.stage.GetPrimAtPath(prim_path)
-                    if prim.IsValid():
-                        self.agent_manager._update_transform(prim, ego_pose)
-
-    def _apply_action(self) -> None:
-        """Apply actions to the simulation (no-op in replay mode).
-
-        Ported from ``ScenarioReplayEnv._apply_action``, which is a no-op:
-        in pure replay the ego/agent poses are driven by the replay manager
-        and the optional ego override in :meth:`_pre_physics_step`, not by an
-        action applied here.
-        """
-        pass
 
     # ------------------------------------------------------------------
     # Ego override (evaluator contract, ported from ScenarioReplayEnv)
@@ -1902,9 +1069,9 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
         """Build the renderer/collision agent-state list at the current step.
 
         Ported from ``ScenarioReplayEnv._collect_agent_states_for_renderer``.
-        When the IsaacSim replay manager is present it reads poses from the
-        manager's track data; otherwise it falls back to the pure-Python
-        log-replay agent list already maintained by :meth:`_update_agents`.
+        When the replay manager is present it reads poses from the manager's
+        track data; otherwise it falls back to the log-replay agent list
+        already maintained by :meth:`_update_agents`.
         """
         manager = getattr(self, "agent_manager", None)
         if manager is None or self._scenario_data is None:
@@ -1919,7 +1086,7 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
             getattr(self, "_traffic_manager", None), "pose_overrides", None) or {}
         states: List[Dict] = []
         # Beyond the end of the log, clamp the lookup to the last
-        # frame, as the replay manager does for its prims. Otherwise
+        # frame, as the replay manager does for its cursor. Otherwise
         # every agent would vanish from this list, and with it from
         # the renderer and the collision checks. An agent with a live
         # override is kept regardless.
@@ -2010,8 +1177,8 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
                 "ego_heading": heading,
                 "kind": "front" if longitudinal > 0.0 else "rear_end",
             }
-        # OBB found nothing: the contact came from the PhysX impulse path,
-        # which carries no relative geometry.
+        # OBB found nothing: the collision check's geometry disagrees with
+        # this one, so there is no relative geometry to report.
         return {"agent_id": None, "kind": "physical_impulse",
                 "ego_speed": float(self._ego.speed), "ego_heading": heading}
 
@@ -2063,9 +1230,8 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
 
         Ported from ``ScenarioReplayEnv.set_ego_override``. The evaluator
         calls this each frame to drive the ego along a model-planned
-        trajectory instead of replaying it from the log. Under IsaacSim the
-        override is applied to the ego prim in :meth:`_pre_physics_step`; the
-        pure-Python ego fields are kept in sync via :meth:`_sync_base_ego_state`.
+        trajectory instead of replaying it from the log. The ego fields are
+        kept in sync via :meth:`_sync_base_ego_state`.
 
         Args:
             position: ``(2,)`` or ``(3,)`` world-frame position ``[x, y, (z)]``.
@@ -2120,9 +1286,9 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
 
         For ``scenario_source="py123d"`` the Arrow scene is read directly via
         the configured loader (``scenario_path`` is informational — the data
-        root comes from ``cfg.py123d_data_root``). The USD scene itself is built
-        once in :meth:`_setup_scene` during ``__init__``; this populates the
-        scenario data (if not already) and resets the ego to the first frame.
+        root comes from ``cfg.py123d_data_root``). The scene is set up once in
+        :meth:`_setup_scene` during ``__init__``; this populates the scenario
+        data (if not already) and resets the ego to the first frame.
         """
         self._ensure_scenario_loaded()
         # Reset ego / counters to the scenario's first frame.
@@ -2144,7 +1310,7 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
         We set the ego override to the GT pose for the *next* step (so
         ``env.step()`` reproduces ``GT[frame+1]``) and return a no-op control
         action — the override wins over the bicycle dynamics in
-        :meth:`_pre_physics_step` / :meth:`_update_agents`.
+        :meth:`step`.
         """
         sd = self._scenario_data or {}
         meta = sd.get("metadata", {})
@@ -2169,105 +1335,8 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
             self.set_ego_override(position=p, heading=h, velocity=vel)
         return np.zeros(2, dtype=np.float32)
 
-    # Scene-dressing helpers, used only when building an Isaac Sim scene.
-    # Simulator imports are done inside the methods.
-
-
-    def _ego_start_xy(self) -> Optional[Tuple[float, float]]:
-        """Return the ego start ``(x, y)``, or ``None`` if unavailable.
-
-        Ported from ``ScenarioReplayEnv._ego_start_xy``.
-        """
-        xyh = self._ego_start_xyh()
-        return (xyh[0], xyh[1]) if xyh is not None else None
-
-    def _ego_start_xyh(self) -> Optional[Tuple[float, float, float]]:
-        """Return the ego start ``(x, y, heading)``, or ``None`` if unavailable.
-
-        Ported from ``ScenarioReplayEnv._ego_start_xyh``. Heading is derived
-        from the SDC track's initial motion, falling back to the stored
-        heading then ``0.0``.
-        """
-        try:
-            scenario = self._scenario_data
-            if not isinstance(scenario, dict):
-                return None
-            meta = scenario.get("metadata", {})
-            tracks = scenario.get("tracks", {})
-            ego_id = meta.get("sdc_id")
-            if ego_id is None or ego_id not in tracks:
-                ego_id = "ego" if "ego" in tracks else None
-            if ego_id is None:
-                return None
-            state = tracks[ego_id].get("state", {})
-            pos = state.get("position")
-            if pos is None or len(pos) == 0:
-                return None
-            import math
-
-            arr = np.asarray(pos)
-            p0 = arr[0]
-            x0, y0 = float(p0[0]), float(p0[1])
-            j = min(20, len(arr) - 1)
-            heading = 0.0
-            if j > 0:
-                dx = float(arr[j][0]) - x0
-                dy = float(arr[j][1]) - y0
-                if (dx * dx + dy * dy) > 1e-4:
-                    heading = math.atan2(dy, dx)
-                else:
-                    hd = state.get("heading")
-                    if hd is not None and len(hd) > 0:
-                        heading = float(np.asarray(hd)[0])
-            return (x0, y0, heading)
-        except Exception:
-            return None
-
-
-    def _build_combined_lidar_mesh(self) -> 'str | None':
-        return self._scene._build_combined_lidar_mesh()
-
-    def _resolve_ego_prim_path(self, configured: str) -> str:
-        return self._scene._resolve_ego_prim_path(configured)
-
-
-    def _setup_extra_sensors(self) -> None:
-        """Delegate to :meth:`SensorRig.setup` (the ego sensor subsystem)."""
-        self._sensors.setup()
-
-    def get_lidar_returns(self) -> Optional[np.ndarray]:
-        """Return the latest ray-cast LiDAR hit positions or ``None``.
-
-        Delegates to :meth:`SensorRig.get_lidar_returns`.
-        """
-        return self._sensors.get_lidar_returns()
-
-    def get_imu_state(self) -> Optional[Dict[str, np.ndarray]]:
-        """Return ``{lin_acc_b, ang_vel_b, quat_w}`` ndarrays or ``None``.
-
-        Delegates to :meth:`SensorRig.get_imu_state`.
-        """
-        return self._sensors.get_imu_state()
-
-    def get_contact_state(self) -> Optional[Dict[str, np.ndarray]]:
-        """Return contact-sensor net forces / pose, or ``None``.
-
-        Delegates to :meth:`SensorRig.get_contact_state`.
-        """
-        return self._sensors.get_contact_state()
-
-
-
-
     def get_ego_front_image_bgr(self) -> Optional[np.ndarray]:
         return self._cameras.get_ego_front_image_bgr()
-
-    def get_frame_transforms(self) -> Optional[Dict[str, np.ndarray]]:
-        """Return ego-to-target SE(3) transforms or ``None``.
-
-        Delegates to :meth:`SensorRig.get_frame_transforms`.
-        """
-        return self._sensors.get_frame_transforms()
 
     def _get_observations(self) -> Dict[str, Any]:
         """Compute observations based on cfg.obs_kind."""
@@ -2283,23 +1352,6 @@ class NavSafeEnv(DirectRLEnv):  # type: ignore[misc]
                     ego_state["speed"],
                 ], dtype=np.float32),
             }
-
-    def _get_rewards(self) -> Any:
-        """Compute rewards (DirectRLEnv interface)."""
-        return np.zeros(1, dtype=np.float32)
-
-    def _get_dones(self) -> Tuple[Any, Any]:
-        """Compute done flags (DirectRLEnv interface)."""
-        return np.array([False]), np.array([False])
-
-    def _reset_idx(self, env_ids: Any) -> None:
-        """Reset specific environment indices."""
-        # Reset the traffic manager for the new episode (rebuilds replay
-        # cursors / IDM actor state). Only meaningful on the IsaacSim path
-        # where an agent_manager exists; the pure-Python reset() resets the
-        # replay cursor directly via _scenario_timestep.
-        if _HAS_ISAACLAB and getattr(self, "agent_manager", None) is not None:
-            self._traffic_manager.reset(self)
 
     # ------------------------------------------------------------------
     # Cleanup (from abstract_env.py / abstract_rl_env.py)

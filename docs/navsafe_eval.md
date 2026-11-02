@@ -74,7 +74,6 @@ export BUNDLE="$NAVSAFE_DATA_ROOT/full_test/$TOKEN"
 export NUREC_GRPC_HOST="<renderer-host>"
 export NUREC_GRPC_PORT="<renderer-port>"        # default 8080
 export NUREC_GRPC_HANDOFF="$(navsafe bundle --handoff "$BUNDLE")"
-export ACCEPT_EULA=Y OMNI_KIT_ACCEPT_EULA=YES   # after accepting the NVIDIA terms
 
 navsafe eval \
   --py123d-data-root "$BUNDLE/arrow" --render-backend nurec_grpc \
