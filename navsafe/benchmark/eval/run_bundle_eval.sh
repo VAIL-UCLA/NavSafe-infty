@@ -217,6 +217,16 @@ PY
 export NUREC_GRPC_HOST=$RHOST NUREC_GRPC_PORT=$RPORT
 # recon renders with the reconstruction's own calibrated cameras.
 export NUREC_GRPC_CAM_RIG=${NUREC_GRPC_CAM_RIG:-recon} NUREC_GRPC_TIMEOUT_S="${NUREC_GRPC_TIMEOUT_S:-600}"
+# 5d12ad55fdd858e1: window s1 refuses the recipe's PEDESTRIAN class and takes
+# the car as VEHICLE. Carried over to s4, that class puts the car in a vehicle
+# layer that holds no Gaussians, and NRE fails on the first frame rendered from
+# s4 (IndexError in _get_calibrated_tracks). Negotiating the class per window
+# puts it in s4's pedestrian layer instead. The published results of this
+# scenario were produced this way (issue #2). Other scenarios keep the default.
+case "$TOKEN" in
+  5d12ad55fdd858e1)
+    export NAVSAFE_INSERT_CLASS_PER_SCENE="${NAVSAFE_INSERT_CLASS_PER_SCENE:-1}" ;;
+esac
 export PY123D_RECENTER=1
 export NUPLAN_MAP_VERSION="${NUPLAN_MAP_VERSION:-nuplan-maps-v1.0}"
 export PYTHONPATH="$REPO${ISAACLAB_PATH:+:$ISAACLAB_PATH}${PYTHONPATH:+:$PYTHONPATH}"

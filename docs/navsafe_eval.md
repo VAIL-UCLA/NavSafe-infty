@@ -62,6 +62,7 @@ The positional arguments are the token, the mode (`policy`, or `replay` to rende
 | `NAVSAFE_EVAL_FRAMES` | unset | Cap on scored frames. |
 | `NAVSAFE_REPLAN_RATE` | `5` | Simulation frames between policy calls. |
 | `NAVSAFE_KEEP_ARTIFACTS` | `0` | `1` keeps the auxiliary metrics that later re-scoring needs. |
+| `NAVSAFE_INSERT_CLASS_PER_SCENE` | unset (`1` for `5d12ad55fdd858e1`) | `1` makes each reconstruction window accept an inserted actor under the recipe's class when it can, instead of the class an earlier window fell back to. `run_bundle_eval.sh` sets it for `5d12ad55fdd858e1`, whose last window has an empty vehicle layer. |
 | `NRE_IMAGE` | `nvcr.io/nvidia/nre/nre-ga:26.04` | Renderer image. |
 
 ### Existing renderer
