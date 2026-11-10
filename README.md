@@ -40,6 +40,11 @@ This repository provides the toolbox for scenario mining, reconstruction prepara
   <em>Reconstructed scenes and editable actors connect policy planning to simulation feedback.</em>
 </p>
 
+## News
+
+- **`2026/11`**: NavSafe-∞ would be presented in [CoRL 2026 G4DWM-AD Workshop](https://arlo0o.github.io/Grounded-Driving-World-Models_Workshop/).
+- **`2026/10`**: NavSafe-∞ paper and codebase release. 
+
 ### Benchmark at a glance
 
 | Safety category | Capability evaluated |
