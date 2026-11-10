@@ -21,6 +21,11 @@
   <em>Strong open-loop scores do not guarantee safe closed-loop behavior.</em>
 </p>
 
+## News
+
+- **`2026/11`**: NavSafe-∞ would be presented in [CoRL 2026 G4DWM-AD Workshop](https://arlo0o.github.io/Grounded-Driving-World-Models_Workshop/).
+- **`2026/10`**: NavSafe-∞ paper and codebase release. 
+
 ## Overview
 
 **NavSafe-∞** benchmarks closed-loop driving safety in photorealistic reconstructed environments. The benchmark contains **280 scenarios across 28 safety event types**, with event-specific success and failure criteria. Camera observations reflect the evolving ego and actor states, allowing evaluation of how a policy interacts, recovers, and handles compounding errors.
@@ -40,11 +45,6 @@ This repository provides the toolbox for scenario mining, reconstruction prepara
   <em>Reconstructed scenes and editable actors connect policy planning to simulation feedback.</em>
 </p>
 
-## News
-
-- **`2026/11`**: NavSafe-∞ would be presented in [CoRL 2026 G4DWM-AD Workshop](https://arlo0o.github.io/Grounded-Driving-World-Models_Workshop/).
-- **`2026/10`**: NavSafe-∞ paper and codebase release. 
-
 ### Benchmark at a glance
 
 | Safety category | Capability evaluated |
@@ -59,7 +59,7 @@ Evaluation reports **driving score (DS)**, **success rate (SR)**, **driving effi
 ## Roadmap
 
 NavSafe-∞ is under active development. We maintain the benchmark, fix reported issues, and keep extending it. The following is planned:
-
+- [ ] **Proxy set for fast and efficient diagnosis and methodology development.** Provide an statistically important and correlated proxy subset for both open-loop and closed-loop evaluations without running whole benchmarks to support iterative methodology development for researchers.
 - [ ] **Higher rendering quality.** Improve the fidelity of the reconstructed scenes under large deviations from the logged trajectory. We follow progress in the vision and 3D Gaussian splatting communities closely and will keep incorporating new advances into the benchmark.
 - [ ] **More data.** Extend the benchmark beyond the current 280 scenarios with additional scenarios and source datasets.
 - [ ] **Automatic reasoning labeling.** Provide an automatic labeling pipeline that annotates scenarios with reasoning about the scene, to support the training and evaluation of reasoning-capable driving policies.
