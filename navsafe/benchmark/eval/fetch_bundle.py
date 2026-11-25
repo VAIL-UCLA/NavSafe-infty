@@ -3,8 +3,8 @@
 
 """Fetch whole published bundle directories from the `full_test/` prefix of a
 Hugging Face dataset repo -- everything `bundle.py --out <root> --token
-<TOKEN>` wrote (four `.usdz`, `offsets/`, `arrow/`, `manifest.json`,
-`README.md`), not just the raw usdz `fetch_usdz.py` pulls.
+<TOKEN>` wrote (the `.usdz`, `offsets/`, `arrow/`, `manifest.json`,
+`README.md`, `ground/`, `ah_assets/`), not just the raw usdz `fetch_usdz.py` pulls.
 
 Needed because rendering off a *published* bundle -- `bundle.py --handoff`,
 `serve-grpc --artifact-glob`, `NUREC_GRPC_HANDOFF` -- reads `manifest.json`

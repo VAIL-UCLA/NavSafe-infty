@@ -10,7 +10,8 @@ event type per bundle and ten bundles per event type, so selection is stratified
 not set cover. ``unused_scen/`` holds the bundles moved out that day as "not in
 the PDF allocation"; those are multi-event-type and are only counted under
 ``--include-unused``, which reproduces the older 417-manifest numbers via greedy
-set cover.
+set cover. ``unused_scen/`` exists only in the first-release dataset revision
+``v1-4x5s``.
 
     PYTHONPATH=<repo> python navsafe/tools/scenario_cover.py --k 2
 

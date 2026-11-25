@@ -26,7 +26,7 @@ Scripts for fetching scenario bundles, running a policy on them and rendering cl
 | Script | Purpose |
 | :--- | :--- |
 | `render_gif_batch.sh`, `gif_batch_jobs.py` | Render ego replays of many bundles as multi-camera GIFs, locally or as Kubernetes Jobs. |
-| `stitch_eval.sh`, `stitch_jobs.tsv` | Render one scenario's four windows as a single 20 s clip. |
+| `stitch_eval.sh`, `stitch_jobs.tsv` | Render the four 5 s windows of a first-release (`v1-4x5s`) bundle as a single 20 s clip. |
 
 ## Scoring
 

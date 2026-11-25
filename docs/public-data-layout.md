@@ -5,22 +5,24 @@ The dataset [c13752hz/NavSafe](https://huggingface.co/datasets/c13752hz/NavSafe)
 ```text
 <NAVSAFE_DATA_ROOT>/
 ├── full_test/<scenario-token>/    280 scenario bundles
-│   ├── manifest.json              scenario metadata, reconstruction windows
+│   ├── manifest.json              scenario metadata, reconstruction window
 │   ├── arrow/                     ego, traffic, map and route (py123d Arrow)
-│   ├── offsets/                   coordinate offset of each reconstruction window
-│   ├── <token>s1.usdz … s4.usdz   four 5 s NuRec reconstructions
+│   ├── offsets/                   coordinate offset of the reconstruction
+│   ├── <token>.usdz               one 20 s NuRec reconstruction (+ .sha256)
+│   ├── ground/                    road height of the reconstruction, for placing inserted actors
 │   └── ah_assets/                 harvested assets of this scenario's own actors
 ├── asset/                         actor assets inserted by recipes
 ├── gait_bank/                     posed copies of walking actors
-├── model_zoo/<model-directory>/   policy weights
-└── proxy/                         optional authoring subset
+└── model_zoo/<model-directory>/   policy weights
 ```
 
 ## Scenarios
 
-The benchmark has 280 scenarios: 28 event types with 10 scenarios each. Every scenario is one bundle, named by its token. A bundle covers 20 s of driving as four consecutive 5 s reconstructions; the renderer switches between them as the episode advances, using the windows and offsets listed in `manifest.json`.
+The benchmark has 280 scenarios: 28 event types with 10 scenarios each. Every scenario is one bundle, named by its token. A bundle covers 20 s of driving with one NuRec reconstruction of the whole window; its window and offset are listed in `manifest.json`. The ego poses of the reconstructions were refined with COLMAP (height, roll, pitch and yaw per frame; x and y as logged).
 
-Each bundle is about 8 GB, almost all of it the four `.usdz` files.
+Each bundle is about 1.4 GB, almost all of it the `.usdz` file.
+
+The first release served each scenario as four consecutive 5 s reconstructions (`<token>s1.usdz` … `s4.usdz`, about 8 GB per bundle). It stays available as the dataset revision `v1-4x5s` (`hf download ... --revision v1-4x5s`); results on the two versions are not comparable.
 
 ## Event types in files
 

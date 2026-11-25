@@ -6,11 +6,11 @@
 | :--- | :--- |
 | System | Linux x86-64 with an NVIDIA driver |
 | CPU and memory | At least 4 cores and 32 GB of RAM for the evaluator; about 16 GB more for the renderer |
-| GPUs | Up to 24 GB of VRAM for the renderer, plus what the simulator and policy need. Tested on two 24 GB RTX 3090s, one for each. |
-| Disk | About 25 GB for the Python environment, 28 GB for the renderer image and 8 GB per scenario bundle (2.2 TB for all 280) |
+| GPUs | One 24 GB GPU for the renderer together with a policy such as DrivoR. Larger policies can need a second GPU for the simulator and the policy. |
+| Disk | About 25 GB for the Python environment, 28 GB for the renderer image and 1.4 GB per scenario bundle (0.43 TB for all 280) |
 | Software | Python 3.12 and [uv](https://docs.astral.sh/uv/); Docker with NVIDIA GPU support, or an existing NuRec gRPC renderer |
 
-The renderer keeps a scenario's four reconstructions loaded, which takes about 18 GiB, and inserted assets, gait banks and harvested vehicles bring it to 24 GB or more ([measurements](navsafe_harvested_actors.md#renderer-vram)). On 24 GB GPUs it therefore needs a GPU to itself, with the simulator and policy on a second one. A single GPU with enough VRAM for both also works: give the renderer and the evaluator the same GPU index.
+Each scenario has one reconstruction, and the renderer keeps up to `--cache-size` of them loaded. The renderer and the evaluator can share one GPU: give both the same GPU index. Larger policies, or a larger `--cache-size`, can need a second GPU.
 
 ## Environment
 
@@ -28,7 +28,7 @@ Check the installation:
 ```bash
 navsafe --help
 navsafe eval --help
-navsafe event types        # lists the event-type definitions
+navsafe event-types        # lists the event-type definitions
 ```
 
 ### System packages

@@ -2,24 +2,23 @@
 
 This guide downloads the data, starts the renderer and evaluates a policy, on one scenario or on the whole benchmark. Install the [environment](installation.md) first.
 
-The NuRec renderer can use up to 24 GB of VRAM for one scenario, and the simulator and policy need their own. We evaluate on two 24 GB GPUs, one for each; a single larger GPU also works.
+One 24 GB GPU can run the NuRec renderer together with a policy such as DrivoR. Larger policies can need a second GPU for the simulator and the policy.
 
 ## Download the data
 
-The dataset is [c13752hz/NavSafe](https://huggingface.co/datasets/c13752hz/NavSafe); its layout is described in [data layout](public-data-layout.md).
+The dataset is [c13752hz/NavSafe](https://huggingface.co/datasets/c13752hz/NavSafe); its layout is described in [data layout](public-data-layout.md). The dataset is gated: accept its terms on the dataset page (access is granted at once), then log in with `hf auth login`.
 
 ```bash
 export NAVSAFE_DATA_ROOT="<absolute-dataset-directory>"
 hf download c13752hz/NavSafe --repo-type dataset --local-dir "$NAVSAFE_DATA_ROOT" \
-  --include "full_test/*" "asset/*" "gait_bank/*" "model_zoo/<model-directory>/*"
+  --include "full_test/*" --include "asset/*" --include "gait_bank/*" --include "model_zoo/<model-directory>/*"
 ```
 
 | Directory | Size | Contents |
 | :--- | ---: | :--- |
-| `full_test/` | 2.2 TB | The 280 scenario bundles, about 8 GB each. |
+| `full_test/` | 0.43 TB | The 280 scenario bundles, about 1.4 GB each. |
 | `asset/`, `gait_bank/` | 0.2 GB | Actor assets and gait banks used by recipes. |
 | `model_zoo/` | 178 GB | Policy weights, one directory per model. Download only the ones you evaluate. |
-| `proxy/` | 218 GB | Optional subset used for authoring. Not needed for evaluation. |
 
 Leave the downloaded `.ply` files and `bank.json` manifests unmodified, because recipes verify their hashes.
 
@@ -62,7 +61,7 @@ The positional arguments are the token, the mode (`policy`, or `replay` to rende
 | `NAVSAFE_EVAL_FRAMES` | unset | Cap on scored frames. |
 | `NAVSAFE_REPLAN_RATE` | `5` | Simulation frames between policy calls. |
 | `NAVSAFE_KEEP_ARTIFACTS` | `0` | `1` keeps the auxiliary metrics that later re-scoring needs. |
-| `NAVSAFE_INSERT_CLASS_PER_SCENE` | unset (`1` for `5d12ad55fdd858e1`) | `1` makes each reconstruction window accept an inserted actor under the recipe's class when it can, instead of the class an earlier window fell back to. `run_bundle_eval.sh` sets it for `5d12ad55fdd858e1`, whose last window has an empty vehicle layer. |
+| `NAVSAFE_INSERT_CLASS_PER_SCENE` | unset (`1` for `5d12ad55fdd858e1`) | `1` makes each reconstruction window accept an inserted actor under the recipe's class when it can, instead of the class an earlier window fell back to. It matters only for bundles with several windows (the `v1-4x5s` revision); `run_bundle_eval.sh` sets it for `5d12ad55fdd858e1`, whose last 5 s window there has an empty vehicle layer. |
 | `NRE_IMAGE` | `nvcr.io/nvidia/nre/nre-ga:26.04` | Renderer image. |
 
 ### Existing renderer
@@ -147,7 +146,7 @@ The run directory contains `scenarios/<token>/` (one evaluation each), `logs/`, 
 
 ### Sweep with an existing renderer
 
-On Kubernetes, or any host without Docker, run one renderer that serves every bundle and point the sweep at it. The renderer keeps four reconstructions loaded and loads the others on demand.
+On Kubernetes, or any host without Docker, run one renderer that serves every bundle and point the sweep at it. The renderer keeps up to `--cache-size` reconstructions loaded (one per scenario) and loads the others on demand.
 
 ```bash
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \

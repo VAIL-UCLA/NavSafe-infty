@@ -229,6 +229,7 @@ export NUREC_GRPC_CAM_RIG=${NUREC_GRPC_CAM_RIG:-recon} NUREC_GRPC_TIMEOUT_S="${N
 # s4 (IndexError in _get_calibrated_tracks). Negotiating the class per window
 # puts it in s4's pedestrian layer instead. The published results of this
 # scenario were produced this way (issue #2). Other scenarios keep the default.
+# With the one-window 20 s bundle the setting changes nothing.
 case "$TOKEN" in
   5d12ad55fdd858e1)
     export NAVSAFE_INSERT_CLASS_PER_SCENE="${NAVSAFE_INSERT_CLASS_PER_SCENE:-1}" ;;

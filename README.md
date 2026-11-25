@@ -70,7 +70,7 @@ NavSafe-∞ is meant to be a shared resource for closed-loop driving safety, and
 
 ### 1. Install
 
-Use **Linux x86-64**, **Python 3.12**, [uv](https://docs.astral.sh/uv/), and NVIDIA GPUs with a compatible driver. The renderer can use up to 24 GB of VRAM for one scenario, and the simulator and policy need their own on top. We ran the benchmark on two 24 GB RTX 3090s, one for the renderer and one for the simulator and policy; a single GPU with enough VRAM for both also works.
+Use **Linux x86-64**, **Python 3.12**, [uv](https://docs.astral.sh/uv/), and NVIDIA GPUs with a compatible driver. One 24 GB GPU can run the renderer together with a policy such as DrivoR. Larger policies can need a second GPU for the simulator and the policy.
 
 ```bash
 git clone --recurse-submodules https://github.com/VAIL-UCLA/NavSafe-infty.git
@@ -83,19 +83,20 @@ See the [installation guide](docs/installation.md) for simulator prerequisites, 
 
 ### 2. Download the dataset
 
-The dataset is on [Hugging Face](https://huggingface.co/datasets/c13752hz/NavSafe). Download the 280 scenarios with the shared actor assets and gait banks (about 2.2 TB), and the weights of the policy you want to evaluate:
+The dataset is on [Hugging Face](https://huggingface.co/datasets/c13752hz/NavSafe). The dataset is gated: accept its terms on the dataset page (access is granted at once), then log in. Download the 280 scenarios with the shared actor assets and gait banks (about 0.43 TB), and the weights of the policy you want to evaluate:
 
 ```bash
+hf auth login
 export NAVSAFE_DATA_ROOT="<absolute-dataset-directory>"
 hf download c13752hz/NavSafe --repo-type dataset --local-dir "$NAVSAFE_DATA_ROOT" \
-  --include "full_test/*" "asset/*" "gait_bank/*" "model_zoo/<model-directory>/*"
+  --include "full_test/*" --include "asset/*" --include "gait_bank/*" --include "model_zoo/<model-directory>/*"
 ```
 
 Keep the directory tree as downloaded; `NAVSAFE_DATA_ROOT` always points at its root. See [data layout](docs/public-data-layout.md).
 
 ```text
 <NAVSAFE_DATA_ROOT>/
-├── full_test/<scenario-token>/    one bundle per scenario, about 8 GB each
+├── full_test/<scenario-token>/    one bundle per scenario, about 1.4 GB each
 ├── asset/                         actor assets inserted by recipes
 ├── gait_bank/                     posed copies of walking actors
 └── model_zoo/<model-directory>/   policy weights
@@ -110,7 +111,7 @@ Pick a token from the dataset's `full_test/` directory. `--token` can be repeate
 export TOKEN="<scenario-token>"
 navsafe fetch --token "$TOKEN" --out "$NAVSAFE_DATA_ROOT"
 hf download c13752hz/NavSafe --repo-type dataset --local-dir "$NAVSAFE_DATA_ROOT" \
-  --include "asset/*" "gait_bank/*" "model_zoo/<model-directory>/*"
+  --include "asset/*" --include "gait_bank/*" --include "model_zoo/<model-directory>/*"
 ```
 
 </details>

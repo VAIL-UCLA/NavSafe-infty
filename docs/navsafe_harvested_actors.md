@@ -29,21 +29,7 @@ The renderer opens the asset files itself, so it must see the bank at the same a
 
 The number of replaced tracks is capped by `NUREC_GRPC_ASSET_REPLACE_MAX` (default 10), nearest to the ego first.
 
-### Renderer VRAM
-
-A replaced actor's asset is held once for every reconstruction window that contains the track, in addition to the four reconstructions and the harmonizer. Measured on one 24 GB GPU with one scenario's four windows:
-
-| State | VRAM used | Free |
-| :--- | ---: | ---: |
-| Idle (CUDA context and harmonizer) | 9.8 GiB | |
-| Four reconstructions loaded | 18.4 GiB | 6.2 GiB |
-| + 8 nearest tracks replaced (29 instances) | 21.4 GiB | 3.1 GiB |
-| + 16 nearest (54 instances) | 23.5 GiB | 1.0 GiB |
-| + all 26 (75 instances) | 24.1 GiB | 0.5 GiB |
-
-That is about 76 MiB per replaced instance. One camera render needs over 1 GiB of transient memory, so about 20 replaced tracks is the practical limit on a 24 GB GPU.
-
-Run the renderer with `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`. Without it, memory fragmentation makes the renderer fail after about 11 replaced tracks even though memory is free.
+Run the renderer with `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`. Without it, memory fragmentation can make the renderer fail when many tracks are replaced, even though memory is free.
 
 ### Recipes that require a bank
 
@@ -70,7 +56,7 @@ navsafe harvest harvest "<scene-id>"
 | `--keep-parse` | off | Keep the intermediate crops. |
 | `--force` | off | Redo work that is already on disk. |
 
-For a 20 s scenario the four 5 s windows are found and processed together. The output is written into the scenario's directory:
+For a 20 s scenario every reconstruction window of the scenario is found and processed together: the one 20 s window of the current bundles, or the four 5 s windows of the first release. The output is written into the scenario's directory:
 
 ```text
 <corpus>/<scene-id>/ah_assets/
@@ -87,7 +73,7 @@ For a 20 s scenario the four 5 s windows are found and processed together. The o
 1. **Parse** each window's clip into per-track image crops and masks.
 2. **Measure motion** from the clip's boxes, as net displacement from first to last observation. Summing per-frame steps would count annotation jitter as travel.
 3. **Select** the moving vehicles closest to the ego, one entry per track. A vehicle that appears in several windows is harvested once, from the window that saw it closest.
-4. **Lift** each track with Asset Harvester's multi-view diffusion and Gaussian reconstruction. This is the expensive step, about 40 s per asset on an RTX 3090.
+4. **Lift** each track with Asset Harvester's multi-view diffusion and Gaussian reconstruction. This is the expensive step.
 5. **Orient** the asset into the renderer's axis convention.
 6. **Check shape**: discard an asset whose proportions disagree with the track's box. The renderer scales an asset onto the box, so a wrong shape would render as a stretched vehicle. Rejected assets stay on disk but are left out of the manifest.
 
