@@ -23,6 +23,7 @@
 
 ## News
 
+- **`2026/11`**: NavSafe-∞ v0.2.0: every scenario is now one 20 s reconstruction with COLMAP-refined ego poses, for higher rendering quality. The dataset shrinks from about 2.2 TB to about 0.43 TB (1.4 GB instead of 8 GB per scenario). The first release stays available as the dataset revision `v1-4x5s`.
 - **`2026/11`**: NavSafe-∞ would be presented in [CoRL 2026 G4DWM-AD Workshop](https://arlo0o.github.io/Grounded-Driving-World-Models_Workshop/).
 - **`2026/10`**: NavSafe-∞ paper and codebase release. 
 
@@ -60,7 +61,7 @@ Evaluation reports **driving score (DS)**, **success rate (SR)**, **driving effi
 
 NavSafe-∞ is under active development. We maintain the benchmark, fix reported issues, and keep extending it. The following is planned:
 - [ ] **Proxy set for fast and efficient diagnosis and methodology development.** Provide an statistically important and correlated proxy subset for both open-loop and closed-loop evaluations without running whole benchmarks to support iterative methodology development for researchers.
-- [ ] **Higher rendering quality.** Improve the fidelity of the reconstructed scenes under large deviations from the logged trajectory. We follow progress in the vision and 3D Gaussian splatting communities closely and will keep incorporating new advances into the benchmark.
+- [x] **Higher rendering quality.** Improve the fidelity of the reconstructed scenes under large deviations from the logged trajectory. Done in v0.2.0: every scenario is one 20 s reconstruction with COLMAP-refined ego poses. We follow progress in the vision and 3D Gaussian splatting communities closely and will keep incorporating new advances into the benchmark.
 - [ ] **More data.** Extend the benchmark beyond the current 280 scenarios with additional scenarios and source datasets.
 - [ ] **Automatic reasoning labeling.** Provide an automatic labeling pipeline that annotates scenarios with reasoning about the scene, to support the training and evaluation of reasoning-capable driving policies.
 
@@ -83,7 +84,7 @@ See the [installation guide](docs/installation.md) for simulator prerequisites, 
 
 ### 2. Download the dataset
 
-The dataset is on [Hugging Face](https://huggingface.co/datasets/c13752hz/NavSafe). The dataset is gated: accept its terms on the dataset page (access is granted at once), then log in. Download the 280 scenarios with the shared actor assets and gait banks (about 0.43 TB), and the weights of the policy you want to evaluate:
+The dataset is on [Hugging Face](https://huggingface.co/datasets/c13752hz/NavSafe). The dataset is gated: accept its terms on the dataset page (access is granted at once), then log in. Download the 280 scenarios with the shared actor assets and gait banks (about 0.43 TB, down from about 2.2 TB in v0.1.0), and the weights of the policy you want to evaluate:
 
 ```bash
 hf auth login
