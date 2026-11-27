@@ -91,8 +91,8 @@ navsafe eval \
 | `--checkpoint` | required | Checkpoint path, or the adapter's sentinel such as `none` for `pdm_closed`. |
 | `--config` | unset | Model configuration, for adapters that need one. |
 | `--traffic-mode` | `log_replay` | `semi_reactive` lets background vehicles react to the ego; `navsafe` runs recipe actors. |
-| `--execution-mode` | `controller` | `controller` tracks the plan with a bicycle model, `physics` uses PhysX, `teleport` places the ego on the plan. |
-| `--controller` | `lqr` | Tracker for `controller` and `physics`: `lqr`, `pure_pursuit` or `pid`. |
+| `--execution-mode` | `controller` | `controller` tracks the plan with a bicycle model, `teleport` places the ego on the plan. |
+| `--controller` | `lqr` | Tracker for `controller`: `lqr`, `pure_pursuit` or `pid`. |
 | `--ego-replay-frames` | `8` | Logged warm-up frames before the policy takes over. |
 | `--replan-rate` | `5` | Simulation frames between policy calls: `5` is 2 Hz at the 10 Hz simulation rate. The cameras are rendered at the same rate, on the frames the policy reads them. |
 | `--eval-seed` | unset | Seeds Python, NumPy and Torch for policy sampling. |
