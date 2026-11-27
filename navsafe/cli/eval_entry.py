@@ -229,7 +229,9 @@ ap.add_argument(
     "--enable-vis",
     action="store_true",
     help="Write per-frame BEV/front-cam images and end-of-run GIFs under "
-         "<output_dir>/<scenario_id>/. Off by default (pure render+score; faster).",
+         "<output_dir>/<scenario_id>/. Off by default (pure render+score; faster). "
+         "Renders the cameras on every simulation step; without it they are "
+         "rendered on the frames the policy replans (--replan-rate).",
 )
 ap.add_argument(
     "--log-level",

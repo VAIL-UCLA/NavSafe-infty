@@ -1008,7 +1008,9 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
                         ) from exc
             images[name] = (rgb[:, :, ::-1].copy() if rgb is not None
                             else np.zeros((h, w, 3), np.uint8))  # RGB->BGR contract
-        if self._render_steps is not None:
+        # A call with no cameras only advances the per-step state above; it
+        # must not replace the frames kept for the skipped steps.
+        if self._render_steps is not None and images:
             self._last_images = {k: v.copy() for k, v in images.items()}
         return images
 

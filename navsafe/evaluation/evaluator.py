@@ -14,7 +14,8 @@ executed. The first ``ego_replay_frames`` steps replay the logged ego and are
 not scored.
 """
 
-from typing import Dict, Optional, Any, List, Sequence, Tuple
+from typing import Dict, Mapping, Optional, Any, List, Sequence, Tuple
+from types import MappingProxyType
 from pathlib import Path
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -57,6 +58,10 @@ from navsafe.core.execution_clock import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Stands in for the camera images of a frame whose capture was deferred
+# because nothing reads them; see Evaluator._images_for_inference.
+_DEFERRED_IMAGES: Mapping[str, np.ndarray] = MappingProxyType({})
 
 
 def _monotone_projected_route_arc(
@@ -331,6 +336,10 @@ class Evaluator:
         # with their authoritative Optional types so they are well-typed
         # regardless of the order mypy visits the methods that assign them.
         self._done: bool = False
+        # This frame's camera set and, once rendered, its images; see
+        # _images_for_inference.
+        self._frame_cam_configs: Dict[str, Dict[str, float]] = {}
+        self._frame_images: Optional[Dict[str, np.ndarray]] = None
         self._current_trajectory: Optional[np.ndarray] = None
         # Display-only: the most recent warm-up plan, held between replans so
         # the vis overlay does not flash. Never read by scoring.
@@ -947,9 +956,22 @@ class Evaluator:
             ego_state["command"] = int(self._current_command)
 
             # ── 2. Camera images from UrbanSim ─────────────────────────
+            # The cameras are rendered when something reads them: the policy,
+            # on the frames it replans, and the visualizer, on every frame.
+            # A frame with no reader still makes the capture call, with no
+            # cameras, so the renderer's per-step state (scene handoff, actor
+            # poses) advances exactly as before.
             cam_configs = self._capture_cam_configs()
+            self._frame_cam_configs = cam_configs
             _tr = _time.perf_counter()
-            images = self._capture_observer_images(cam_configs)
+            images: Mapping[str, np.ndarray]
+            if self._renders_every_frame() or self._inference_expected():
+                images = self._capture_observer_images(cam_configs)
+                self._frame_images = images
+            else:
+                self._capture_observer_images({})
+                images = _DEFERRED_IMAGES
+                self._frame_images = None
             self._prof_add('render_obs', _tr)
 
             # ── 3. Open-loop warm-up: replay ground-truth ego actions ───
@@ -1144,7 +1166,7 @@ class Evaluator:
                 _tv = _time.perf_counter()
                 self._render_frame_vis(
                     ego_state=ego_state,
-                    images=images,
+                    images=self._images_for_inference(images),
                     collision=collision,
                 )
                 self._prof_add('render_vis', _tv)
@@ -1282,6 +1304,44 @@ class Evaluator:
             }
             logger.error(f"[{self.scenario_id}] step {self.frame} error: {e}", exc_info=True)
             return False
+
+    def _renders_every_frame(self) -> bool:
+        """Whether the cameras are rendered on every simulation step.
+
+        Only visualization does: it writes one image per step. Otherwise the
+        cameras are rendered at ``replan_rate``, on the frames the policy reads
+        them; there is no option to render the frames it does not read.
+        """
+        cfg = self.config
+        return bool(cfg.enable_vis or cfg.vis_online or cfg.vis_extra_cameras)
+
+    def _inference_expected(self) -> bool:
+        """Whether the policy is called on this frame (steps 3 to 5 of
+        :meth:`_step`). A call this does not foresee still gets fresh images
+        through :meth:`_images_for_inference`."""
+        cfg = self.config
+        if self.frame < cfg.ego_replay_frames:
+            if self.frame % cfg.replan_rate:
+                return False
+            return bool(getattr(
+                self.adapter, "supports_warmup_inference", lambda: True)())
+        if self._cached_world_traj is None or self.frame == cfg.ego_replay_frames:
+            return True
+        return (self.frame - cfg.ego_replay_frames) % cfg.replan_rate == 0
+
+    def _images_for_inference(
+            self, images: Mapping[str, np.ndarray]) -> Dict[str, np.ndarray]:
+        """The camera images for a policy call, rendered now if this frame's
+        capture was deferred. The result is kept, so a second call on the same
+        frame reuses it."""
+        if images is not _DEFERRED_IMAGES:
+            return images  # type: ignore[return-value]
+        if self._frame_images is None:
+            _tr = _time.perf_counter()
+            self._frame_images = self._capture_observer_images(
+                self._frame_cam_configs)
+            self._prof_add('render_obs', _tr)
+        return self._frame_images
 
     def _capture_cam_configs(self) -> Dict[str, Dict[str, float]]:
         """Cameras to render this frame: the adapter's, plus vis-only extras.
@@ -1541,7 +1601,7 @@ class Evaluator:
         sys.stderr.flush()
 
     def _execute_teleport_step(
-        self, ego_state: Dict, images: Dict, needs_replan: bool,
+        self, ego_state: Dict, images: Mapping[str, np.ndarray], needs_replan: bool,
         replan_offset: int,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Teleport execution: advance by arc length at the plan's pacing
@@ -1715,7 +1775,7 @@ class Evaluator:
             dtype=np.float64,
         )
 
-    def _run_inference_and_cache(self, ego_state: Dict, images: Dict) -> None:
+    def _run_inference_and_cache(self, ego_state: Dict, images: Mapping[str, np.ndarray]) -> None:
         """Run model inference, interpolate trajectory, and cache in world coords.
 
         Mirrors BridgeSim's process_frame steps 4-6:
@@ -1755,7 +1815,7 @@ class Evaluator:
             ego_state["_execution_max_steer_angle_rad"] = float(max_steer)
 
         model_input = self.adapter.prepare_input(
-            images=images,
+            images=self._images_for_inference(images),
             ego_state=ego_state,
             scenario_data=self.scenario_data,
             frame_id=self.frame,

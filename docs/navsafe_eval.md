@@ -54,12 +54,12 @@ The positional arguments are the token, the mode (`policy`, or `replay` to rende
 | `NAVSAFE_OUT` | `output/bundle_<token>` | Output directory. Set it per model, seed and configuration. |
 | `NAVSAFE_ASSET_MOUNT` | unset | Colon-separated directories bound into the renderer at the same path. Required for edited scenarios. |
 | `NAVSAFE_HARMONIZER_CACHE` | unset | Directory for the harmonizer weights. Setting it enables the harmonizer. |
-| `NAVSAFE_ENABLE_VIS` | `1` | `0` disables images and GIFs. |
+| `NAVSAFE_ENABLE_VIS` | `1` | `0` disables images and GIFs. With them, the cameras are rendered on every simulation step and not only when the policy replans. |
 | `NAVSAFE_VIS_CAMS` | unset | Extra cameras to render for the artifacts, for example `CAM_B0`. |
 | `NAVSAFE_CONTROLLER` | `pure_pursuit` | Trajectory tracker: `pure_pursuit`, `lqr` or `pid`. |
 | `NAVSAFE_ROUTE_TIME_LIMIT_S` | `0` | Route time budget in seconds; `0` disables it. |
 | `NAVSAFE_EVAL_FRAMES` | unset | Cap on scored frames. |
-| `NAVSAFE_REPLAN_RATE` | `5` | Simulation frames between policy calls. |
+| `NAVSAFE_REPLAN_RATE` | `5` | Simulation frames between policy calls, and between camera renders when visualization is off. |
 | `NAVSAFE_KEEP_ARTIFACTS` | `0` | `1` keeps the auxiliary metrics that later re-scoring needs. |
 | `NAVSAFE_INSERT_CLASS_PER_SCENE` | unset (`1` for `5d12ad55fdd858e1`) | `1` makes each reconstruction window accept an inserted actor under the recipe's class when it can, instead of the class an earlier window fell back to. It matters only for bundles with several windows (the `v1-4x5s` revision); `run_bundle_eval.sh` sets it for `5d12ad55fdd858e1`, whose last 5 s window there has an empty vehicle layer. |
 | `NRE_IMAGE` | `nvcr.io/nvidia/nre/nre-ga:26.04` | Renderer image. |
@@ -94,13 +94,13 @@ navsafe eval \
 | `--execution-mode` | `controller` | `controller` tracks the plan with a bicycle model, `physics` uses PhysX, `teleport` places the ego on the plan. |
 | `--controller` | `lqr` | Tracker for `controller` and `physics`: `lqr`, `pure_pursuit` or `pid`. |
 | `--ego-replay-frames` | `8` | Logged warm-up frames before the policy takes over. |
-| `--replan-rate` | `5` | Simulation frames between policy calls: `5` is 2 Hz at the 10 Hz simulation rate. |
+| `--replan-rate` | `5` | Simulation frames between policy calls: `5` is 2 Hz at the 10 Hz simulation rate. The cameras are rendered at the same rate, on the frames the policy reads them. |
 | `--eval-seed` | unset | Seeds Python, NumPy and Torch for policy sampling. |
 | `--terminate-on-collision` | off | End the episode on any ego contact. The benchmark uses it. |
 | `--eval-frames` | unset | Cap on scored frames. |
 | `--route-time-limit-s` | `60` | Route time budget when no frame cap is set; `0` disables it. |
 | `--camera-resolution-scale` | `0.5` | Scale of the policy's camera input. |
-| `--enable-vis` | off | Write images and GIFs; renders every simulation step. |
+| `--enable-vis` | off | Write images and GIFs. The cameras are then rendered on every simulation step (10 Hz), which is several times slower. |
 | `--vis-cameras` | unset | Extra cameras for the artifacts; requires `--enable-vis`. |
 | `--recipe`, `--recipe-dir` | unset | Apply a recipe; see [edited scenarios](navsafe_eval_edited_scene.md). |
 | `--output-dir` | required | Directory for this run's metrics and artifacts. |
