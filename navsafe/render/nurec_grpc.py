@@ -72,6 +72,17 @@ harvested assets that replace the reconstruction's own actors
 
 ``close()`` restores the scenes, undoing inserts and replacements.
 
+*Rig pose.* The camera rig's xy comes from the simulator; its pitch and roll
+from the reconstruction's own rig trajectory, at the log frame the ego is at.
+The scenario's ego heading is the vehicle's logged heading, while NavSafe-280 r6
+trained on COLMAP-refined rig poses whose yaw differs from it by up to ~2 deg
+(a sensor-mount offset); the camera adds that yaw difference to the heading.
+The rig z is the training rig z at the matched log frame plus the ground map's
+rise from that frame's rig position to the live one. The released arrows carry
+the training-rig z and the training-world boxes (``arrow.poses =
+"reconstruction"`` in the bundle manifest), so actors are sent as the data
+gives them.
+
 Diagnostics
 -----------
 ``NUREC_GRPC_CAM_LATERAL_M`` shifts the camera rig sideways in the ego frame
@@ -219,6 +230,10 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
         self._sd_ego_z = 0.0
         self._sd_ego_z_arr = None  # per-frame recorded ego z (road altitude)
         self._sd_ego_xy_arr = None  # per-frame recorded ego xy (same frame as runtime pos)
+        self._sd_ego_heading_arr = None  # per-frame recorded ego heading (rad)
+        # scene_id -> the training rig trajectory per scenario frame, or None;
+        # see _recon_rig_correction.
+        self._rig_corr_cache: Dict[str, Any] = {}
         # A 3DGS reconstruction has finite novel-view coverage. Closed-loop
         # policies can leave it even though the simulator itself remains
         # numerically valid; the result is the familiar crystal/splat mush.
@@ -489,6 +504,8 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
         self._sd_ego_z = float(self._read_sd_ego_z(scenario_data, meta))
         self._sd_ego_z_arr, self._sd_ego_xy_arr = self._read_sd_ego_track(
             scenario_data, meta)
+        self._sd_ego_heading_arr = self._read_sd_ego_heading(scenario_data, meta)
+        self._rig_corr_cache = {}
         # The env recenters the track XY to a local frame (ego frame-0 == origin),
         # so the scenario_data tracks give local (0,0), NOT sd-world. The true
         # sd-world ego start is -origin_offset (the r2s pipeline sets the offset
@@ -2364,9 +2381,141 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
         table = self._tilt_cache[sid]
         if table is None:
             return None
-        ts, tilts = table
+        ts, tilts = table[0], table[1]
         i = int(np.argmin(np.abs(ts - int(t_us))))
         return tilts[i]
+
+    def _recon_rig_correction(self, scene_id: Optional[str]):
+        """The training rig trajectory at every scenario frame, or None.
+
+        A dict of arrays indexed by scenario frame j: ``z`` and ``xy`` (the
+        training rig position at the frame's time), ``t`` (that time, us),
+        ``dyaw`` (training rig yaw minus the logged heading, rad), ``valid``
+        (a trajectory pose within 60 ms; under a handoff a sub-clip covers
+        only its own window), and the flags ``z_ok`` / ``yaw_ok``.
+
+        A reconstruction trained on refined poses differs from the log.
+        NavSafe-280 r6 applies a per-frame COLMAP correction
+        ``T_rig_world @ D(t)`` with D = z, roll, pitch, yaw and x, y kept. On
+        the released v2 arrows the logged z is up to 0.65 m off the training
+        rig and the heading up to 2.4 deg (280 scenarios); against the real
+        nuPlan frames that measured as up to ~25 px horizontal and ~75 px
+        vertical (near road) image shift. The posefix arrows carry the
+        training-rig z, so there ``dz`` is ~0 and only ``dyaw`` (the
+        sensor-mount yaw offset, kept out of the ego's body heading) remains.
+
+        ``z_ok`` / ``yaw_ok`` are False when the two disagree on the z datum
+        (median |dz| > 0.5 m) or the heading convention (median |dyaw| >
+        3 deg): those are frame mismatches, not pose refinements. None when
+        the server has no trajectory or the scenario no timestamps or track.
+        """
+        if scene_id is None:
+            return None
+        if scene_id in self._rig_corr_cache:
+            return self._rig_corr_cache[scene_id]
+        self._rig_corr_cache[scene_id] = None
+        z_sd, h_sd = self._sd_ego_z_arr, self._sd_ego_heading_arr
+        if z_sd is None or not self._timestamps_us:
+            return None
+        if scene_id not in self._tilt_cache:
+            self._tilt_cache[scene_id] = self._fetch_tilt_table(scene_id)
+        table = self._tilt_cache[scene_id]
+        if table is None or len(table) < 5:
+            return None
+        ts, _, z_tr, yaw_tr, xy_tr = table
+        n = min(len(z_sd), len(self._timestamps_us))
+        t = np.asarray(self._timestamps_us[:n], np.float64)
+        tsf = ts.astype(np.float64)
+        k = np.clip(np.searchsorted(tsf, t), 1, len(tsf) - 1)
+        gap = np.minimum(np.abs(tsf[k] - t), np.abs(tsf[k - 1] - t))
+        N = len(z_sd)
+        valid = np.zeros(N, bool)
+        valid[:n] = gap <= 60_000
+        if not valid.any():
+            return None
+        c = {"valid": valid, "t": np.zeros(N), "z": np.zeros(N),
+             "xy": np.zeros((N, 2)), "dyaw": np.zeros(N)}
+        c["t"][:n] = t
+        c["z"][:n] = np.interp(t, tsf, z_tr)
+        c["xy"][:n, 0] = np.interp(t, tsf, xy_tr[:, 0])
+        c["xy"][:n, 1] = np.interp(t, tsf, xy_tr[:, 1])
+        dz = c["z"] - np.asarray(z_sd, np.float64)
+        med_dz = float(np.median(np.abs(dz[valid])))
+        c["z_ok"] = med_dz <= 0.5
+        c["yaw_ok"] = False
+        med_dyaw = float("nan")
+        if h_sd is not None and len(h_sd) == N:
+            dyaw = np.zeros(N)
+            dyaw[:n] = np.interp(t, tsf, np.unwrap(yaw_tr)) - np.asarray(h_sd[:n], np.float64)
+            dyaw = (dyaw + math.pi) % (2 * math.pi) - math.pi
+            dyaw[~valid] = 0.0
+            c["dyaw"] = dyaw
+            med_dyaw = math.degrees(float(np.median(np.abs(dyaw[valid]))))
+            c["yaw_ok"] = med_dyaw <= 3.0
+        if not (c["z_ok"] and c["yaw_ok"]):
+            logger.warning(
+                "nurec_grpc: %s training rig vs logged ego: median |dz| %.2f m, "
+                "|dyaw| %.2f deg -- treated as a frame mismatch for %s", scene_id,
+                med_dz, med_dyaw, " and ".join(
+                    k for k, ok in (("z", c["z_ok"]), ("yaw", c["yaw_ok"])) if not ok))
+        logger.info(
+            "nurec_grpc: %s training rig vs log over %d/%d frames: dz %+.3f..%+.3f m, "
+            "dyaw %+.2f..%+.2f deg", scene_id, int(valid.sum()), N,
+            float(dz[valid].min()), float(dz[valid].max()),
+            math.degrees(float(c["dyaw"].min())), math.degrees(float(c["dyaw"].max())))
+        self._rig_corr_cache[scene_id] = c
+        return c
+
+    def _ground_z_smooth(self, x: float, y: float) -> Optional[float]:
+        """:meth:`_ground_z_at` made continuous: bilinear between cell centres.
+
+        The plain lookup is constant over each 0.5 m cell, so a camera that
+        follows it steps by up to a few cm whenever it crosses a cell edge
+        (frame-to-frame jitter 1.4-3.0 cm p95 on five r6 scenarios, against
+        0.5-1.2 cm for the training rig itself).
+        """
+        if self._ground_z_at(x, y) is None:  # loads the map; None without one
+            return None
+        g = self._ground_map
+        cell = float(g["cell"])
+        u = (x - float(g["x0"])) / cell - 0.5
+        v = (y - float(g["y0"])) / cell - 0.5
+        i, j = math.floor(u), math.floor(v)
+        fu, fv = u - i, v - j
+        c = lambda a, b: self._ground_z_at(float(g["x0"]) + (a + 0.5) * cell,
+                                           float(g["y0"]) + (b + 0.5) * cell)
+        return ((1 - fu) * (1 - fv) * c(i, j) + fu * (1 - fv) * c(i + 1, j)
+                + (1 - fu) * fv * c(i, j + 1) + fu * fv * c(i + 1, j + 1))
+
+    def _multi_window(self) -> bool:
+        """True under a handoff of more than one reconstruction window."""
+        return bool(self._handoff) and len(self._handoff) > 1
+
+    def _rig_z(self, x: float, y: float, pos_xy, j: int, corr) -> float:
+        """Rig origin z for a rig at world (x, y).
+
+        The training rig z at the matched log frame j plus the ground map's
+        rise from that frame's rig xy to (x, y). Exactly the training z on the
+        log; the map supplies only the off-log part, so a local error of the
+        map (a flat patch at a clip start) cancels. Without a ground map, or
+        under a multi-window handoff, the training z at frame j.
+
+        Falls back to the scenario's ego z at frame j when there is no
+        training trajectory or it disagrees with the scenario on the z datum
+        (``z_ok``). The scenario z alone is not enough: the released v2 arrows
+        (logged ego z) were off the training z by up to 0.65 m (p95 per
+        scenario, 280 scenarios); the corrected arrows carry the training z,
+        so the two agree on the log.
+        """
+        z_log = self._ego_z_now(pos_xy)
+        if corr is None or not corr["z_ok"] or not (
+                j < len(corr["valid"]) and corr["valid"][j]):
+            return z_log
+        g_here = None if self._multi_window() else self._ground_z_smooth(x, y)
+        g_log = None if g_here is None else self._ground_z_smooth(*corr["xy"][j])
+        if g_log is None:
+            return float(corr["z"][j])
+        return float(corr["z"][j]) + g_here - g_log
 
     @staticmethod
     def _strip_yaw(mats: np.ndarray) -> np.ndarray:
@@ -2414,11 +2563,14 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
                            p.pose.quat.w] for p in poses], np.float64)
         mats = R.from_quat(quats).as_matrix()
         tilts = self._strip_yaw(mats)
+        z = np.array([float(p.pose.vec.z) for p in poses], np.float64)
+        yaw = np.arctan2(mats[:, 1, 0], mats[:, 0, 0])
         pr = R.from_matrix(tilts).as_euler("ZYX", degrees=True)
         logger.info("nurec_grpc: rig attitude from the training trajectory for "
                     "%s (%d poses, frame-0 pitch %+.3f deg roll %+.3f deg)",
                     scene_id, len(poses), pr[0, 1], pr[0, 2])
-        return ts, tilts
+        xy = np.array([[float(p.pose.vec.x), float(p.pose.vec.y)] for p in poses], np.float64)
+        return ts, tilts, z, yaw, xy
 
     def _ego_rig_to_world(self, ego_state: dict,
                           t_us: Optional[int] = None) -> np.ndarray:
@@ -2449,10 +2601,25 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
             # origin.
             nre_x -= float(Rz[0, 0] * lever[0] + Rz[0, 1] * lever[1])
             nre_y -= float(Rz[1, 0] * lever[0] + Rz[1, 1] * lever[1])
+        # z, yaw and tilt at the log frame the ego is at (j, by position, as
+        # in _ego_z_now). z: see _rig_z. Yaw: the simulator heading plus the
+        # training rig's yaw correction at j (the sensor-mount offset). The
+        # lever above stays on the heading: it is the vehicle body axis, while
+        # the correction turns the sensor rig. Tilt: the recorded pitch/roll
+        # at j (by time when there is no matched frame).
+        corr = self._recon_rig_correction(self._scene_id)
+        j = self._track_index(pos[:2])
+        on = corr is not None and j < len(corr["valid"]) and bool(corr["valid"][j])
+        z = self._rig_z(nre_x, nre_y, pos[:2], j, corr)
+        if on and corr["yaw_ok"]:
+            th = heading + float(corr["dyaw"][j])
+            Rz = np.array([[math.cos(th), -math.sin(th), 0.0],
+                           [math.sin(th),  math.cos(th), 0.0],
+                           [0.0, 0.0, 1.0]])
         m = np.eye(4)
-        tilt = self._recorded_tilt(t_us)
+        tilt = self._recorded_tilt(int(corr["t"][j]) if on else t_us)
         m[:3, :3] = Rz if tilt is None else Rz @ tilt
-        m[:3, 3] = [nre_x, nre_y, self._ego_z_now(pos[:2])]
+        m[:3, 3] = [nre_x, nre_y, z]
         return m
 
     def _ego_anchor_lever(self, heading: float) -> Optional[np.ndarray]:
@@ -2551,13 +2718,34 @@ class NuRecGrpcSceneRenderer(SceneRenderer):
         z_arr = self._sd_ego_z_arr
         if z_arr is None or not len(z_arr):
             return self._sd_ego_z
-        i = min(max(self._cur_step, 0), len(z_arr) - 1)
+        return float(z_arr[self._track_index(pos_xy)])
+
+    def _track_index(self, pos_xy=None) -> int:
+        """The recorded-track frame a live pose sits at (see ``_ego_z_now``).
+
+        The nearest recorded xy in a +-50-frame window around the replay
+        cursor; the cursor itself without xy or without the track.
+        """
+        z_arr = self._sd_ego_z_arr
+        n = len(z_arr) if z_arr is not None else 0
+        i = min(max(self._cur_step, 0), max(n - 1, 0))
         xy_arr = self._sd_ego_xy_arr
-        if pos_xy is not None and xy_arr is not None and len(xy_arr) == len(z_arr):
-            lo, hi = max(0, i - 50), min(len(z_arr), i + 51)
+        if pos_xy is not None and n and xy_arr is not None and len(xy_arr) == n:
+            lo, hi = max(0, i - 50), min(n, i + 51)
             d = xy_arr[lo:hi] - np.asarray(pos_xy, np.float64)
             i = lo + int(np.argmin(np.einsum("ij,ij->i", d, d)))
-        return float(z_arr[i])
+        return i
+
+    @classmethod
+    def _read_sd_ego_heading(cls, scenario_data: dict, meta: dict):
+        """Per-frame recorded ego heading (rad), None when unavailable."""
+        try:
+            sdc = cls._find_sdc(scenario_data, meta)
+            h = np.asarray(scenario_data["tracks"][sdc]["state"]["heading"],
+                           np.float64).reshape(-1)
+            return h.copy() if len(h) else None
+        except Exception:
+            return None
 
     @classmethod
     def _read_sd_ego_track(cls, scenario_data: dict, meta: dict):
